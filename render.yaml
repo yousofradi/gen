@@ -23,7 +23,7 @@ services:
     rootDir: frontend
     buildCommand: find . -name "api.js" -exec sed -i "s|API_URL_PLACEHOLDER|${API_URL}|g" {} +
     publishPath: ./
-    envVars:
+    envVars: 
       - key: API_URL
         sync: false
     headers:
