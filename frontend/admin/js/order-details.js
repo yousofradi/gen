@@ -166,10 +166,10 @@ function renderItems() {
             </div>
           </div>
           
-          <!-- Left side: Unit Price Block and Total Price swapped -->
+          <!-- Left side: Unit Price Block and Total Price -->
           <div style="display: flex; align-items: center; gap: 16px; flex: 1; justify-content: space-between;">
-            <div style="font-weight: 700; font-size: 1rem; color: #1e293b; min-width: 80px; text-align: right; flex: 1;">${formatPrice(item.finalPrice)}</div>
-            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: left; flex: 1;" dir="ltr">${formatPrice(unitPrice)} × ${item.quantity}</div>
+            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${item.quantity} x ${formatPrice(unitPrice)}</div>
+            <div style="font-weight: 700; font-size: 1rem; color: #1e293b; min-width: 80px; text-align: left; flex: 1;">${formatPrice(item.finalPrice)}</div>
           </div>
         </div>
 

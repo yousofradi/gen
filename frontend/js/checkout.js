@@ -91,7 +91,8 @@ function renderOrderSummary(items) {
         `}
       </div>
       <div class="cart-item-info" style="flex:1; text-align:right;">
-        <div class="cart-item-name" style="font-weight:700; font-size:0.9rem;">${item.name} × ${item.quantity}</div>
+        <div class="cart-item-name" style="font-weight:700; font-size:0.9rem;">${item.name}</div>
+        <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500;">${item.quantity} x ${formatPrice(item.unitPrice)}</div>
         <div class="cart-item-options" style="font-size:0.8rem; color:#64748b;">${item.selectedOptions.map(o => `${o.groupName}: ${o.label}`).join(', ')}</div>
       </div>
       <div class="cart-item-price" style="flex-shrink:0; font-weight:700; color:var(--primary, #916C4F);">${formatPrice(item.unitPrice * item.quantity)}</div>
