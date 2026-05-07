@@ -412,8 +412,11 @@ router.get('/bulk/invoice', adminAuth, async (req, res) => {
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
 * { font-family: 'Cairo', sans-serif !important; box-sizing: border-box; }
 @page { size: A5; margin: 4mm; }
 body { margin: 0; padding: 0; background: #f5f5f5; }
@@ -433,6 +436,8 @@ body { margin: 0; padding: 0; background: #f5f5f5; }
 }
 .page:last-child { page-break-after: auto; break-after: auto; }
 .invoice-wrapper { width: 100%; transform-origin: center center; }
+table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+td, th { padding: 2px 4px; line-height: 1.3; }
 @media print {
   body { background: transparent; }
   .page { margin: 0; box-shadow: none; width: 140mm; height: 202mm; }
@@ -490,8 +495,11 @@ router.get('/:orderId/invoice', adminAuth, async (req, res) => {
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
 * { font-family: 'Cairo', sans-serif !important; box-sizing: border-box; }
 @page { size: A5; margin: 4mm; }
 body { margin: 0; padding: 0; background: #f5f5f5; }
@@ -508,6 +516,8 @@ body { margin: 0; padding: 0; background: #f5f5f5; }
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 .invoice-wrapper { width: 100%; transform-origin: center center; }
+table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+td, th { padding: 2px 4px; line-height: 1.3; }
 @media print {
   body { background: transparent; }
   .page { margin: 0; box-shadow: none; width: 140mm; height: 202mm; }
