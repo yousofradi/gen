@@ -317,7 +317,7 @@ window.deleteOrder = async function (orderId) {
   }
 };
 
-// ── Download Bulk Invoices PDF ───────────────────────────
+// ── Print Bulk Invoices ───────────────────────────
 window.printInvoices = async function () {
   const adminKey = localStorage.getItem('adminKey') || '';
   const btn = document.getElementById('print-invoices-btn');
@@ -335,24 +335,25 @@ window.printInvoices = async function () {
     if (!response.ok) throw new Error();
     const htmlContent = await response.text();
     
-    const element = document.createElement('div');
-    element.innerHTML = htmlContent;
+    let iframe = document.getElementById('print-iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'print-iframe';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
     
-    const opt = {
-      margin: 10,
-      filename: `جميع-الفواتير-${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 3, 
-        useCORS: true, 
-        letterRendering: false,
-        width: 500
-      },
-      jsPDF: { unit: 'px', hotfixes: ['px_scaling'], format: [500, 700], orientation: 'portrait' }
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+    
+    iframe.contentWindow.onload = () => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
     };
-    
-    await html2pdf().from(element).set(opt).save();
-    showToast('تم تحميل جميع الفواتير');
+
+    showToast('تم تجهيز الطباعة');
   } catch (err) {
     showToast('فشل تحميل الفواتير', 'error');
   } finally {

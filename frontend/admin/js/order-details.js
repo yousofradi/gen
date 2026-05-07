@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
-  // Action: Download Invoice PDF
+  // Action: Print Invoice
   window.openInvoice = async () => {
     if (!currentOrder) return;
     const adminKey = localStorage.getItem('adminKey') || '';
@@ -74,24 +74,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!response.ok) throw new Error();
       const htmlContent = await response.text();
       
-      const element = document.createElement('div');
-      element.innerHTML = htmlContent;
+      // Use an iframe to print securely without showing the key in URL
+      // This also avoids the html2pdf/html2canvas distortion issues
+      let iframe = document.getElementById('print-iframe');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'print-iframe';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
       
-      const opt = {
-        margin: 0,
-        filename: `فاتورة-${currentOrder.orderId}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 3, 
-          useCORS: true, 
-          letterRendering: false, // Prevents the letter spacing issues
-          width: 500
-        },
-        jsPDF: { unit: 'px', hotfixes: ['px_scaling'], format: [500, 700], orientation: 'portrait' }
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(htmlContent);
+      doc.close();
+      
+      // Wait for resources (fonts) to load
+      iframe.contentWindow.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
       };
       
-      html2pdf().from(element).set(opt).save();
-      showToast('تم تحميل الفاتورة');
+      showToast('تم تجهيز الطباعة');
     } catch (err) {
       showToast('فشل تحميل الفاتورة', 'error');
     }
