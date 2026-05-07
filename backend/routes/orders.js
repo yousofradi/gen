@@ -309,17 +309,13 @@ router.put('/:orderId', adminAuth, async (req, res) => {
   }
 });
 
-// Helper to format invoice HTML for a single order
-async function generateInvoiceHtml(order, settings) {
+// Helper to format invoice HTML for a single order (Inner content)
+async function generateInvoiceInnerHtml(order, settings) {
   const safe = (val) => (val === undefined || val === null) ? '' : String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const num = (val) => Number(val) || 0;
-  
-  // Use invoicePrefix as the Arabic brand name if available, fallback to storeName
   const brandName = settings.invoicePrefix || settings.storeName || 'المتجر';
-  
-  // FIXED COLORS as per previous request
-  const primaryColor = '#4a2c0a'; // Dark Brown
-  const secondaryColor = '#b84a20'; // Reddish Brown
+  const primaryColor = '#4a2c0a'; 
+  const secondaryColor = '#b84a20';
 
   const productsHtml = order.items.map((p) => {
     const unitPrice = p.basePrice + (p.selectedOptions || []).reduce((s, op) => s + (op.price || 0), 0);
@@ -336,7 +332,7 @@ async function generateInvoiceHtml(order, settings) {
 
   const notesArray = order.customer.notes ? order.customer.notes.split('-').filter(n => n.trim() !== '') : [];
   const notesHtml = notesArray.length
-    ? notesArray.map(n => `<div style="margin-bottom:4px;">• ${safe(n.replace(/^-/, '').trim())}</div>`).join('')
+    ? notesArray.map(n => `<div style="margin-bottom:2px;">• ${safe(n.replace(/^-/, '').trim())}</div>`).join('')
     : `<div>لا توجد ملاحظات</div>`;
 
   const sub = order.items.reduce((s, i) => s + i.finalPrice, 0);
@@ -352,94 +348,118 @@ async function generateInvoiceHtml(order, settings) {
   if (remaining === 0) remtext = 'مدفوع بالكامل';
 
   return `
-    <div class="invoice" style="page-break-after: always;">
-      <table class="customer-table">
+    <div class="invoice-container" style="width: 500px; direction: rtl; margin: 0 auto; background: #fff;">
+      <table class="customer-table" style="width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 7px;">
         <tbody>
-          <tr><td class="label-column">الاسم</td><td class="value-column">${safe(order.customer.name)}</td></tr>
-          <tr><td class="label-column">الهاتف</td><td class="value-column">${phone}</td></tr>
-          <tr><td class="label-column">المحافظة</td><td class="value-column">${safe(order.customer.government)}</td></tr>
-          <tr><td class="label-column">العنوان</td><td class="value-column">${safe(order.customer.address)}</td></tr>
+          <tr><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; width: 25%; background: #f8fafc;">الاسم</td><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; width: 75%;">${safe(order.customer.name)}</td></tr>
+          <tr><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; background: #f8fafc;">الهاتف</td><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px;">${phone}</td></tr>
+          <tr><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; background: #f8fafc;">المحافظة</td><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px;">${safe(order.customer.government)}</td></tr>
+          <tr><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; background: #f8fafc;">العنوان</td><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px;">${safe(order.customer.address)}</td></tr>
         </tbody>
       </table>
 
-      <div class="order-section">
-        <table class="items-table">
-          <thead>
-            <tr><th>المنتج</th><th>عدد</th><th>سعر</th><th>إجمالي</th></tr>
+      <div class="order-section" style="border: 1.5px solid #000; overflow: hidden;">
+        <table class="items-table" style="width: 100%; border-collapse: collapse;">
+          <thead style="background: #f5ede0;">
+            <tr><th style="padding: 6px; font-weight: 700; font-size: 12px; text-align: right; border-bottom: 1px solid #a6a5a5;">المنتج</th><th style="padding: 6px; font-weight: 700; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5;">عدد</th><th style="padding: 6px; font-weight: 700; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5;">سعر</th><th style="padding: 6px; font-weight: 700; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5;">إجمالي</th></tr>
           </thead>
-          <tbody>${productsHtml}</tbody>
+          <tbody>${productsHtml.replace(/<td>/g, '<td style="padding: 6px; font-weight: 700; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5;">').replace(/<td style="[^"]*">/ , '<td style="padding: 6px; font-weight: 700; font-size: 12px; text-align: right; border-bottom: 1px solid #a6a5a5;">')}</tbody>
         </table>
 
-        <div class="summary">
-          <div class="row"><span>المبلغ الفرعي</span><span>${sub} ج</span></div>
-          <div class="row"><span>مصاريف الشحن (${safe(order.customer.government)})</span><span>${shipping} ج</span></div>
-          <div class="row grand" style="border-top: 2px solid ${primaryColor}"><span>الإجمالي</span><span>${total} ج</span></div>
+        <div class="summary" style="background: #f5ede0; padding: 4px 10px; border-top: 1px solid #000;">
+          <div class="row" style="display: flex; justify-content: space-between; font-size: 13px; margin: 2px;"><span>المبلغ الفرعي</span><span>${sub} ج</span></div>
+          <div class="row" style="display: flex; justify-content: space-between; font-size: 13px; margin: 2px;"><span>مصاريف الشحن (${safe(order.customer.government)})</span><span>${shipping} ج</span></div>
+          <div class="row grand" style="display: flex; justify-content: space-between; font-size: 15px; margin: 2px; border-top: 2px solid ${primaryColor}; font-weight: 800; margin-top: 4px; padding-top: 4px;"><span>الإجمالي</span><span>${total} ج</span></div>
         </div>
 
-        <div class="paid-box">
-          <div class="row green"><span>المدفوع</span><span>${paid} ج</span></div>
-          <div class="row red" style="color: ${secondaryColor}"><span>${remtext}</span><span>${remaining} ج</span></div>
+        <div class="paid-box" style="background: #e8f5ed; padding: 4px 10px; border-top: 1px solid #000;">
+          <div class="row green" style="display: flex; justify-content: space-between; font-size: 13px; margin: 2px; color: #1a7a45; font-weight: 800;"><span>المدفوع</span><span>${paid} ج</span></div>
+          <div class="row red" style="display: flex; justify-content: space-between; font-size: 13px; margin: 2px; color: ${secondaryColor}; font-weight: 800;"><span>${remtext}</span><span>${remaining} ج</span></div>
         </div>
 
-        <div class="notes-section">
-          <div class="notes-title" style="color: ${secondaryColor}">ملاحظات :</div>
-          <div style="line-height:1.6; font-weight:700;">${notesHtml}</div>
+        <div class="notes-section" style="padding: 6px 10px; font-size: 11px; background: #f5ede0; border-top: 1px solid #000; min-height: 80px;">
+          <div class="notes-title" style="font-weight: 800; text-decoration: underline; padding-bottom: 2px; color: ${secondaryColor};">ملاحظات :</div>
+          <div style="line-height:1.4; font-weight:700;">${notesHtml}</div>
         </div>
 
-        <div class="footer" style="background: ${primaryColor}">♡ شكراً لشرائك من متجر ${brandName} ♡</div>
+        <div class="footer" style="background: ${primaryColor}; color: #fff; text-align: center; padding: 8px; font-weight: 800; font-size: 13px;">♡ شكراً لشرائك من متجر ${brandName} ♡</div>
       </div>
     </div>
   `;
 }
 
-// GET /api/orders/bulk/invoice — generate invoices for all non-archived orders
+// GET /api/orders/bulk/invoice
 router.get('/bulk/invoice', adminAuth, async (req, res) => {
   try {
     const orders = await Order.find({ archived: { $ne: true }, status: { $ne: 'cancelled' } }).sort({ createdAt: -1 });
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
-    
-    const primaryColor = '#4a2c0a';
 
-    let invoicesHtml = '';
+    let pagesHtml = '';
     for (const order of orders) {
-      invoicesHtml += await generateInvoiceHtml(order, settings);
+      const innerHtml = await generateInvoiceInnerHtml(order, settings);
+      pagesHtml += `
+        <div class="page">
+          <div class="invoice-wrapper">
+            ${innerHtml}
+          </div>
+        </div>
+      `;
     }
 
-    const html = `
-<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; -webkit-print-color-adjust: exact; }
-@page { size: A5; margin: 0; }
-body { margin: 0; padding: 0; background: #fff; font-family: 'Tajawal', sans-serif; }
-.invoice { width: 148mm; height: 210mm; margin: 0 auto; direction: rtl; padding: 10mm 8mm; background: #fff; display: flex; flex-direction: column; position: relative; }
-.customer-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 7px; }
-.customer-table td { border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 6px; }
-.label-column { width: 25%; background: #f8fafc; }
-.value-column { width: 75%; }
-.order-section { border: 1.5px solid #000; flex: 1; display: flex; flex-direction: column; }
-.items-table { width: 100%; border-collapse: collapse; }
-.items-table thead { background: #f5ede0; }
-.items-table th, .items-table td { padding: 8px 6px; font-weight: 700; font-size: 13px; text-align: center; border-bottom: 1px solid #a6a5a5; }
-.items-table td:first-child, .items-table th:first-child { text-align: right; }
-.summary { background: #f5ede0; padding: 4px 10px; border-top: 1px solid #000; }
-.row { display: flex; justify-content: space-between; font-size: 14px; margin: 4px; }
-.grand { border-top: 2px solid ${primaryColor}; font-weight: 800; margin-top: 6px; padding-top: 6px; font-size: 16px; }
-.paid-box { background: #e8f5ed; padding: 4px 10px; border-top: 1px solid #000; }
-.green { color: #1a7a45; font-weight: 800; }
-.red { font-weight: 800; }
-.notes-section { padding: 8px 10px; font-size: 12px; background: #f5ede0; border-top: 1px solid #000; flex: 1; }
-.notes-title { font-weight: 800; text-decoration: underline; padding-bottom: 4px; }
-.footer { color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 14px; margin-top: auto; }
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
+* { font-family: 'Cairo', sans-serif !important; box-sizing: border-box; }
+@page { size: A5; margin: 4mm; }
+body { margin: 0; padding: 0; background: #f5f5f5; }
+.page {
+  page-break-after: always;
+  break-after: page;
+  width: 140mm;
+  height: 202mm;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  margin: 10px auto;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.page:last-child { page-break-after: auto; break-after: auto; }
+.invoice-wrapper { width: 100%; transform-origin: center center; }
+@media print {
+  body { background: transparent; }
+  .page { margin: 0; box-shadow: none; width: 140mm; height: 202mm; }
+}
 </style>
+<script>
+window.onload = function() {
+  document.querySelectorAll('.page').forEach(function(page) {
+    var wrapper = page.querySelector('.invoice-wrapper');
+    if (!wrapper) return;
+    var pageH = page.offsetHeight;
+    var pageW = page.offsetWidth;
+    var contentH = wrapper.scrollHeight;
+    var contentW = wrapper.scrollWidth;
+    var scaleH = pageH / contentH;
+    var scaleW = pageW / contentW;
+    var scale = Math.min(scaleH, scaleW);
+    // Limit scale range
+    scale = Math.min(Math.max(scale, 0.55), 2.0);
+    wrapper.style.transform = 'scale(' + scale + ')';
+    wrapper.style.width = (100 / scale) + '%';
+  });
+};
+</script>
 </head>
 <body>
-  ${invoicesHtml}
+${pagesHtml}
 </body>
 </html>`;
     res.send(html);
@@ -448,7 +468,7 @@ body { margin: 0; padding: 0; background: #fff; font-family: 'Tajawal', sans-ser
   }
 });
 
-// GET /api/orders/:orderId/invoice — single printable invoice
+// GET /api/orders/:orderId/invoice
 router.get('/:orderId/invoice', adminAuth, async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -463,44 +483,60 @@ router.get('/:orderId/invoice', adminAuth, async (req, res) => {
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
-    
-    const primaryColor = '#4a2c0a';
 
-    const invoiceHtml = await generateInvoiceHtml(order, settings);
+    const innerHtml = await generateInvoiceInnerHtml(order, settings);
 
-    const html = `
-<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; -webkit-print-color-adjust: exact; }
-@page { size: A5; margin: 0; }
-body { margin: 0; padding: 0; background: #fff; font-family: 'Tajawal', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-.invoice { width: 148mm; height: 210mm; margin: 0 auto; direction: rtl; padding: 10mm 8mm; background: #fff; display: flex; flex-direction: column; position: relative; }
-.customer-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 7px; }
-.customer-table td { border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 6px; }
-.label-column { width: 25%; background: #f8fafc; }
-.value-column { width: 75%; }
-.order-section { border: 1.5px solid #000; flex: 1; display: flex; flex-direction: column; }
-.items-table { width: 100%; border-collapse: collapse; }
-.items-table thead { background: #f5ede0; }
-.items-table th, .items-table td { padding: 8px 6px; font-weight: 700; font-size: 13px; text-align: center; border-bottom: 1px solid #a6a5a5; }
-.items-table td:first-child, .items-table th:first-child { text-align: right; }
-.summary { background: #f5ede0; padding: 4px 10px; border-top: 1px solid #000; }
-.row { display: flex; justify-content: space-between; font-size: 14px; margin: 4px; }
-.grand { border-top: 2px solid ${primaryColor}; font-weight: 800; margin-top: 6px; padding-top: 6px; font-size: 16px; }
-.paid-box { background: #e8f5ed; padding: 4px 10px; border-top: 1px solid #000; }
-.green { color: #1a7a45; font-weight: 800; }
-.red { font-weight: 800; }
-.notes-section { padding: 8px 10px; font-size: 12px; background: #f5ede0; border-top: 1px solid #000; flex: 1; }
-.notes-title { font-weight: 800; text-decoration: underline; padding-bottom: 4px; }
-.footer { color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 14px; margin-top: auto; }
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
+* { font-family: 'Cairo', sans-serif !important; box-sizing: border-box; }
+@page { size: A5; margin: 4mm; }
+body { margin: 0; padding: 0; background: #f5f5f5; }
+.page {
+  width: 140mm;
+  height: 202mm;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  margin: 20px auto;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.invoice-wrapper { width: 100%; transform-origin: center center; }
+@media print {
+  body { background: transparent; }
+  .page { margin: 0; box-shadow: none; width: 140mm; height: 202mm; }
+}
 </style>
+<script>
+window.onload = function() {
+  var page = document.querySelector('.page');
+  var wrapper = document.querySelector('.invoice-wrapper');
+  if (!wrapper) return;
+  var pageH = page.offsetHeight;
+  var pageW = page.offsetWidth;
+  var contentH = wrapper.scrollHeight;
+  var contentW = wrapper.scrollWidth;
+  var scaleH = pageH / contentH;
+  var scaleW = pageW / contentW;
+  var scale = Math.min(scaleH, scaleW);
+  scale = Math.min(Math.max(scale, 0.55), 2.0);
+  wrapper.style.transform = 'scale(' + scale + ')';
+  wrapper.style.width = (100 / scale) + '%';
+};
+</script>
 </head>
 <body>
-  ${invoiceHtml}
+<div class="page">
+  <div class="invoice-wrapper">
+    ${innerHtml}
+  </div>
+</div>
 </body>
 </html>`;
     res.send(html);

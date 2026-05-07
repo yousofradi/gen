@@ -81,8 +81,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         margin: 0,
         filename: `فاتورة-${currentOrder.orderId}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+        html2canvas: { 
+          scale: 3, 
+          useCORS: true, 
+          letterRendering: false, // Prevents the letter spacing issues
+          width: 500
+        },
+        jsPDF: { unit: 'px', hotfixes: ['px_scaling'], format: [500, 700], orientation: 'portrait' }
       };
       
       html2pdf().from(element).set(opt).save();
