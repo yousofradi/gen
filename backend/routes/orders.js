@@ -297,11 +297,9 @@ ${pagesHtml}
       },
       body: JSON.stringify({
         html: Buffer.from(fullHtml).toString('base64'),
-        additionalOptions: {
-          format: 'A5',
-          printBackground: true,
-          preferCssPageSize: true
-        }
+        format: 'A5',
+        printBackground: true,
+        preferCssPageSize: true
       })
     });
 
@@ -422,11 +420,9 @@ window.onload = function() {
       },
       body: JSON.stringify({
         html: Buffer.from(fullHtml).toString('base64'),
-        additionalOptions: {
-          format: 'A5',
-          printBackground: true,
-          preferCssPageSize: true
-        }
+        format: 'A5',
+        printBackground: true,
+        preferCssPageSize: true
       })
     });
 
