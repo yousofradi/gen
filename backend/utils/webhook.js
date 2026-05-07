@@ -56,6 +56,49 @@ async function sendWebhook(event, data) {
     );
 
     await Promise.all(promises);
+
+    // ── WhatsApp Notification ──
+    try {
+      const Setting = require('../models/Setting');
+      const waConfig = await Setting.findOne({ key: 'whatsapp_config' });
+      
+      if (waConfig && waConfig.value) {
+        const conf = waConfig.value;
+        const shouldSend = (event === 'order.created' && conf.triggerNew) || 
+                           (event === 'order.paid' && conf.triggerPaid);
+        
+        if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
+          let msg = `رقم الاوردر: ${data.orderId}\n` +
+                    `اسم العميل: ${data.customer.name}\n` +
+                    `رقم الهاتف: ${data.customer.phone}\n` +
+                    `اجمالي المطلوب: ${data.totalPrice}`;
+          
+          if (event === 'order.paid') {
+            msg += `\nالمدفوع: ${data.paidAmount || 0}\n` +
+                   `المتبقي: ${data.totalPrice - (data.paidAmount || 0)}`;
+          }
+
+          // Evolution API Send Text
+          const waUrl = `${conf.baseUrl}/message/sendText/${conf.instance}`;
+          await fetch(waUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': conf.apikey
+            },
+            body: JSON.stringify({
+              number: conf.number,
+              text: msg,
+              delay: 1000,
+              linkPreview: false
+            })
+          }).catch(err => console.error('WhatsApp sending failed:', err.message));
+        }
+      }
+    } catch (waErr) {
+      console.error('WhatsApp system error:', waErr.message);
+    }
+
   } catch (err) {
     console.error('Webhook system error:', err.message);
   }
