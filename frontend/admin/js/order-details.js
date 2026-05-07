@@ -60,12 +60,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
-  // Action: Print Invoice
+  // Action: Download Invoice PDF
   window.openInvoice = async () => {
     if (!currentOrder) return;
     const adminKey = localStorage.getItem('adminKey') || '';
     
-    showToast('جاري تجهيز الفاتورة...', 'info');
+    showToast('جاري تجهيز الفاتورة للتحميل...', 'info');
     
     try {
       const response = await fetch(`${API_BASE}/orders/${currentOrder.orderId}/invoice`, {
@@ -74,29 +74,49 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!response.ok) throw new Error();
       const htmlContent = await response.text();
       
-      // Use an iframe to print securely without showing the key in URL
-      // This also avoids the html2pdf/html2canvas distortion issues
-      let iframe = document.getElementById('print-iframe');
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'print-iframe';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
+      const element = document.createElement('div');
+      element.style.position = 'absolute';
+      element.style.left = '-9999px';
+      element.innerHTML = htmlContent;
+      document.body.appendChild(element);
+      
+      // Force font loading
+      await document.fonts.ready;
+      
+      // Execute the scaling script logic manually for html2pdf
+      const page = element.querySelector('.page');
+      const wrapper = element.querySelector('.invoice-wrapper');
+      if (page && wrapper) {
+        const pageH = 763; // approx pixels for 202mm at 96dpi
+        const pageW = 529; // approx pixels for 140mm
+        const contentH = wrapper.scrollHeight;
+        const contentW = wrapper.scrollWidth;
+        let scale = Math.min(pageH / contentH, pageW / contentW);
+        scale = Math.min(Math.max(scale, 0.55), 2.0);
+        wrapper.style.transform = `scale(${scale})`;
+        wrapper.style.width = `${100 / scale}%`;
+        wrapper.style.transformOrigin = 'center center';
       }
-      
-      const doc = iframe.contentWindow.document;
-      doc.open();
-      doc.write(htmlContent);
-      doc.close();
-      
-      // Wait for resources (fonts) to load
-      iframe.contentWindow.onload = () => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
+
+      const opt = {
+        margin: 0,
+        filename: `فاتورة-${currentOrder.orderId}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 3, 
+          useCORS: true, 
+          letterRendering: false,
+          scrollY: 0,
+          scrollX: 0
+        },
+        jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
       };
       
-      showToast('تم تجهيز الطباعة');
+      await html2pdf().from(page).set(opt).save();
+      document.body.removeChild(element);
+      showToast('تم تحميل الفاتورة بنجاح');
     } catch (err) {
+      console.error(err);
       showToast('فشل تحميل الفاتورة', 'error');
     }
   };
