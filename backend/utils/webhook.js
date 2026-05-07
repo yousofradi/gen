@@ -96,6 +96,9 @@ async function sendWebhook(event, data) {
             console.log(`[WhatsApp] Sending to ${waUrl} for ${conf.number}`);
 
             try {
+              // Clean number: remove any non-digit characters
+              const cleanNumber = conf.number.trim().replace(/\D/g, '');
+              
               const res = await fetch(waUrl, {
                 method: 'POST',
                 headers: {
@@ -103,7 +106,7 @@ async function sendWebhook(event, data) {
                   'apikey': conf.apikey
                 },
                 body: JSON.stringify({
-                  number: conf.number,
+                  number: cleanNumber,
                   text: msg,
                   delay: 123,
                   linkPreview: true,
