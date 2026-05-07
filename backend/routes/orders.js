@@ -313,7 +313,10 @@ router.put('/:orderId', adminAuth, async (req, res) => {
 async function generateInvoiceHtml(order, settings) {
   const safe = (val) => (val === undefined || val === null) ? '' : String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const num = (val) => Number(val) || 0;
-  const brandName = settings.storeName || 'المتجر';
+  
+  // Use invoicePrefix as the Arabic brand name if available, fallback to storeName
+  const brandName = settings.invoicePrefix || settings.storeName || 'المتجر';
+  const primaryColor = settings.primaryColor || '#4a2c0a';
 
   const productsHtml = order.items.map((p) => {
     const unitPrice = p.basePrice + (p.selectedOptions || []).reduce((s, op) => s + (op.price || 0), 0);
@@ -367,20 +370,20 @@ async function generateInvoiceHtml(order, settings) {
         <div class="summary">
           <div class="row"><span>المبلغ الفرعي</span><span>${sub} ج</span></div>
           <div class="row"><span>مصاريف الشحن (${safe(order.customer.government)})</span><span>${shipping} ج</span></div>
-          <div class="row grand"><span>الإجمالي</span><span>${total} ج</span></div>
+          <div class="row grand" style="border-top-color: ${primaryColor}"><span>الإجمالي</span><span>${total} ج</span></div>
         </div>
 
         <div class="paid-box">
           <div class="row green"><span>المدفوع</span><span>${paid} ج</span></div>
-          <div class="row red"><span>${remtext}</span><span>${remaining} ج</span></div>
+          <div class="row red" style="color: ${primaryColor}"><span>${remtext}</span><span>${remaining} ج</span></div>
         </div>
 
         <div class="notes-section">
-          <div class="notes-title">ملاحظات :</div>
+          <div class="notes-title" style="color: ${primaryColor}">ملاحظات :</div>
           <div style="line-height:1.6; font-weight:700;">${notesHtml}</div>
         </div>
 
-        <div class="footer">♡ شكراً لشرائك من متجر ${brandName} ♡</div>
+        <div class="footer" style="background: ${primaryColor}">♡ شكراً لشرائك من متجر ${brandName} ♡</div>
       </div>
     </div>
   `;
@@ -393,6 +396,7 @@ router.get('/bulk/invoice', adminAuth, async (req, res) => {
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
+    const primaryColor = settings.primaryColor || '#4a2c0a';
 
     let invoicesHtml = '';
     for (const order of orders) {
@@ -420,15 +424,15 @@ html, body { margin: 0; padding: 0; width: 100%; background: #ffffff; font-famil
 .items-table td:first-child, .items-table th:first-child { text-align: right; }
 .summary { background: #f5ede0; padding: 1px 6px; }
 .row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
-.grand { border-top: 2px solid #4a2c0a; font-weight: 700; margin-top: 4px; padding-top: 4px; }
+.grand { border-top: 2px solid ${primaryColor}; font-weight: 700; margin-top: 4px; padding-top: 4px; }
 .paid-box { background: #e8f5ed; padding: 1px 6px; }
 .green { color: #1a7a45; font-weight: 700; }
-.red { color: #b84a20; font-weight: 700; }
+.red { color: ${primaryColor}; font-weight: 700; }
 .notes-section { padding: 4px 6px; font-size: 11px; background: #f5ede0; }
-.notes-title { font-weight: 700; color: #b84a20; text-decoration: underline; padding-bottom: 2px; }
-.footer { background: #4a2c0a; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
+.notes-title { font-weight: 700; color: ${primaryColor}; text-decoration: underline; padding-bottom: 2px; }
+.footer { background: ${primaryColor}; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
 .no-print { display: flex; justify-content: center; padding: 20px; position: sticky; top: 0; background: #fff; z-index: 100; border-bottom: 1px solid #eee; }
-.print-btn { background: #4a2c0a; color: #fff; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; }
+.print-btn { background: ${primaryColor}; color: #fff; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; }
 @media print { .no-print { display: none; } .invoice { border: none; width: 100%; margin: 0; } }
 </style>
 </head>
@@ -460,6 +464,7 @@ router.get('/:orderId/invoice', adminAuth, async (req, res) => {
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
+    const primaryColor = settings.primaryColor || '#4a2c0a';
 
     const invoiceHtml = await generateInvoiceHtml(order, settings);
 
@@ -484,15 +489,15 @@ html, body { margin: 0; padding: 0; width: 100%; background: #ffffff; font-famil
 .items-table td:first-child, .items-table th:first-child { text-align: right; }
 .summary { background: #f5ede0; padding: 1px 6px; }
 .row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
-.grand { border-top: 2px solid #4a2c0a; font-weight: 700; margin-top: 4px; padding-top: 4px; }
+.grand { border-top: 2px solid ${primaryColor}; font-weight: 700; margin-top: 4px; padding-top: 4px; }
 .paid-box { background: #e8f5ed; padding: 1px 6px; }
 .green { color: #1a7a45; font-weight: 700; }
-.red { color: #b84a20; font-weight: 700; }
+.red { color: ${primaryColor}; font-weight: 700; }
 .notes-section { padding: 4px 6px; font-size: 11px; background: #f5ede0; }
-.notes-title { font-weight: 700; color: #b84a20; text-decoration: underline; padding-bottom: 2px; }
-.footer { background: #4a2c0a; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
+.notes-title { font-weight: 700; color: ${primaryColor}; text-decoration: underline; padding-bottom: 2px; }
+.footer { background: ${primaryColor}; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
 .no-print { display: flex; justify-content: center; padding: 20px; }
-.print-btn { background: #4a2c0a; color: #fff; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; }
+.print-btn { background: ${primaryColor}; color: #fff; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; }
 @media print { .no-print { display: none; } .invoice { width: 100%; margin: 0; } }
 </style>
 </head>
