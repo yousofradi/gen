@@ -169,7 +169,7 @@ img {
 }
 
 .phone-input-wrapper:focus-within {
-  border-color: var(--sundura-brown, #916C4F);
+  border-color: var(--primary, #916C4F);
   box-shadow: 0 0 0 3px rgba(145, 108, 79, 0.1);
 }
 

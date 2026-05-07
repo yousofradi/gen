@@ -1,6 +1,6 @@
 function requireAdmin() {
   // Security: Prevent admin access on storefront domains
-  const storefrontDomains = ['sundura-scoop.onrender.com'];
+  const storefrontDomains = [];
   if (storefrontDomains.includes(window.location.hostname)) {
     window.location.href = '/';
     return false;
