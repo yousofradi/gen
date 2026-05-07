@@ -12,7 +12,7 @@ async function sendWebhook(event, data) {
 
     // Calculate subamount if needed
     const subamount = data.totalPrice - data.shippingFee;
-    
+
     // Map product items
     const products = (data.items || []).map(item => ({
       "name": item.name,
@@ -44,7 +44,7 @@ async function sendWebhook(event, data) {
       data: rawPayload
     });
 
-    const promises = webhooks.map(wh => 
+    const promises = webhooks.map(wh =>
       fetch(wh.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,31 +61,35 @@ async function sendWebhook(event, data) {
     try {
       const Setting = require('../models/Setting');
       const waConfigSetting = await Setting.findOne({ key: 'whatsapp_configs' });
-      
+
       if (waConfigSetting && Array.isArray(waConfigSetting.value)) {
         const configs = waConfigSetting.value;
         console.log(`[WhatsApp] Found ${configs.length} configurations. Event: ${event}`);
-        
+
         for (const conf of configs) {
           // Handle both array (new) and string (legacy) triggers
           const triggers = Array.isArray(conf.triggers) ? conf.triggers : (conf.trigger ? [conf.trigger] : []);
           const shouldSend = triggers.includes(event);
-          
+
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
             let msg = `رقم الاوردر: ${data.orderId}\n` +
-                      `اسم العميل: ${data.customer.name}\n` +
-                      `رقم الهاتف: ${data.customer.phone}\n` +
-                      `اجمالي المطلوب: ${data.totalPrice}`;
-            
+              `اسم العميل: ${data.customer.name}\n` +
+              `رقم الهاتف: ${data.customer.phone}\n` +
+              `اجمالي المطلوب: ${data.totalPrice}`;
+
             if (event === 'order.paid') {
               msg += `\nالمدفوع: ${data.paidAmount || 0}\n` +
-                     `المتبقي: ${data.totalPrice - (data.paidAmount || 0)}`;
+                `المتبقي: ${data.totalPrice - (data.paidAmount || 0)}`;
             }
 
-            // Clean up baseUrl (remove trailing slash)
-            const cleanBaseUrl = conf.baseUrl.replace(/\/+$/, '');
+            // Clean up baseUrl: remove trailing slash and ensure https:// protocol
+            let cleanBaseUrl = conf.baseUrl.trim().replace(/\/+$/, '');
+            if (!cleanBaseUrl.startsWith('http')) {
+              cleanBaseUrl = `https://${cleanBaseUrl}`;
+            }
+
             const waUrl = `${cleanBaseUrl}/message/sendText/${conf.instance}`;
-            
+
             console.log(`[WhatsApp] Sending to ${waUrl} for ${conf.number}`);
 
             fetch(waUrl, {
@@ -98,13 +102,13 @@ async function sendWebhook(event, data) {
                 number: conf.number,
                 text: msg,
                 delay: 123,
-                linkPreview: true,
-                mentionsEveryOne: true,
+                linkPreview: false,
+                mentionsEveryOne: false,
                 mentioned: ["{{remoteJID}}"]
               })
             })
-            .then(res => res.json().then(json => console.log(`[WhatsApp] Response from ${conf.instance}:`, json)))
-            .catch(err => console.error(`[WhatsApp] Failed for instance ${conf.instance}:`, err.message));
+              .then(res => res.json().then(json => console.log(`[WhatsApp] Response from ${conf.instance}:`, json)))
+              .catch(err => console.error(`[WhatsApp] Failed for instance ${conf.instance}:`, err.message));
           } else {
             if (!shouldSend) console.log(`[WhatsApp] Skipping ${conf.instance} - trigger mismatch`);
           }
