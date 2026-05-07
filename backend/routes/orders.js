@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Order = require('../models/Order');
 const adminAuth = require('../middleware/adminAuth');
@@ -233,10 +234,18 @@ router.post('/:orderId/cancel', adminAuth, async (req, res) => {
   }
 });
 
-// GET /api/orders/:orderId — single order
+// GET /api/orders/:orderId — single order (supports both custom orderId and MongoDB _id)
 router.get('/:orderId', adminAuth, async (req, res) => {
   try {
-    const order = await Order.findOne({ orderId: req.params.orderId });
+    const { orderId } = req.params;
+    let query = { orderId: orderId };
+
+    // If orderId is a valid MongoDB ObjectId, check both fields
+    if (mongoose.Types.ObjectId.isValid(orderId)) {
+      query = { $or: [{ orderId: orderId }, { _id: orderId }] };
+    }
+
+    const order = await Order.findOne(query);
     if (!order) return res.status(404).json({ error: 'Order not found' });
     res.json(order);
   } catch (err) {
@@ -247,8 +256,15 @@ router.get('/:orderId', adminAuth, async (req, res) => {
 // PUT /api/orders/:orderId — update order
 router.put('/:orderId', adminAuth, async (req, res) => {
   try {
+    const { orderId } = req.params;
     const updates = req.body;
-    const oldOrder = await Order.findOne({ orderId: req.params.orderId });
+    
+    let query = { orderId: orderId };
+    if (mongoose.Types.ObjectId.isValid(orderId)) {
+      query = { $or: [{ orderId: orderId }, { _id: orderId }] };
+    }
+
+    const oldOrder = await Order.findOne(query);
     if (!oldOrder) return res.status(404).json({ error: 'Order not found' });
 
     // Recalculate totals if items or discount changed
@@ -275,7 +291,7 @@ router.put('/:orderId', adminAuth, async (req, res) => {
     }
 
     const order = await Order.findOneAndUpdate(
-      { orderId: req.params.orderId },
+      query,
       { $set: updates },
       { new: true, runValidators: true }
     );
@@ -296,7 +312,13 @@ router.put('/:orderId', adminAuth, async (req, res) => {
 // DELETE /api/orders/:orderId — delete order
 router.delete('/:orderId', adminAuth, async (req, res) => {
   try {
-    const order = await Order.findOneAndDelete({ orderId: req.params.orderId });
+    const { orderId } = req.params;
+    let query = { orderId: orderId };
+    if (mongoose.Types.ObjectId.isValid(orderId)) {
+      query = { $or: [{ orderId: orderId }, { _id: orderId }] };
+    }
+
+    const order = await Order.findOneAndDelete(query);
     if (!order) return res.status(404).json({ error: 'Order not found' });
     res.json({ message: 'Order deleted' });
   } catch (err) {
