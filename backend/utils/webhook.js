@@ -64,10 +64,11 @@ async function sendWebhook(event, data) {
       
       if (waConfigSetting && Array.isArray(waConfigSetting.value)) {
         const configs = waConfigSetting.value;
+        console.log(`[WhatsApp] Found ${configs.length} configurations. Event: ${event}`);
         
         for (const conf of configs) {
-          // Check if event is in the triggers array
-          const triggers = conf.triggers || [];
+          // Handle both array (new) and string (legacy) triggers
+          const triggers = Array.isArray(conf.triggers) ? conf.triggers : (conf.trigger ? [conf.trigger] : []);
           const shouldSend = triggers.includes(event);
           
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
@@ -81,8 +82,12 @@ async function sendWebhook(event, data) {
                      `المتبقي: ${data.totalPrice - (data.paidAmount || 0)}`;
             }
 
-            // Evolution API Send Text (Matching the provided example)
-            const waUrl = `${conf.baseUrl}/message/sendText/${conf.instance}`;
+            // Clean up baseUrl (remove trailing slash)
+            const cleanBaseUrl = conf.baseUrl.replace(/\/+$/, '');
+            const waUrl = `${cleanBaseUrl}/message/sendText/${conf.instance}`;
+            
+            console.log(`[WhatsApp] Sending to ${waUrl} for ${conf.number}`);
+
             fetch(waUrl, {
               method: 'POST',
               headers: {
@@ -92,17 +97,23 @@ async function sendWebhook(event, data) {
               body: JSON.stringify({
                 number: conf.number,
                 text: msg,
-                delay: 1200,
+                delay: 123,
                 linkPreview: true,
-                mentionsEveryOne: false,
-                mentioned: []
+                mentionsEveryOne: true,
+                mentioned: ["{{remoteJID}}"]
               })
-            }).catch(err => console.error(`WhatsApp sending failed for instance ${conf.instance}:`, err.message));
+            })
+            .then(res => res.json().then(json => console.log(`[WhatsApp] Response from ${conf.instance}:`, json)))
+            .catch(err => console.error(`[WhatsApp] Failed for instance ${conf.instance}:`, err.message));
+          } else {
+            if (!shouldSend) console.log(`[WhatsApp] Skipping ${conf.instance} - trigger mismatch`);
           }
         }
+      } else {
+        console.log('[WhatsApp] No configurations found in settings.');
       }
     } catch (waErr) {
-      console.error('WhatsApp system error:', waErr.message);
+      console.error('[WhatsApp] System error:', waErr.message);
     }
 
   } catch (err) {
