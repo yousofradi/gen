@@ -309,14 +309,14 @@ router.put('/:orderId', adminAuth, async (req, res) => {
   }
 });
 
-// Helper to format invoice HTML for a single order (Inner content)
+// Helper to format invoice HTML for a single order (Exact logic from user)
 async function generateInvoiceInnerHtml(order, settings) {
   const safe = (val) => (val === undefined || val === null) ? '' : String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const num = (val) => Number(val) || 0;
+  
   const brandName = settings.invoicePrefix || settings.storeName || 'المتجر';
-  const primaryColor = '#4a2c0a'; 
-  const secondaryColor = '#b84a20';
 
+  // ================== PRODUCTS ==================
   const productsHtml = order.items.map((p) => {
     const unitPrice = p.basePrice + (p.selectedOptions || []).reduce((s, op) => s + (op.price || 0), 0);
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
@@ -330,62 +330,79 @@ async function generateInvoiceInnerHtml(order, settings) {
     `;
   }).join('');
 
-  const notesArray = order.customer.notes ? order.customer.notes.split('-').filter(n => n.trim() !== '') : [];
+  // ================== NOTES ==================
+  const notesArray = order.customer.notes
+    ? order.customer.notes.split('-').filter(n => n.trim() !== '')
+    : [];
+
   const notesHtml = notesArray.length
-    ? notesArray.map(n => `<div style="margin-bottom:2px;">• ${safe(n.replace(/^-/, '').trim())}</div>`).join('')
+    ? notesArray.map(n => `
+      <div style="margin-bottom:4px;">• ${safe(n.replace(/^-/, '').trim())}</div>
+    `).join('')
     : `<div>لا توجد ملاحظات</div>`;
 
+  // ================== CALCULATIONS ==================
   const sub = order.items.reduce((s, i) => s + i.finalPrice, 0);
   const shipping = num(order.shippingFee);
   const total = num(order.totalPrice);
   const paid = num(order.paidAmount);
   const remaining = total - paid;
 
+  // ================== PHONE ==================
   let phone = safe(order.customer.phone);
-  if (order.customer.secondPhone) phone += ` - ${order.customer.secondPhone}`;
+  if (order.customer.secondPhone) {
+    phone += ` - ${order.customer.secondPhone}`;
+  }
 
+  // ================== REMAINING TEXT ==================
   let remtext = 'المتبقي عند الاستلام (+10 ج رسوم)';
-  if (remaining === 0) remtext = 'مدفوع بالكامل';
+  if (remaining === 0) {
+    remtext = 'مدفوع بالكامل';
+  }
 
   return `
-    <div class="invoice-container" style="width: 500px; direction: rtl; margin: 0 auto; background: #fff;">
-      <table class="customer-table" style="width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 7px;">
-        <tbody>
-          <tr><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; width: 25%; background: #f8fafc;">الاسم</td><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; width: 75%;">${safe(order.customer.name)}</td></tr>
-          <tr><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; background: #f8fafc;">الهاتف</td><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px;">${phone}</td></tr>
-          <tr><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; background: #f8fafc;">المحافظة</td><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px;">${safe(order.customer.government)}</td></tr>
-          <tr><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; background: #f8fafc;">العنوان</td><td style="border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 4px;">${safe(order.customer.address)}</td></tr>
-        </tbody>
-      </table>
+<div class="invoice">
+  <table class="customer-table">
+    <tbody>
+      <tr><td class="label-column">الاسم</td><td class="value-column">${safe(order.customer.name)}</td></tr>
+      <tr><td class="label-column">الهاتف</td><td class="value-column">${phone}</td></tr>
+      <tr><td class="label-column">المحافظة</td><td class="value-column">${safe(order.customer.government)}</td></tr>
+      <tr><td class="label-column">العنوان</td><td class="value-column">${safe(order.customer.address)}</td></tr>
+    </tbody>
+  </table>
 
-      <div class="order-section" style="border: 1.5px solid #000; overflow: hidden;">
-        <table class="items-table" style="width: 100%; border-collapse: collapse;">
-          <thead style="background: #f5ede0;">
-            <tr><th style="padding: 6px; font-weight: 700; font-size: 12px; text-align: right; border-bottom: 1px solid #a6a5a5;">المنتج</th><th style="padding: 6px; font-weight: 700; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5;">عدد</th><th style="padding: 6px; font-weight: 700; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5;">سعر</th><th style="padding: 6px; font-weight: 700; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5;">إجمالي</th></tr>
-          </thead>
-          <tbody>${productsHtml.replace(/<td>/g, '<td style="padding: 6px; font-weight: 700; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5;">').replace(/<td style="[^"]*">/ , '<td style="padding: 6px; font-weight: 700; font-size: 12px; text-align: right; border-bottom: 1px solid #a6a5a5;">')}</tbody>
-        </table>
+  <div class="order-section">
+    <table class="items-table">
+      <thead>
+        <tr><th>المنتج</th><th>عدد</th><th>سعر</th><th>إجمالي</th></tr>
+      </thead>
+      <tbody>
+        ${productsHtml}
+      </tbody>
+    </table>
 
-        <div class="summary" style="background: #f5ede0; padding: 4px 10px; border-top: 1px solid #000;">
-          <div class="row" style="display: flex; justify-content: space-between; font-size: 13px; margin: 2px;"><span>المبلغ الفرعي</span><span>${sub} ج</span></div>
-          <div class="row" style="display: flex; justify-content: space-between; font-size: 13px; margin: 2px;"><span>مصاريف الشحن (${safe(order.customer.government)})</span><span>${shipping} ج</span></div>
-          <div class="row grand" style="display: flex; justify-content: space-between; font-size: 15px; margin: 2px; border-top: 2px solid ${primaryColor}; font-weight: 800; margin-top: 4px; padding-top: 4px;"><span>الإجمالي</span><span>${total} ج</span></div>
-        </div>
+    <div class="summary">
+      <div class="row"><span>المبلغ الفرعي</span><span>${sub} ج</span></div>
+      <div class="row"><span>مصاريف الشحن (${safe(order.customer.government)})</span><span>${shipping} ج</span></div>
+      <div class="row grand"><span>الإجمالي</span><span>${total} ج</span></div>
+    </div>
 
-        <div class="paid-box" style="background: #e8f5ed; padding: 4px 10px; border-top: 1px solid #000;">
-          <div class="row green" style="display: flex; justify-content: space-between; font-size: 13px; margin: 2px; color: #1a7a45; font-weight: 800;"><span>المدفوع</span><span>${paid} ج</span></div>
-          <div class="row red" style="display: flex; justify-content: space-between; font-size: 13px; margin: 2px; color: ${secondaryColor}; font-weight: 800;"><span>${remtext}</span><span>${remaining} ج</span></div>
-        </div>
+    <div class="paid-box">
+      <div class="row green"><span>المدفوع</span><span>${paid} ج</span></div>
+      <div class="row red"><span>${remtext}</span><span>${remaining} ج</span></div>
+    </div>
 
-        <div class="notes-section" style="padding: 6px 10px; font-size: 11px; background: #f5ede0; border-top: 1px solid #000; min-height: 80px;">
-          <div class="notes-title" style="font-weight: 800; text-decoration: underline; padding-bottom: 2px; color: ${secondaryColor};">ملاحظات :</div>
-          <div style="line-height:1.4; font-weight:700;">${notesHtml}</div>
-        </div>
-
-        <div class="footer" style="background: ${primaryColor}; color: #fff; text-align: center; padding: 8px; font-weight: 800; font-size: 13px;">♡ شكراً لشرائك من متجر ${brandName} ♡</div>
+    <div class="notes-section">
+      <div class="notes-title">ملاحظات :</div>
+      <div style="line-height:1.6; font-weight:700;">
+        ${notesHtml}
       </div>
     </div>
-  `;
+
+    <div class="footer">♡ شكراً لشرائك من متجر ${brandName} ♡</div>
+  </div>
+</div>
+`;
 }
 
 // GET /api/orders/bulk/invoice
@@ -436,8 +453,29 @@ body { margin: 0; padding: 0; background: #f5f5f5; }
 }
 .page:last-child { page-break-after: auto; break-after: auto; }
 .invoice-wrapper { width: 100%; transform-origin: center center; }
-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-td, th { padding: 2px 4px; line-height: 1.3; }
+
+/* USER CSS START */
+.invoice { width: 500px; margin: 0 auto; direction: rtl; padding: 10px 5px; }
+.customer-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 7px; }
+.customer-table td { border: 1px solid #000; font-size: 10px; font-weight: 600; text-align: center; padding: 4px; }
+.label-column { width: 25%; background: #fff; }
+.value-column { width: 75%; }
+.order-section { border: 1px solid #000; }
+.items-table { width: 100%; border-collapse: collapse; }
+.items-table thead { background: #f5ede0; }
+.items-table th, .items-table td { padding: 6px 6px; font-weight: 600; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5; }
+.items-table td:first-child, .items-table th:first-child { text-align: right; }
+.summary { background: #f5ede0; padding: 1px 6px; }
+.row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
+.grand { border-top: 2px solid #4a2c0a; font-weight: 700; margin-top: 4px; padding-top: 4px; }
+.paid-box { background: #e8f5ed; padding: 1px 6px; }
+.green { color: #1a7a45; font-weight: 700; }
+.red { color: #b84a20; font-weight: 700; }
+.notes-section { padding: 4px 6px; font-size: 11px; background: #f5ede0; }
+.notes-title { font-weight: 700; color: #b84a20; text-decoration: underline; padding-bottom: 2px; }
+.footer { background: #4a2c0a; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
+/* USER CSS END */
+
 @media print {
   body { background: transparent; }
   .page { margin: 0; box-shadow: none; width: 140mm; height: 202mm; }
@@ -455,7 +493,6 @@ window.onload = function() {
     var scaleH = pageH / contentH;
     var scaleW = pageW / contentW;
     var scale = Math.min(scaleH, scaleW);
-    // Limit scale range
     scale = Math.min(Math.max(scale, 0.55), 2.0);
     wrapper.style.transform = 'scale(' + scale + ')';
     wrapper.style.width = (100 / scale) + '%';
@@ -516,8 +553,29 @@ body { margin: 0; padding: 0; background: #f5f5f5; }
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 .invoice-wrapper { width: 100%; transform-origin: center center; }
-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-td, th { padding: 2px 4px; line-height: 1.3; }
+
+/* USER CSS START */
+.invoice { width: 500px; margin: 0 auto; direction: rtl; padding: 10px 5px; }
+.customer-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 7px; }
+.customer-table td { border: 1px solid #000; font-size: 10px; font-weight: 600; text-align: center; padding: 4px; }
+.label-column { width: 25%; background: #fff; }
+.value-column { width: 75%; }
+.order-section { border: 1px solid #000; }
+.items-table { width: 100%; border-collapse: collapse; }
+.items-table thead { background: #f5ede0; }
+.items-table th, .items-table td { padding: 6px 6px; font-weight: 600; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5; }
+.items-table td:first-child, .items-table th:first-child { text-align: right; }
+.summary { background: #f5ede0; padding: 1px 6px; }
+.row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
+.grand { border-top: 2px solid #4a2c0a; font-weight: 700; margin-top: 4px; padding-top: 4px; }
+.paid-box { background: #e8f5ed; padding: 1px 6px; }
+.green { color: #1a7a45; font-weight: 700; }
+.red { color: #b84a20; font-weight: 700; }
+.notes-section { padding: 4px 6px; font-size: 11px; background: #f5ede0; }
+.notes-title { font-weight: 700; color: #b84a20; text-decoration: underline; padding-bottom: 2px; }
+.footer { background: #4a2c0a; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
+/* USER CSS END */
+
 @media print {
   body { background: transparent; }
   .page { margin: 0; box-shadow: none; width: 140mm; height: 202mm; }
