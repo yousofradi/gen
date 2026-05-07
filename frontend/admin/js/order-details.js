@@ -650,7 +650,7 @@ window.renderModalProducts = function () {
               <div style="font-size:0.9rem;font-weight:500;">${title}</div>
               <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
             </div>
-            <input type="checkbox" class="pli-checkbox product-variant-cb" data-pid="${p._id}" data-combo="${comboStr}">
+            <input type="checkbox" class="pli-checkbox product-variant-cb" data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}">
           </label>
         `;
       }).join('');
@@ -659,7 +659,7 @@ window.renderModalProducts = function () {
       variantsHtml = combinations.map((combo, idx) => {
         const title = combo.map(c => c.label).join(' / ');
         const extraPrice = combo.reduce((sum, c) => sum + (c.price || 0), 0);
-        const finalPrice = extraPrice > 0 ? extraPrice : effectiveBase;
+        const finalPrice = effectiveBase + extraPrice;
         const comboStr = encodeURIComponent(JSON.stringify(combo));
         return `
           <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
@@ -667,7 +667,7 @@ window.renderModalProducts = function () {
               <div style="font-size:0.9rem;font-weight:500;">${title}</div>
               <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
             </div>
-            <input type="checkbox" class="pli-checkbox product-variant-cb" data-pid="${p._id}" data-combo="${comboStr}">
+            <input type="checkbox" class="pli-checkbox product-variant-cb" data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}">
           </label>
         `;
       }).join('');
@@ -746,7 +746,7 @@ window.addSelectedProducts = function () {
   checkedVariants.forEach(cb => {
     const p = allProducts.find(x => x._id === cb.dataset.pid);
     if (p) {
-      const effectiveBase = (p.salePrice && p.salePrice < p.basePrice) ? p.salePrice : p.basePrice;
+      const variantPrice = parseFloat(cb.dataset.price);
       const combo = JSON.parse(decodeURIComponent(cb.dataset.combo));
       // Check if this exact variant is already in cart
       const existing = currentOrder.items.find(i => {
@@ -758,16 +758,15 @@ window.addSelectedProducts = function () {
       if (existing) {
         existing.quantity++;
       } else {
-        const extraPrice = combo.reduce((sum, c) => sum + (c.price || 0), 0);
         currentOrder.items.push({
           productId: p._id,
           name: p.name,
           imageUrl: p.imageUrl || '',
-          basePrice: effectiveBase,
+          basePrice: variantPrice,
           selectedOptions: combo,
           quantity: 1,
           discount: 0,
-          finalPrice: effectiveBase + extraPrice
+          finalPrice: variantPrice
         });
       }
     }
