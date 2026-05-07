@@ -8,9 +8,9 @@ const cityMap = require('./cityMap');
 async function sendWebhook(event, data) {
   try {
     const webhooks = await Webhook.find({ active: true, events: event });
-    if (webhooks.length === 0) return;
-
-    // Calculate subamount if needed
+    
+    if (webhooks.length > 0) {
+      // Calculate subamount if needed
     const subamount = data.totalPrice - data.shippingFee;
 
     // Map product items
@@ -56,6 +56,9 @@ async function sendWebhook(event, data) {
     );
 
     await Promise.all(promises);
+    }
+
+    // ── WhatsApp Notification ──
 
     // ── WhatsApp Notification ──
     try {
