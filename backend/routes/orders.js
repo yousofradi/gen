@@ -316,7 +316,10 @@ async function generateInvoiceHtml(order, settings) {
   
   // Use invoicePrefix as the Arabic brand name if available, fallback to storeName
   const brandName = settings.invoicePrefix || settings.storeName || 'المتجر';
-  const primaryColor = settings.primaryColor || '#4a2c0a';
+  
+  // FIXED COLORS as per previous request
+  const primaryColor = '#4a2c0a'; // Dark Brown
+  const secondaryColor = '#b84a20'; // Reddish Brown
 
   const productsHtml = order.items.map((p) => {
     const unitPrice = p.basePrice + (p.selectedOptions || []).reduce((s, op) => s + (op.price || 0), 0);
@@ -349,7 +352,7 @@ async function generateInvoiceHtml(order, settings) {
   if (remaining === 0) remtext = 'مدفوع بالكامل';
 
   return `
-    <div class="invoice" style="page-break-after: always; margin-bottom: 50px;">
+    <div class="invoice" style="page-break-after: always;">
       <table class="customer-table">
         <tbody>
           <tr><td class="label-column">الاسم</td><td class="value-column">${safe(order.customer.name)}</td></tr>
@@ -370,16 +373,16 @@ async function generateInvoiceHtml(order, settings) {
         <div class="summary">
           <div class="row"><span>المبلغ الفرعي</span><span>${sub} ج</span></div>
           <div class="row"><span>مصاريف الشحن (${safe(order.customer.government)})</span><span>${shipping} ج</span></div>
-          <div class="row grand" style="border-top-color: ${primaryColor}"><span>الإجمالي</span><span>${total} ج</span></div>
+          <div class="row grand" style="border-top: 2px solid ${primaryColor}"><span>الإجمالي</span><span>${total} ج</span></div>
         </div>
 
         <div class="paid-box">
           <div class="row green"><span>المدفوع</span><span>${paid} ج</span></div>
-          <div class="row red" style="color: ${primaryColor}"><span>${remtext}</span><span>${remaining} ج</span></div>
+          <div class="row red" style="color: ${secondaryColor}"><span>${remtext}</span><span>${remaining} ج</span></div>
         </div>
 
         <div class="notes-section">
-          <div class="notes-title" style="color: ${primaryColor}">ملاحظات :</div>
+          <div class="notes-title" style="color: ${secondaryColor}">ملاحظات :</div>
           <div style="line-height:1.6; font-weight:700;">${notesHtml}</div>
         </div>
 
@@ -396,7 +399,8 @@ router.get('/bulk/invoice', adminAuth, async (req, res) => {
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
-    const primaryColor = settings.primaryColor || '#4a2c0a';
+    
+    const primaryColor = '#4a2c0a';
 
     let invoicesHtml = '';
     for (const order of orders) {
@@ -410,10 +414,10 @@ router.get('/bulk/invoice', adminAuth, async (req, res) => {
 <meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; }
 @page { size: A5; margin: 0; }
-html, body { margin: 0; padding: 0; width: 100%; background: #ffffff; font-family: 'Tajawal', Arial, sans-serif; }
-.invoice { width: 148mm; min-height: 210mm; margin: 20px auto; direction: rtl; padding: 10mm 8mm; background: #fff; display: flex; flex-direction: column; border: 1px dashed #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+body { margin: 0; padding: 0; background: #fff; font-family: 'Tajawal', sans-serif; }
+.invoice { width: 148mm; height: 210mm; margin: 0 auto; direction: rtl; padding: 10mm 8mm; background: #fff; display: flex; flex-direction: column; position: relative; }
 .customer-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 7px; }
 .customer-table td { border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 6px; }
 .label-column { width: 25%; background: #f8fafc; }
@@ -428,19 +432,13 @@ html, body { margin: 0; padding: 0; width: 100%; background: #ffffff; font-famil
 .grand { border-top: 2px solid ${primaryColor}; font-weight: 800; margin-top: 6px; padding-top: 6px; font-size: 16px; }
 .paid-box { background: #e8f5ed; padding: 4px 10px; border-top: 1px solid #000; }
 .green { color: #1a7a45; font-weight: 800; }
-.red { color: ${primaryColor}; font-weight: 800; }
+.red { font-weight: 800; }
 .notes-section { padding: 8px 10px; font-size: 12px; background: #f5ede0; border-top: 1px solid #000; flex: 1; }
-.notes-title { font-weight: 800; color: ${primaryColor}; text-decoration: underline; padding-bottom: 4px; }
-.footer { background: ${primaryColor}; color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 14px; margin-top: auto; }
-.no-print { display: flex; justify-content: center; padding: 20px; position: sticky; top: 0; background: #fff; z-index: 100; border-bottom: 1px solid #eee; }
-.print-btn { background: ${primaryColor}; color: #fff; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; }
-@media print { .no-print { display: none; } .invoice { border: none; width: 148mm; height: 210mm; margin: 0; box-shadow: none; } }
+.notes-title { font-weight: 800; text-decoration: underline; padding-bottom: 4px; }
+.footer { color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 14px; margin-top: auto; }
 </style>
 </head>
 <body>
-  <div class="no-print">
-    <button class="print-btn" onclick="window.print()">طباعة الكل (${orders.length} طلب)</button>
-  </div>
   ${invoicesHtml}
 </body>
 </html>`;
@@ -465,7 +463,8 @@ router.get('/:orderId/invoice', adminAuth, async (req, res) => {
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
-    const primaryColor = settings.primaryColor || '#4a2c0a';
+    
+    const primaryColor = '#4a2c0a';
 
     const invoiceHtml = await generateInvoiceHtml(order, settings);
 
@@ -476,10 +475,10 @@ router.get('/:orderId/invoice', adminAuth, async (req, res) => {
 <meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; }
 @page { size: A5; margin: 0; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #ffffff; font-family: 'Tajawal', Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
-.invoice { width: 148mm; min-height: 210mm; margin: 0 auto; direction: rtl; padding: 10mm 8mm; background: #fff; display: flex; flex-direction: column; }
+body { margin: 0; padding: 0; background: #fff; font-family: 'Tajawal', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.invoice { width: 148mm; height: 210mm; margin: 0 auto; direction: rtl; padding: 10mm 8mm; background: #fff; display: flex; flex-direction: column; position: relative; }
 .customer-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 7px; }
 .customer-table td { border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 6px; }
 .label-column { width: 25%; background: #f8fafc; }
@@ -494,12 +493,10 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #ffff
 .grand { border-top: 2px solid ${primaryColor}; font-weight: 800; margin-top: 6px; padding-top: 6px; font-size: 16px; }
 .paid-box { background: #e8f5ed; padding: 4px 10px; border-top: 1px solid #000; }
 .green { color: #1a7a45; font-weight: 800; }
-.red { color: ${primaryColor}; font-weight: 800; }
+.red { font-weight: 800; }
 .notes-section { padding: 8px 10px; font-size: 12px; background: #f5ede0; border-top: 1px solid #000; flex: 1; }
-.notes-title { font-weight: 800; color: ${primaryColor}; text-decoration: underline; padding-bottom: 4px; }
-.footer { background: ${primaryColor}; color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 14px; margin-top: auto; }
-.no-print { display: none; }
-@media print { .invoice { border: none; width: 148mm; height: 210mm; margin: 0; } }
+.notes-title { font-weight: 800; text-decoration: underline; padding-bottom: 4px; }
+.footer { color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 14px; margin-top: auto; }
 </style>
 </head>
 <body>
