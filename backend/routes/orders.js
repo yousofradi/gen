@@ -293,7 +293,7 @@ ${pagesHtml}
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'API-KEY': apiKey
       },
       body: JSON.stringify({
         html: fullHtml,
@@ -418,7 +418,7 @@ window.onload = function() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'API-KEY': apiKey
       },
       body: JSON.stringify({
         html: fullHtml,
