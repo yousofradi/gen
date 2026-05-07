@@ -296,7 +296,7 @@ ${pagesHtml}
         'API-KEY': apiKey
       },
       body: JSON.stringify({
-        html: fullHtml,
+        html: Buffer.from(fullHtml).toString('base64'),
         additionalOptions: {
           format: 'A5',
           printBackground: true,
@@ -421,7 +421,7 @@ window.onload = function() {
         'API-KEY': apiKey
       },
       body: JSON.stringify({
-        html: fullHtml,
+        html: Buffer.from(fullHtml).toString('base64'),
         additionalOptions: {
           format: 'A5',
           printBackground: true,
