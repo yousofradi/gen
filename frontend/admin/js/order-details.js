@@ -61,12 +61,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Action: Print Invoice (High Quality Native Method)
-  window.openInvoice = async () => {
-    if (!currentOrder) return;
+  window.openInvoice = async function openInvoice() {
     const adminKey = localStorage.getItem('adminKey') || '';
-    showToast('جاري تحميل الفاتورة...', 'info');
-    window.location.href = `${API_BASE}/orders/${currentOrder.orderId}/download-pdf?adminKey=${adminKey}`;
-  };
+    const orderId = window.location.search.split('id=')[1];
+    if (!orderId) return;
+    
+    const btn = document.querySelector('button[onclick="openInvoice()"]');
+    const originalText = btn ? btn.innerText : 'تحميل الفاتورة';
+    
+    if (btn) {
+        btn.innerText = 'جاري التحميل...';
+        btn.disabled = true;
+    }
+
+    try {
+        const url = `${API_URL}/orders/${orderId}/download-pdf?adminKey=${adminKey}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(error || 'Failed to generate PDF');
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `invoice-${orderId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(downloadUrl);
+        a.remove();
+    } catch (err) {
+        console.error('PDF Download Error:', err);
+        alert('حدث خطأ أثناء تحميل الفاتورة: ' + err.message);
+    } finally {
+        if (btn) {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+}
 
   // Global Discard Handler
   window.handleGlobalDiscard = () => {

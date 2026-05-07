@@ -321,19 +321,44 @@ window.deleteOrder = async function (orderId) {
 window.printInvoices = async function () {
   const adminKey = localStorage.getItem('adminKey') || '';
   const btn = document.getElementById('print-invoices-btn');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:#475569;border-top-color:transparent;margin:0"></div>';
-  btn.disabled = true;
+  const originalText = btn ? btn.innerHTML : 'تحميل جميع الفواتير';
+  
+  if (btn) {
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:#475569;border-top-color:transparent;margin:0"></div>';
+    btn.disabled = true;
+  }
+
   showToast('جاري تحميل جميع الفواتير...', 'info');
+  
   try {
-    window.location.href = `${API_BASE}/orders/bulk/download-pdf?adminKey=${adminKey}`;
+    const url = `${API_BASE}/orders/bulk/download-pdf?adminKey=${adminKey}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Failed to generate PDF');
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `bulk-invoices-${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    a.remove();
+    
     showToast('تم بدء التحميل');
   } catch (err) {
-    showToast('فشل تحميل الفواتير', 'error');
+    console.error('PDF Download Error:', err);
+    showToast('فشل تحميل الفواتير: ' + err.message, 'error');
   } finally {
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    }, 2000);
+    if (btn) {
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }, 500);
+    }
   }
 };
