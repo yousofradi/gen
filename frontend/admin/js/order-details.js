@@ -168,7 +168,7 @@ function renderItems() {
           
           <!-- Left side: Unit Price Block and Total Price -->
           <div style="display: flex; align-items: center; gap: 16px; flex: 1; justify-content: space-between;">
-            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${item.quantity} x ${formatPrice(unitPrice)}</div>
+            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${formatPrice(unitPrice)}x${item.quantity} </div>
             <div style="font-weight: 700; font-size: 1rem; color: #1e293b; min-width: 80px; text-align: left; flex: 1;">${formatPrice(item.finalPrice)}</div>
           </div>
         </div>
@@ -481,7 +481,7 @@ window.applyItemDiscount = async function () {
     closeModal('item-discount-modal');
     updateTotals();
     renderItems();
-    
+
     // Trigger unsaved changes bar
     if (window.markAsModified) window.markAsModified();
   }
@@ -538,7 +538,7 @@ window.saveOrderChanges = async function (silent = false) {
     } else {
       showToast('تم تحديث البيانات بنجاح', 'success');
     }
-    
+
     // Update baseline for discard
     originalOrder = JSON.parse(JSON.stringify(currentOrder));
     renderOrder();
@@ -793,12 +793,12 @@ window.addSelectedProducts = function () {
   if (window.markAsModified) window.markAsModified();
 };
 
-window.toggleDetailsMenu = function(e) {
+window.toggleDetailsMenu = function (e) {
   e.stopPropagation();
   const menu = document.getElementById('details-menu');
   const isVisible = menu.style.display === 'block';
   menu.style.display = isVisible ? 'none' : 'block';
-  
+
   if (!isVisible) {
     const hideMenu = () => {
       menu.style.display = 'none';
