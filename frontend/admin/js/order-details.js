@@ -60,12 +60,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
-  // Action: Download Invoice PDF
+  // Action: Print Invoice (High Quality Native Method)
   window.openInvoice = async () => {
     if (!currentOrder) return;
     const adminKey = localStorage.getItem('adminKey') || '';
     
-    showToast('جاري تجهيز الفاتورة للتحميل...', 'info');
+    showToast('جاري تجهيز الفاتورة للطباعة...', 'info');
     
     try {
       const response = await fetch(`${API_BASE}/orders/${currentOrder.orderId}/invoice`, {
@@ -75,15 +75,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const htmlContent = await response.text();
       
       // Use a hidden iframe to render the full HTML properly
-      let iframe = document.getElementById('pdf-render-iframe');
+      // This is the ONLY way to get perfect Arabic fonts and RTL layout
+      let iframe = document.getElementById('print-iframe');
       if (!iframe) {
         iframe = document.createElement('iframe');
-        iframe.id = 'pdf-render-iframe';
-        iframe.style.position = 'absolute';
-        iframe.style.width = '140mm';
-        iframe.style.height = '202mm';
-        iframe.style.left = '-10000px';
-        iframe.style.top = '0';
+        iframe.id = 'print-iframe';
+        iframe.style.display = 'none';
         document.body.appendChild(iframe);
       }
       
@@ -92,32 +89,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       doc.write(htmlContent);
       doc.close();
       
-      // Wait for everything to load in the iframe
-      iframe.contentWindow.onload = async () => {
-        const page = doc.querySelector('.page');
-        if (!page) {
-          showToast('فشل تجهيز الفاتورة', 'error');
-          return;
-        }
-
-        const opt = {
-          margin: 0,
-          filename: `فاتورة-${currentOrder.orderId}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { 
-            scale: 3, 
-            useCORS: true, 
-            letterRendering: false,
-            scrollY: 0,
-            scrollX: 0,
-            windowWidth: 529, // 140mm
-            windowHeight: 763 // 202mm
-          },
-          jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
-        };
-        
-        await html2pdf().from(page).set(opt).save();
-        showToast('تم تحميل الفاتورة بنجاح');
+      // Wait for everything (fonts/images) to load
+      iframe.contentWindow.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        showToast('تم فتح نافذة الطباعة');
       };
     } catch (err) {
       console.error(err);

@@ -317,7 +317,7 @@ window.deleteOrder = async function (orderId) {
   }
 };
 
-// ── Download Bulk Invoices PDF ───────────────────────────
+// ── Print Bulk Invoices (Native High Quality) ───────────────────────────
 window.printInvoices = async function () {
   const adminKey = localStorage.getItem('adminKey') || '';
   const btn = document.getElementById('print-invoices-btn');
@@ -326,7 +326,7 @@ window.printInvoices = async function () {
   btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:#475569;border-top-color:transparent;margin:0"></div>';
   btn.disabled = true;
   
-  showToast('جاري تجهيز الفواتير للتحميل...', 'info');
+  showToast('جاري تجهيز فواتير الكل...', 'info');
 
   try {
     const response = await fetch(`${API_BASE}/orders/bulk/invoice`, {
@@ -335,15 +335,11 @@ window.printInvoices = async function () {
     if (!response.ok) throw new Error();
     const htmlContent = await response.text();
     
-    // Use a hidden iframe for full rendering stability
-    let iframe = document.getElementById('pdf-render-iframe');
+    let iframe = document.getElementById('print-iframe');
     if (!iframe) {
       iframe = document.createElement('iframe');
-      iframe.id = 'pdf-render-iframe';
-      iframe.style.position = 'absolute';
-      iframe.style.width = '140mm';
-      iframe.style.left = '-10000px';
-      iframe.style.top = '0';
+      iframe.id = 'print-iframe';
+      iframe.style.display = 'none';
       document.body.appendChild(iframe);
     }
     
@@ -352,24 +348,10 @@ window.printInvoices = async function () {
     doc.write(htmlContent);
     doc.close();
     
-    iframe.contentWindow.onload = async () => {
-      const opt = {
-        margin: 0,
-        filename: `جميع-الفواتير-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 3, 
-          useCORS: true, 
-          letterRendering: false,
-          scrollY: 0,
-          scrollX: 0,
-          windowWidth: 529 // 140mm
-        },
-        jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
-      };
-      
-      await html2pdf().from(doc.body).set(opt).save();
-      showToast('تم تحميل جميع الفواتير بنجاح');
+    iframe.contentWindow.onload = () => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      showToast('تم تجهيز الطباعة');
       btn.innerHTML = originalText;
       btn.disabled = false;
     };
