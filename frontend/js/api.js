@@ -51,8 +51,8 @@ const api = {
 
   // Collections
   getCollections() { return this._request('/collections'); },
-  getCollection(id) { 
-    return this._request(`/collections/${id}`); 
+  getCollection(id) {
+    return this._request(`/collections/${id}`);
   },
   createCollection(d) { return this._request('/collections', { method: 'POST', body: JSON.stringify(d), admin: true }); },
   updateCollection(id, d) { return this._request(`/collections/${id}`, { method: 'PUT', body: JSON.stringify(d), admin: true }); },
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Apply Global Settings ──────────────────────────────
 // Immediately apply cached store URL if exists
-(function() {
+(function () {
   const cachedUrl = localStorage.getItem('sundura_store_url');
   if (cachedUrl) {
     document.addEventListener('DOMContentLoaded', () => {
@@ -324,10 +324,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!updated) {
           document.title = settings.storeName;
         }
-        
+
         const adminBrand = document.querySelector('.admin-brand-title');
         if (adminBrand) adminBrand.textContent = settings.storeName;
-        
+
         // Update any generic placeholders in the DOM
         document.querySelectorAll('.store-name-text').forEach(el => {
           if (el.tagName === 'INPUT') el.value = settings.storeName;
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const waLink = settings.socialWa ? formatWaLink(settings.socialWa) : '';
 
       if (settings.socialWa) {
-        
+
         document.querySelectorAll('a[href*="wa.me"]').forEach(link => {
           link.href = waLink;
         });
@@ -373,17 +373,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 5. Social Links
       if (settings.socialFb) {
         document.querySelectorAll('a[href*="facebook.com"]').forEach(link => {
-            if (!link.classList.contains('no-brand-sync')) link.href = settings.socialFb;
+          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialFb;
         });
       }
       if (settings.socialIg) {
         document.querySelectorAll('a[href*="instagram.com"]').forEach(link => {
-            if (!link.classList.contains('no-brand-sync')) link.href = settings.socialIg;
+          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialIg;
         });
       }
       if (settings.socialTt) {
         document.querySelectorAll('a[href*="tiktok.com"]').forEach(link => {
-            if (!link.classList.contains('no-brand-sync')) link.href = settings.socialTt;
+          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialTt;
         });
       }
 
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (settings.socialTt) socialHtml += `<a href="${settings.socialTt}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a3 3 0 0 1-3-3v8a8 8 0 1 1-8-8 1 1 0 0 1 1 1z"></path></svg></a>`;
         if (settings.socialTg) socialHtml += `<a href="${settings.socialTg}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg></a>`;
         if (settings.socialWa) {
-            socialHtml += `<a href="${waLink}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>`;
+          socialHtml += `<a href="${waLink}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>`;
         }
         socialHtml += '</div>';
         footerNav.insertAdjacentHTML('afterend', socialHtml);
@@ -405,24 +405,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 6. Mobile Nav Update
       const navWaLink = document.getElementById('nav-wa-link');
       if (navWaLink && settings.socialWa) {
-          navWaLink.href = waLink;
-          navWaLink.title = settings.socialWa;
+        navWaLink.href = waLink;
+        navWaLink.title = settings.socialWa;
       }
-      
+
       const navTgLink = document.getElementById('nav-tg-link');
       if (navTgLink && settings.socialTg) {
-          navTgLink.href = settings.socialTg;
-          const span = navTgLink.querySelector('span');
-          if (span) span.textContent = 'تليجرام';
-          const svg = navTgLink.querySelector('svg');
-          if (svg) svg.innerHTML = `<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>`;
+        navTgLink.href = settings.socialTg;
+        const span = navTgLink.querySelector('span');
+        if (span) span.textContent = 'تليجرام';
+        const svg = navTgLink.querySelector('svg');
+        if (svg) svg.innerHTML = `<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>`;
       }
 
       // 7. Custom Color Palette
       if (settings.primaryColor) {
         applyColorPalette(settings.primaryColor);
       }
-      
+
       // Update specific dynamic messages
       if (settings.storeName) {
         window.storeNameForWA = settings.storeName;
@@ -457,7 +457,7 @@ function applyColorPalette(hex) {
 
     const root = document.documentElement;
     root.style.setProperty('--primary', hex);
-    
+
     // Hover: 15% darker
     const hr = Math.max(0, Math.floor(r * 0.85));
     const hg = Math.max(0, Math.floor(g * 0.85));
@@ -472,7 +472,7 @@ function applyColorPalette(hex) {
     // Legacy support for older css var names
     root.style.setProperty('--primary', hex);
     root.style.setProperty('--primary-dark', hover);
-  } catch(e) {
+  } catch (e) {
     console.error('Failed to apply color palette', e);
   }
 }

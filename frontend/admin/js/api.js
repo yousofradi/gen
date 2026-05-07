@@ -1,4 +1,6 @@
 const API_BASE = 'API_URL_PLACEHOLDER';
+console.log('Admin API_BASE:', API_BASE);
+
 
 const api = {
   _adminKey() { return localStorage.getItem('adminKey') || ''; },
