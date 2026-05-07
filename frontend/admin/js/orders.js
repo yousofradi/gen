@@ -317,7 +317,7 @@ window.deleteOrder = async function (orderId) {
   }
 };
 
-// ── Print Bulk Invoices (Native High Quality) ───────────────────────────
+// ── Download Bulk Invoices PDF (Server-side Puppeteer) ───────────────────────────
 window.printInvoices = async function () {
   const adminKey = localStorage.getItem('adminKey') || '';
   const btn = document.getElementById('print-invoices-btn');
@@ -326,40 +326,19 @@ window.printInvoices = async function () {
   btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:#475569;border-top-color:transparent;margin:0"></div>';
   btn.disabled = true;
   
-  showToast('جاري تجهيز فواتير الكل...', 'info');
+  showToast('جاري تحميل جميع الفواتير...', 'info');
 
   try {
-    const response = await fetch(`${API_BASE}/orders/bulk/invoice`, {
-      headers: { 'x-admin-key': adminKey }
-    });
-    if (!response.ok) throw new Error();
-    const htmlContent = await response.text();
-    
-    let iframe = document.getElementById('print-iframe');
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = 'print-iframe';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-    
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(htmlContent);
-    doc.close();
-    
-    iframe.contentWindow.onload = () => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      showToast('تم تجهيز الطباعة');
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    };
-
+    const downloadUrl = `${API_BASE}/orders/bulk/download-pdf?adminKey=${adminKey}`;
+    window.location.href = downloadUrl;
+    showToast('تم بدء التحميل');
   } catch (err) {
     console.error(err);
     showToast('فشل تحميل الفواتير', 'error');
-    btn.innerHTML = originalText;
-    btn.disabled = false;
+  } finally {
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }, 2000);
   }
 };

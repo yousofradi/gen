@@ -60,45 +60,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
-  // Action: Print Invoice (High Quality Native Method)
+  // Action: Download Invoice PDF (Server-side Puppeteer)
   window.openInvoice = async () => {
     if (!currentOrder) return;
     const adminKey = localStorage.getItem('adminKey') || '';
     
-    showToast('جاري تجهيز الفاتورة للطباعة...', 'info');
+    showToast('جاري تحميل الفاتورة...', 'info');
     
-    try {
-      const response = await fetch(`${API_BASE}/orders/${currentOrder.orderId}/invoice`, {
-        headers: { 'x-admin-key': adminKey }
-      });
-      if (!response.ok) throw new Error();
-      const htmlContent = await response.text();
-      
-      // Use a hidden iframe to render the full HTML properly
-      // This is the ONLY way to get perfect Arabic fonts and RTL layout
-      let iframe = document.getElementById('print-iframe');
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'print-iframe';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-      }
-      
-      const doc = iframe.contentWindow.document;
-      doc.open();
-      doc.write(htmlContent);
-      doc.close();
-      
-      // Wait for everything (fonts/images) to load
-      iframe.contentWindow.onload = () => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        showToast('تم فتح نافذة الطباعة');
-      };
-    } catch (err) {
-      console.error(err);
-      showToast('فشل تحميل الفاتورة', 'error');
-    }
+    // Direct link to download the PDF generated on the server
+    const downloadUrl = `${API_BASE}/orders/${currentOrder.orderId}/download-pdf?adminKey=${adminKey}`;
+    window.location.href = downloadUrl;
   };
 
   // Global Discard Handler
