@@ -60,11 +60,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
-  // Action: Open Invoice
-  window.openInvoice = () => {
+  // Action: Download Invoice PDF
+  window.openInvoice = async () => {
     if (!currentOrder) return;
     const adminKey = localStorage.getItem('adminKey') || '';
-    window.open(`${API_BASE}/orders/${currentOrder.orderId}/invoice?ADMIN_API_KEY=${adminKey}`, '_blank');
+    
+    showToast('جاري تجهيز الفاتورة...', 'info');
+    
+    try {
+      const response = await fetch(`${API_BASE}/orders/${currentOrder.orderId}/invoice`, {
+        headers: { 'x-admin-key': adminKey }
+      });
+      if (!response.ok) throw new Error();
+      const htmlContent = await response.text();
+      
+      const element = document.createElement('div');
+      element.innerHTML = htmlContent;
+      
+      const opt = {
+        margin: 0,
+        filename: `فاتورة-${currentOrder.orderId}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+      };
+      
+      html2pdf().from(element).set(opt).save();
+      showToast('تم تحميل الفاتورة');
+    } catch (err) {
+      showToast('فشل تحميل الفاتورة', 'error');
+    }
   };
 
   // Global Discard Handler

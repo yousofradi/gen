@@ -411,29 +411,30 @@ router.get('/bulk/invoice', adminAuth, async (req, res) => {
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; }
+@page { size: A5; margin: 0; }
 html, body { margin: 0; padding: 0; width: 100%; background: #ffffff; font-family: 'Tajawal', Arial, sans-serif; }
-.invoice { width: 500px; margin: 0 auto; direction: rtl; padding: 10px 5px; border: 1px dashed #ccc; }
-.customer-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 7px; }
-.customer-table td { border: 1px solid #000; font-size: 10px; font-weight: 600; text-align: center; padding: 4px; }
-.label-column { width: 25%; }
+.invoice { width: 148mm; min-height: 210mm; margin: 20px auto; direction: rtl; padding: 10mm 8mm; background: #fff; display: flex; flex-direction: column; border: 1px dashed #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+.customer-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 7px; }
+.customer-table td { border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 6px; }
+.label-column { width: 25%; background: #f8fafc; }
 .value-column { width: 75%; }
-.order-section { border: 1px solid #000; }
+.order-section { border: 1.5px solid #000; flex: 1; display: flex; flex-direction: column; }
 .items-table { width: 100%; border-collapse: collapse; }
 .items-table thead { background: #f5ede0; }
-.items-table th, .items-table td { padding: 6px 6px; font-weight: 600; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5; }
+.items-table th, .items-table td { padding: 8px 6px; font-weight: 700; font-size: 13px; text-align: center; border-bottom: 1px solid #a6a5a5; }
 .items-table td:first-child, .items-table th:first-child { text-align: right; }
-.summary { background: #f5ede0; padding: 1px 6px; }
-.row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
-.grand { border-top: 2px solid ${primaryColor}; font-weight: 700; margin-top: 4px; padding-top: 4px; }
-.paid-box { background: #e8f5ed; padding: 1px 6px; }
-.green { color: #1a7a45; font-weight: 700; }
-.red { color: ${primaryColor}; font-weight: 700; }
-.notes-section { padding: 4px 6px; font-size: 11px; background: #f5ede0; }
-.notes-title { font-weight: 700; color: ${primaryColor}; text-decoration: underline; padding-bottom: 2px; }
-.footer { background: ${primaryColor}; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
+.summary { background: #f5ede0; padding: 4px 10px; border-top: 1px solid #000; }
+.row { display: flex; justify-content: space-between; font-size: 14px; margin: 4px; }
+.grand { border-top: 2px solid ${primaryColor}; font-weight: 800; margin-top: 6px; padding-top: 6px; font-size: 16px; }
+.paid-box { background: #e8f5ed; padding: 4px 10px; border-top: 1px solid #000; }
+.green { color: #1a7a45; font-weight: 800; }
+.red { color: ${primaryColor}; font-weight: 800; }
+.notes-section { padding: 8px 10px; font-size: 12px; background: #f5ede0; border-top: 1px solid #000; flex: 1; }
+.notes-title { font-weight: 800; color: ${primaryColor}; text-decoration: underline; padding-bottom: 4px; }
+.footer { background: ${primaryColor}; color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 14px; margin-top: auto; }
 .no-print { display: flex; justify-content: center; padding: 20px; position: sticky; top: 0; background: #fff; z-index: 100; border-bottom: 1px solid #eee; }
 .print-btn { background: ${primaryColor}; color: #fff; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; }
-@media print { .no-print { display: none; } .invoice { border: none; width: 100%; margin: 0; } }
+@media print { .no-print { display: none; } .invoice { border: none; width: 148mm; height: 210mm; margin: 0; box-shadow: none; } }
 </style>
 </head>
 <body>
@@ -476,35 +477,32 @@ router.get('/:orderId/invoice', adminAuth, async (req, res) => {
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; width: 100%; background: #ffffff; font-family: 'Tajawal', Arial, sans-serif; }
-.invoice { width: 500px; margin: 0 auto; direction: rtl; padding: 10px 5px; }
-.customer-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 7px; }
-.customer-table td { border: 1px solid #000; font-size: 10px; font-weight: 600; text-align: center; padding: 4px; }
-.label-column { width: 25%; }
+@page { size: A5; margin: 0; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #ffffff; font-family: 'Tajawal', Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
+.invoice { width: 148mm; min-height: 210mm; margin: 0 auto; direction: rtl; padding: 10mm 8mm; background: #fff; display: flex; flex-direction: column; }
+.customer-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 7px; }
+.customer-table td { border: 1px solid #000; font-size: 11px; font-weight: 700; text-align: center; padding: 6px; }
+.label-column { width: 25%; background: #f8fafc; }
 .value-column { width: 75%; }
-.order-section { border: 1px solid #000; }
+.order-section { border: 1.5px solid #000; flex: 1; display: flex; flex-direction: column; }
 .items-table { width: 100%; border-collapse: collapse; }
 .items-table thead { background: #f5ede0; }
-.items-table th, .items-table td { padding: 6px 6px; font-weight: 600; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5; }
+.items-table th, .items-table td { padding: 8px 6px; font-weight: 700; font-size: 13px; text-align: center; border-bottom: 1px solid #a6a5a5; }
 .items-table td:first-child, .items-table th:first-child { text-align: right; }
-.summary { background: #f5ede0; padding: 1px 6px; }
-.row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
-.grand { border-top: 2px solid ${primaryColor}; font-weight: 700; margin-top: 4px; padding-top: 4px; }
-.paid-box { background: #e8f5ed; padding: 1px 6px; }
-.green { color: #1a7a45; font-weight: 700; }
-.red { color: ${primaryColor}; font-weight: 700; }
-.notes-section { padding: 4px 6px; font-size: 11px; background: #f5ede0; }
-.notes-title { font-weight: 700; color: ${primaryColor}; text-decoration: underline; padding-bottom: 2px; }
-.footer { background: ${primaryColor}; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
-.no-print { display: flex; justify-content: center; padding: 20px; }
-.print-btn { background: ${primaryColor}; color: #fff; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; }
-@media print { .no-print { display: none; } .invoice { width: 100%; margin: 0; } }
+.summary { background: #f5ede0; padding: 4px 10px; border-top: 1px solid #000; }
+.row { display: flex; justify-content: space-between; font-size: 14px; margin: 4px; }
+.grand { border-top: 2px solid ${primaryColor}; font-weight: 800; margin-top: 6px; padding-top: 6px; font-size: 16px; }
+.paid-box { background: #e8f5ed; padding: 4px 10px; border-top: 1px solid #000; }
+.green { color: #1a7a45; font-weight: 800; }
+.red { color: ${primaryColor}; font-weight: 800; }
+.notes-section { padding: 8px 10px; font-size: 12px; background: #f5ede0; border-top: 1px solid #000; flex: 1; }
+.notes-title { font-weight: 800; color: ${primaryColor}; text-decoration: underline; padding-bottom: 4px; }
+.footer { background: ${primaryColor}; color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 14px; margin-top: auto; }
+.no-print { display: none; }
+@media print { .invoice { border: none; width: 148mm; height: 210mm; margin: 0; } }
 </style>
 </head>
 <body>
-  <div class="no-print">
-    <button class="print-btn" onclick="window.print()">طباعة الفاتورة</button>
-  </div>
   ${invoiceHtml}
 </body>
 </html>`;

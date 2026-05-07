@@ -317,9 +317,41 @@ window.deleteOrder = async function (orderId) {
   }
 };
 
-// ── Print Invoices ───────────────────────────
-window.printInvoices = function () {
+// ── Download Bulk Invoices PDF ───────────────────────────
+window.printInvoices = async function () {
   const adminKey = localStorage.getItem('adminKey') || '';
-  // Opens the internal bulk invoice endpoint in a new tab
-  window.open(`${API_BASE}/orders/bulk/invoice?ADMIN_API_KEY=${adminKey}`, '_blank');
+  const btn = document.getElementById('print-invoices-btn');
+  const originalText = btn.innerHTML;
+  
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:#475569;border-top-color:transparent;margin:0"></div>';
+  btn.disabled = true;
+  
+  showToast('جاري تجهيز فواتير الكل...', 'info');
+
+  try {
+    const response = await fetch(`${API_BASE}/orders/bulk/invoice`, {
+      headers: { 'x-admin-key': adminKey }
+    });
+    if (!response.ok) throw new Error();
+    const htmlContent = await response.text();
+    
+    const element = document.createElement('div');
+    element.innerHTML = htmlContent;
+    
+    const opt = {
+      margin: 0,
+      filename: `جميع-الفواتير-${new Date().toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+    };
+    
+    await html2pdf().from(element).set(opt).save();
+    showToast('تم تحميل جميع الفواتير');
+  } catch (err) {
+    showToast('فشل تحميل الفواتير', 'error');
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
 };
