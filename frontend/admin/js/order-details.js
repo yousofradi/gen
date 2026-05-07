@@ -802,25 +802,33 @@ window.toggleDetailsMenu = function(e) {
   }
 };
 
-window.archiveCurrentOrder = async function() {
-  if (!confirm('?? ??? ????? ?? ????? ??? ??????')) return;
+window.archiveCurrentOrder = async function () {
+  const confirmed = await window.showConfirmModal('تأكيد الأرشفة', 'هل أنت متأكد من أرشفة هذا الطلب؟');
+  if (!confirmed) return;
   try {
+    document.body.classList.add('is-loading');
     await api.archiveOrders([currentOrder.orderId]);
-    showToast('??? ????? ????? ?????');
+    showToast('تم أرشفة الطلب بنجاح');
     window.location.href = 'orders';
   } catch (err) {
-    showToast(err.message || '??? ????? ?????', 'error');
+    showToast(err.message || 'فشل الأرشفة', 'error');
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 };
 
-window.deleteCurrentOrder = async function() {
-  if (!confirm('???? ??? ????? ???????. ?? ??? ??????')) return;
+window.deleteCurrentOrder = async function () {
+  const confirmed = await window.showConfirmModal('تأكيد الحذف', 'سيتم حذف هذا الطلب نهائياً. هل أنت متأكد؟');
+  if (!confirmed) return;
   try {
+    document.body.classList.add('is-loading');
     await api.deleteOrder(currentOrder.orderId);
-    showToast('?? ??? ????? ?????');
+    showToast('تم حذف الطلب بنجاح');
     window.location.href = 'orders';
   } catch (err) {
-    showToast(err.message || '??? ??? ?????', 'error');
+    showToast(err.message || 'فشل الحذف', 'error');
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 };
 
