@@ -1,4 +1,7 @@
-const API_BASE = 'API_URL_PLACEHOLDER';
+let API_BASE = 'API_URL_PLACEHOLDER';
+if (API_BASE === 'API_URL' + '_PLACEHOLDER' || !API_BASE) {
+  API_BASE = 'https://sundurashop-manage.onrender.com/api';
+}
 
 const api = {
   _adminKey() { return localStorage.getItem('adminKey') || ''; },
