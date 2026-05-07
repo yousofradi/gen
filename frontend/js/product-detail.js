@@ -5,7 +5,16 @@ let selectedQty = 1;
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const productId = params.get('id');
-  const handle = params.get('name');
+  let handle = params.get('name');
+  
+  // Fallback: extract handle from path /product/HANDLE
+  if (!productId && !handle) {
+    const pathParts = window.location.pathname.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    if (lastPart && lastPart !== 'product' && lastPart !== 'product.html') {
+      handle = lastPart;
+    }
+  }
 
   const loading = document.getElementById('product-loading');
   const detail = document.getElementById('product-detail');

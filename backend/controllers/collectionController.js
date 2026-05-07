@@ -11,7 +11,17 @@ exports.getCollections = async (req, res) => {
 
 exports.getCollection = async (req, res) => {
   try {
-    const collection = await Collection.findById(req.params.id);
+    const { id } = req.params;
+    let collection;
+    
+    // Check if ID is a valid MongoDB ObjectId
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      collection = await Collection.findById(id);
+    } else {
+      // Otherwise search by handle/urlName
+      collection = await Collection.findOne({ urlName: id });
+    }
+
     if (!collection) return res.status(404).json({ error: 'Collection not found' });
     res.json(collection);
   } catch (error) {

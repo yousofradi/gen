@@ -7,7 +7,16 @@ let currentCollectionId = null;
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
-  const slug = params.get('u');
+  let slug = params.get('u');
+  
+  // Fallback: extract slug from path /collection/SLUG
+  if (!id && !slug) {
+    const pathParts = window.location.pathname.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    if (lastPart && lastPart !== 'collection' && lastPart !== 'collection.html') {
+      slug = lastPart;
+    }
+  }
   
   if (!id && !slug) {
     document.getElementById('collection-products').innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;padding:40px">لم يتم تحديد تصنيف</p>';

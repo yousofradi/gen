@@ -28,8 +28,8 @@ services:
         value: public, max-age=3600
     routes:
       - type: rewrite
-        source: /collection/(.*)
-        destination: /collection.html?u=$1
+        source: /collection/*
+        destination: /collection.html
       - type: rewrite
-        source: /product/(.*)
-        destination: /product.html?name=$1
+        source: /product/*
+        destination: /product.html

@@ -52,13 +52,6 @@ const api = {
   // Collections
   getCollections() { return this._request('/collections'); },
   getCollection(id) { 
-    // If id is not an ObjectId format (approx 24 hex), try to get by slug
-    if (id && id.length !== 24) {
-      return this._request(`/collections?u=${id}`).then(cols => {
-          if (Array.isArray(cols)) return cols.find(c => c.urlName === id);
-          return cols;
-      });
-    }
     return this._request(`/collections/${id}`); 
   },
   createCollection(d) { return this._request('/collections', { method: 'POST', body: JSON.stringify(d), admin: true }); },
