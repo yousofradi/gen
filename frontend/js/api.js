@@ -305,11 +305,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // 3. Store Name & Titles
       if (settings.storeName) {
-        // If title is just " | Page", replace first part. If it has a pipe, keep the page name.
-        if (document.title.includes('|')) {
-          const parts = document.title.split('|');
-          document.title = parts[0].trim() + ' | ' + settings.storeName;
-        } else {
+        // Handle title updates with different separators (|, —)
+        const separators = ['|', '—', '-'];
+        let updated = false;
+        for (const sep of separators) {
+          if (document.title.includes(sep)) {
+            const parts = document.title.split(sep);
+            document.title = parts[0].trim() + ' ' + sep + ' ' + settings.storeName;
+            updated = true;
+            break;
+          }
+        }
+        if (!updated) {
           document.title = settings.storeName;
         }
         
@@ -318,8 +325,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Update any generic placeholders in the DOM
         document.querySelectorAll('.store-name-text').forEach(el => {
-          el.textContent = settings.storeName;
+          if (el.tagName === 'INPUT') el.value = settings.storeName;
+          else el.textContent = settings.storeName;
         });
+
+        // 3.1 SEO Meta Tags
+        const updateMeta = (attr, val, content) => {
+          let el = document.querySelector(`meta[${attr}="${val}"]`);
+          if (!el) {
+            el = document.createElement('meta');
+            el.setAttribute(attr, val);
+            document.head.appendChild(el);
+          }
+          el.content = content;
+        };
+        updateMeta('property', 'og:title', settings.storeName + ' Shop');
+        updateMeta('name', 'twitter:title', settings.storeName + ' Shop');
 
         const footerCopy = document.querySelector('.footer-bottom-bar');
         if (footerCopy) {

@@ -10,12 +10,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAllProducts();
 
   if (collectionId) {
-    document.title = 'تعديل التصنيف — Sundura Admin';
+    document.title = 'تعديل التصنيف — Admin';
     const formTitle = document.getElementById('form-page-title');
     if (formTitle) formTitle.textContent = 'تعديل التصنيف';
     await loadCollection(collectionId);
   } else {
-    document.title = 'إضافة تصنيف — Sundura Admin';
+    document.title = 'إضافة تصنيف — Admin';
     const formTitle = document.getElementById('form-page-title');
     if (formTitle) formTitle.textContent = 'إضافة تصنيف';
     originalCollection = null;
@@ -306,7 +306,7 @@ async function saveCollection(e) {
       
       const formTitle = document.getElementById('form-page-title');
       if (formTitle) formTitle.textContent = 'تعديل التصنيف';
-      document.title = 'تعديل التصنيف — Sundura Admin';
+      document.title = 'تعديل التصنيف — Admin';
       const newUrl = 'collection-form.html?id=' + collectionId;
       setTimeout(() => window.location.href = newUrl, 1000);
     }

@@ -301,10 +301,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // 3. Store Name & Titles
       if (settings.storeName) {
-        document.title = document.title.replace('Sundura Shop', settings.storeName).replace('Sundura', settings.storeName);
+        // Handle title updates with different separators (|, —)
+        const separators = ['|', '—', '-'];
+        let updated = false;
+        for (const sep of separators) {
+          if (document.title.includes(sep)) {
+            const parts = document.title.split(sep);
+            document.title = parts[0].trim() + ' ' + sep + ' ' + settings.storeName;
+            updated = true;
+            break;
+          }
+        }
+        if (!updated) {
+          document.title = settings.storeName;
+        }
         
         const adminBrand = document.querySelector('.admin-brand-title');
         if (adminBrand) adminBrand.textContent = settings.storeName;
+        
+        // Update any generic placeholders in the DOM
+        document.querySelectorAll('.store-name-text').forEach(el => {
+          if (el.tagName === 'INPUT') el.value = settings.storeName;
+          else el.textContent = settings.storeName;
+        });
+
+        // 3.1 SEO Meta Tags
+        const updateMeta = (attr, val, content) => {
+          let el = document.querySelector(`meta[${attr}="${val}"]`);
+          if (!el) {
+            el = document.createElement('meta');
+            el.setAttribute(attr, val);
+            document.head.appendChild(el);
+          }
+          el.content = content;
+        };
+        updateMeta('property', 'og:title', settings.storeName + ' Shop');
+        updateMeta('name', 'twitter:title', settings.storeName + ' Shop');
 
         const footerCopy = document.querySelector('.footer-bottom-bar');
         if (footerCopy) {

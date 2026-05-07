@@ -320,14 +320,14 @@ h4 {
 }
 
 .btn-primary {
-  background: #492C12;
+  background: var(--primary);
   color: #fff;
-  border: 1px solid #492C12;
+  border: 1px solid var(--primary);
 }
 
 .btn-primary:hover {
-  background: #3d2b1f;
-  border-color: #3d2b1f;
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 .btn-secondary {

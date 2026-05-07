@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-  <title>المنتجات — Sundura Admin</title>
+  <title>المنتجات — Admin</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
     @media (max-width: 640px) {
@@ -27,7 +27,7 @@
     
     <aside class="admin-sidebar">
       <div class="admin-brand-header">
-        <div class="admin-brand-title">Sundura Shop</div>
+        <div class="admin-brand-title">Shop</div>
         <a href="../" target="_blank" class="admin-store-preview">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
           معاينة المتجر
@@ -104,7 +104,7 @@
           </div>
           
           <div id="bulk-actions-bar" style="display:none; justify-content:flex-start; align-items:center; padding:16px 20px; border-bottom:1px solid #f1f5f9; background:#fff; gap:12px;">
-            <button class="btn btn-primary" onclick="unselectAll()" style="border-radius:20px; padding:8px 16px; border:none; background:var(--sundura-brown, #916C4F); color:#fff; font-weight:600; display:flex; align-items:center; gap:8px;">
+            <button class="btn btn-primary" onclick="unselectAll()" style="border-radius:20px; padding:8px 16px; border:none; background:var(--primary, #916C4F); color:#fff; font-weight:600; display:flex; align-items:center; gap:8px;">
               تم تحديد <span id="selected-count-badge">1</span>
               <span style="background:rgba(255,255,255,0.2); border-radius:4px; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold;">-</span>
             </button>
@@ -147,14 +147,14 @@
           <!-- Pagination Bar -->
           <div class="pagination-bar" style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid #e2e8f0; background:#f8fafc; font-size:0.95rem; flex-wrap:wrap; gap:16px;">
             <div style="display:flex; align-items:center; gap:16px;">
-              <button id="prev-page" onclick="changePage(-1)" style="background:none; border:none; color:var(--sundura-brown, #916C4F); font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; padding:4px 8px;">
+              <button id="prev-page" onclick="changePage(-1)" style="background:none; border:none; color:var(--primary, #916C4F); font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; padding:4px 8px;">
                 السابق
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
               <select id="page-dropdown" onchange="goToPage(this.value)" class="form-control" style="width:70px; padding:6px; font-size:0.95rem; margin:0; text-align:center; appearance:auto;">
                 <option value="1">1</option>
               </select>
-              <button id="next-page" onclick="changePage(1)" style="background:none; border:none; color:var(--sundura-brown, #916C4F); font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; padding:4px 8px;">
+              <button id="next-page" onclick="changePage(1)" style="background:none; border:none; color:var(--primary, #916C4F); font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; padding:4px 8px;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 التالي
               </button>

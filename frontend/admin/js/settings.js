@@ -62,7 +62,7 @@ function initColorPicker() {
 
 function updateBranding(name) {
   const sidebarTitle = document.querySelector('.admin-brand-title');
-  if (sidebarTitle) sidebarTitle.textContent = name || 'Sundura Shop';
+  if (sidebarTitle) sidebarTitle.textContent = name || 'Store Admin';
 }
 
 function populateSettingsForm(s) {
