@@ -824,11 +824,14 @@ window.deleteCurrentOrder = async function() {
   }
 };
 
-window.markAsReady = async function () {
+window.markAsReady = function () {
   if (!currentOrder) return;
-  if (!confirm('هل تريد تعليم هذا الطلب كجاهز؟')) return;
+  openModal('ready-confirm-modal');
+};
 
+window.confirmMarkAsReady = async function () {
   try {
+    closeModal('ready-confirm-modal');
     document.body.classList.add('is-loading');
     const updated = await api.updateOrder(currentOrder.orderId, { status: 'ready' });
     currentOrder = updated;

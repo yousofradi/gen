@@ -652,6 +652,24 @@
     </div>
   </div>
 
+  <!-- Ready Confirmation Modal -->
+  <div class="modal-overlay" id="ready-confirm-modal" style="display: none;">
+    <div class="modal-box" style="max-width: 450px; border-radius: 16px;">
+      <div class="modal-header" style="border:none; padding-bottom:8px;">
+        <h3 style="width:100%; text-align:right; font-size:1.1rem; color:#1e293b; font-weight:600;">هل تريد تعليم هذا الطلب كجاهز؟</h3>
+      </div>
+      <div class="modal-footer"
+        style="border:none; justify-content: flex-start; gap: 12px; flex-direction: row-reverse; border-top: 1px solid #f1f5f9; padding-top:20px;">
+        <button type="button" class="btn"
+          style="background:#0f766e; color:#fff; border-radius:24px; padding:8px 40px; font-weight:600;"
+          onclick="confirmMarkAsReady()">تأكيد</button>
+        <button type="button" class="btn"
+          style="background:#fff; border:1px solid #e2e8f0; color:#1e293b; border-radius:24px; padding:8px 40px; font-weight:600;"
+          onclick="closeModal('ready-confirm-modal')">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Delete Confirmation Modal -->
   <div class="modal-overlay" id="delete-confirm-modal" style="display: none;">
     <div class="modal-box" style="max-width: 450px; border-radius: 16px;">
