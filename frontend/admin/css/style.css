@@ -1891,3 +1891,82 @@ input[type=number] {
     min-width: 500px;
   }
 }
+
+/* ── Dropdown Menus (Professional) ──────────────────── */
+.dropdown-menu-box {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  width: 200px;
+  z-index: 100;
+  overflow: hidden;
+  padding: 4px;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #475569;
+  font-size: 0.9rem;
+  font-family: var(--font-main);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  text-align: right;
+  font-weight: 500;
+}
+
+.dropdown-item-btn:hover {
+  background: #f8fafc;
+  color: var(--primary);
+}
+
+.dropdown-item-btn svg {
+  color: #94a3b8;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.dropdown-item-btn:hover svg {
+  color: var(--primary);
+}
+
+.dropdown-item-btn.danger {
+  color: #ef4444;
+}
+
+.dropdown-item-btn.danger svg {
+  color: #fca5a5;
+}
+
+.dropdown-item-btn.danger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.dropdown-item-btn.danger:hover svg {
+  color: #dc2626;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 8px;
+}
