@@ -109,7 +109,7 @@ function renderCollectionSection(s, collections) {
       <div class="cat-grid" id="collections-grid">
         ${displayCols.map(c => {
           const img = c.imageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZWZlOSIvPjwvc3ZnPg==';
-          const link = c.urlName ? `collection?u=${c.urlName}` : `collection?id=${c._id}`;
+          const link = c.urlName ? `collection/${c.urlName}` : `collection?id=${c._id}`;
           return `
             <a href="${link}" class="cat-item">
               <img src="${img}" alt="${c.name}" loading="lazy" onerror="this.style.background='#f5efe9'">
@@ -154,7 +154,7 @@ function renderStoreCard(p) {
   const img = getImg(p);
   const salePrice = p.salePrice || p.basePrice;
   const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
-  const productLink = p.handle ? `product?u=${p.handle}` : `product?id=${p._id}`;
+  const productLink = p.handle ? `product/${p.handle}` : `product?id=${p._id}`;
   const hasOptions = p.options && p.options.length > 0;
   
   const pJson = JSON.stringify({

@@ -5,7 +5,7 @@ let selectedQty = 1;
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const productId = params.get('id');
-  const handle = params.get('u') || params.get('name');
+  const handle = params.get('name');
 
   const loading = document.getElementById('product-loading');
   const detail = document.getElementById('product-detail');
@@ -372,7 +372,7 @@ function renderRelatedProductCard(p) {
   const img = images[0] || '';
   const salePrice = p.salePrice || p.basePrice;
   const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
-  const productLink = p.handle ? `product?u=${p.handle}` : `product?id=${p._id}`;
+  const productLink = p.handle ? `product/${p.handle}` : `product?id=${p._id}`;
   const hasOptions = p.options && p.options.length > 0;
   
   const pJson = JSON.stringify({
