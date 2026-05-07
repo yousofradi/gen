@@ -156,20 +156,20 @@ function renderItems() {
       <div style="padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #fff; display: flex; flex-direction: column; gap: 14px;">
         <!-- Top Row -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 52px;">
-          <!-- Right side: Image + Name -->
-          <div style="display: flex; align-items: center; gap: 12px; flex: 1.5;">
-            ${imgHtml}
-            <div style="text-align: right; display: flex; flex-direction: column; justify-content: center;">
+          <!-- Right side: Unit Price Block and Total Price -->
+          <div style="display: flex; align-items: center; gap: 16px; flex: 1; justify-content: space-between;">
+            <div style="font-weight: 700; font-size: 1rem; color: #1e293b; min-width: 80px; text-align: right; flex: 1;">${formatPrice(item.finalPrice)}</div>
+            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${formatPrice(unitPrice)} × ${item.quantity}</div>
+          </div>
+
+          <!-- Left side: Image + Name -->
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1.5; justify-content: flex-end;">
+            <div style="text-align: left; display: flex; flex-direction: column; justify-content: center;">
               <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b; line-height: 1.2;">${item.name}</div>
               ${optText ? `<div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${optText}</div>` : ''}
               ${item.discount ? `<div style="font-size:0.75rem; color:#dc2626; margin-top:4px; font-weight:600;">خصم: ${formatPrice(item.discount)}</div>` : ''}
             </div>
-          </div>
-          
-          <!-- Left side: Unit Price Block and Total Price -->
-          <div style="display: flex; align-items: center; gap: 16px; flex: 1; justify-content: space-between;">
-            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${formatPrice(unitPrice)} × ${item.quantity}</div>
-            <div style="font-weight: 700; font-size: 1rem; color: #1e293b; min-width: 80px; text-align: left; flex: 1;">${formatPrice(item.finalPrice)}</div>
+            ${imgHtml}
           </div>
         </div>
 
