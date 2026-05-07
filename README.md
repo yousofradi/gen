@@ -46,6 +46,7 @@ npx -y serve frontend
 | GET | `/api/orders` | Admin | List orders |
 | GET | `/api/orders/:orderId` | Admin | Get order |
 | PUT | `/api/orders/:orderId` | Admin | Update order |
+| POST | `/api/orders/:orderId/cancel` | Admin | Cancel order |
 | DELETE | `/api/orders/:orderId` | Admin | Delete order |
 | GET | `/api/shipping` | Public | Get shipping fees |
 | GET | `/api/health` | Public | Health check |
@@ -81,6 +82,8 @@ Admin routes require `x-admin-key` header matching `ADMIN_API_KEY` env var.
 On order creation: `POST WEBHOOK_URL` with `{ event: "order.created", data: {order}, timestamp }`
 
 On order update: `POST WEBHOOK_URL` with `{ event: "order.updated", data: {order}, timestamp }`
+
+On order cancellation: `POST WEBHOOK_URL` with `{ event: "order.cancelled", data: {order}, timestamp }`
 
 ## Environment Variables
 

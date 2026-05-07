@@ -75,7 +75,12 @@ async function sendWebhook(event, data) {
           const shouldSend = triggers.includes(event);
 
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
-            let msg = `رقم الاوردر: ${data.orderId}\n` +
+            let msg = '';
+            if (event === 'order.cancelled') {
+              msg += `⚠️ تم إلغاء الطلب\n`;
+            }
+
+            msg += `رقم الاوردر: ${data.orderId}\n` +
               `اسم العميل: ${data.customer.name}\n` +
               `رقم الهاتف: ${data.customer.phone}\n` +
               `اجمالي المطلوب: ${data.totalPrice}`;
