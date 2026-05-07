@@ -87,7 +87,7 @@ const api = {
   reorderProducts(order) { return this._request('/products/reorder/batch', { method: 'PUT', body: JSON.stringify({ order }), admin: true }); },
 
   // Collections
-  getCollections() { return this._request('/collections'); },
+  getCollections() { return this._request('/collections', { useCache: true }); },
   getCollection(id) {
     return this._request(`/collections/${id}`);
   },
@@ -114,7 +114,7 @@ const api = {
   getCustomer(phone) { return this._request(`/customers/${phone}`, { admin: true }); },
 
   // Shipping
-  getShipping() { return this._request('/shipping'); },
+  getShipping() { return this._request('/shipping', { useCache: true }); },
   getShippingList() { return this._request('/shipping/list', { admin: true }); },
   createShipping(d) { return this._request('/shipping', { method: 'POST', body: JSON.stringify(d), admin: true }); },
   updateShipping(id, d) { return this._request(`/shipping/${id}`, { method: 'PUT', body: JSON.stringify(d), admin: true }); },
@@ -127,7 +127,7 @@ const api = {
   deleteWebhook(id) { return this._request(`/webhooks/${id}`, { method: 'DELETE', admin: true }); },
 
   // Settings
-  getSetting(key) { return this._request(`/settings/${key}`); },
+  getSetting(key) { return this._request(`/settings/${key}`, { useCache: true }); },
   updateSetting(key, value) { return this._request(`/settings/${key}`, { method: 'POST', body: JSON.stringify({ value }), admin: true }); },
 
   // Auth check
@@ -301,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const settings = await api.getSetting('sundura_global_settings');
-    console.log('Settings loaded:', settings ? 'success' : 'empty');
     if (settings) {
       // 1. Logo
       if (settings.storeLogo) {

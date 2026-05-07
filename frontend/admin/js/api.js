@@ -35,8 +35,6 @@
 })();
 
 const API_BASE = 'API_URL_PLACEHOLDER';
-console.log('Admin API_BASE:', API_BASE);
-
 
 const api = {
   _adminKey() { return localStorage.getItem('adminKey') || ''; },
@@ -88,7 +86,7 @@ const api = {
   reorderProducts(order) { return this._request('/products/reorder/batch', { method: 'PUT', body: JSON.stringify({ order }), admin: true }); },
 
   // Collections
-  getCollections() { return this._request('/collections'); },
+  getCollections() { return this._request('/collections', { useCache: true }); },
   getCollection(id) { return this._request(`/collections/${id}`); },
   createCollection(d) { return this._request('/collections', { method: 'POST', body: JSON.stringify(d), admin: true }); },
   updateCollection(id, d) { return this._request(`/collections/${id}`, { method: 'PUT', body: JSON.stringify(d), admin: true }); },
@@ -113,7 +111,7 @@ const api = {
 
   // Shipping
   getShipping() { return this._request('/shipping'); },
-  getShippingList() { return this._request('/shipping/list', { admin: true }); },
+  getShippingList() { return this._request('/shipping/list', { admin: true, useCache: true }); },
   createShipping(d) { return this._request('/shipping', { method: 'POST', body: JSON.stringify(d), admin: true }); },
   updateShipping(id, d) { return this._request(`/shipping/${id}`, { method: 'PUT', body: JSON.stringify(d), admin: true }); },
   deleteShipping(id) { return this._request(`/shipping/${id}`, { method: 'DELETE', admin: true }); },
@@ -126,7 +124,7 @@ const api = {
   deleteWebhook(id) { return this._request(`/webhooks/${id}`, { method: 'DELETE', admin: true }); },
 
   // Settings
-  getSetting(key) { return this._request(`/settings/${key}`); },
+  getSetting(key) { return this._request(`/settings/${key}`, { useCache: true }); },
   updateSetting(key, value) { return this._request(`/settings/${key}`, { method: 'POST', body: JSON.stringify({ value }), admin: true }); },
 
   // Auth check

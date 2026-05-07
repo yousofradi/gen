@@ -11,7 +11,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // ── Caching ──────────────────────────────────────────────
 let productCache = new Map();
-const CACHE_DURATION = 1 * 1000; // 1 second for instant sync
+const CACHE_DURATION = 30 * 1000; // 30 seconds for better performance
 
 function clearCache() {
   productCache.clear();

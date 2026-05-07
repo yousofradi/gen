@@ -6,6 +6,9 @@ const connectDB = require('./config/db');
 const app = express();
 
 // ── Middleware ───────────────────────────────────────────
+const compression = require('compression');
+app.use(compression()); // gzip all responses
+
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
@@ -20,8 +23,11 @@ app.use('/api/seed', require('./routes/seed'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/customers', require('./routes/customerRoutes'));
 
-// Serve static uploads
-app.use('/uploads', express.static('uploads'));
+// Serve static uploads with long cache
+app.use('/uploads', express.static('uploads', {
+  maxAge: '30d',
+  immutable: true
+}));
 
 // ── Root route ──────────────────────────────────────────
 app.get('/', (req, res) => {
