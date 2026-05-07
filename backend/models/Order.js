@@ -45,7 +45,7 @@ const orderSchema = new mongoose.Schema({
   paid: { type: Boolean, default: false },
   paidAmount: { type: Number, default: 0, min: 0 },
   archived: { type: Boolean, default: false },
-  status: { type: String, enum: ['pending', 'cancelled'], default: 'pending' }
+  status: { type: String, enum: ['pending', 'cancelled', 'ready'], default: 'pending' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

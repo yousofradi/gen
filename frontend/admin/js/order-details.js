@@ -87,8 +87,17 @@ function renderOrder() {
   document.getElementById('page-order-id').textContent = `تعديل الطلب #${o.orderId}`;
 
   if (o.status === 'cancelled') {
-    document.getElementById('cancel-order-btn').style.display = 'none';
+    document.getElementById('cancel-order-btn')?.style.display === 'none';
     document.getElementById('page-order-id').innerHTML += ' <span class="badge badge-danger">ملغي</span>';
+  }
+
+  // Ready button visibility: only show if pending
+  const readyBtnContainer = document.getElementById('ready-btn-container');
+  if (readyBtnContainer) {
+    readyBtnContainer.style.display = o.status === 'pending' ? 'block' : 'none';
+  }
+  if (o.status === 'ready') {
+    document.getElementById('page-order-id').innerHTML += ' <span class="badge badge-success" style="background:#0f766e; color:#fff; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; margin-right:8px;">جاهز</span>';
   }
 
   // Customer Info Consolidated
@@ -812,5 +821,23 @@ window.deleteCurrentOrder = async function() {
     window.location.href = 'orders';
   } catch (err) {
     showToast(err.message || '??? ??? ?????', 'error');
+  }
+};
+
+window.markAsReady = async function () {
+  if (!currentOrder) return;
+  if (!confirm('هل تريد تعليم هذا الطلب كجاهز؟')) return;
+
+  try {
+    document.body.classList.add('is-loading');
+    const updated = await api.updateOrder(currentOrder.orderId, { status: 'ready' });
+    currentOrder = updated;
+    originalOrder = JSON.parse(JSON.stringify(updated));
+    renderOrder();
+    showToast('تم تجهيز الطلب بنجاح', 'success');
+  } catch (err) {
+    showToast('فشل تحديث حالة الطلب', 'error');
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 };
