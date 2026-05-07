@@ -481,8 +481,8 @@ window.submitOrder = async function () {
     const res = await api.createOrder(payload);
     showToast('تم إنشاء الطلب بنجاح!');
     
-    if (res && res._id) {
-      setTimeout(() => window.location.href = `order-details.html?id=${res._id}`, 1000);
+    if (res && res.orderId) {
+      setTimeout(() => window.location.href = `order-details.html?id=${res.orderId}`, 1000);
     }
     updatePaymentUI();
     recalcSummary();

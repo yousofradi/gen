@@ -271,7 +271,6 @@
     }
 
     async function deleteConfig(idx) {
-      if (!confirm('هل أنت متأكد من حذف هذا الإعداد؟')) return;
       try {
         let configs = await api.getSetting(CONFIG_KEY) || [];
         configs.splice(idx, 1);
