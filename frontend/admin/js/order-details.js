@@ -60,16 +60,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
-  // Action: Download Invoice PDF (Server-side Puppeteer)
+  // Action: Print Invoice (High Quality Native Method)
   window.openInvoice = async () => {
     if (!currentOrder) return;
     const adminKey = localStorage.getItem('adminKey') || '';
-    
     showToast('جاري تحميل الفاتورة...', 'info');
-    
-    // Direct link to download the PDF generated on the server
-    const downloadUrl = `${API_BASE}/orders/${currentOrder.orderId}/download-pdf?adminKey=${adminKey}`;
-    window.location.href = downloadUrl;
+    window.location.href = `${API_BASE}/orders/${currentOrder.orderId}/download-pdf?adminKey=${adminKey}`;
   };
 
   // Global Discard Handler

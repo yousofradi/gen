@@ -317,23 +317,18 @@ window.deleteOrder = async function (orderId) {
   }
 };
 
-// ── Download Bulk Invoices PDF (Server-side Puppeteer) ───────────────────────────
+// ── Print Bulk Invoices (Native High Quality) ───────────────────────────
 window.printInvoices = async function () {
   const adminKey = localStorage.getItem('adminKey') || '';
   const btn = document.getElementById('print-invoices-btn');
   const originalText = btn.innerHTML;
-  
   btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:#475569;border-top-color:transparent;margin:0"></div>';
   btn.disabled = true;
-  
   showToast('جاري تحميل جميع الفواتير...', 'info');
-
   try {
-    const downloadUrl = `${API_BASE}/orders/bulk/download-pdf?adminKey=${adminKey}`;
-    window.location.href = downloadUrl;
+    window.location.href = `${API_BASE}/orders/bulk/download-pdf?adminKey=${adminKey}`;
     showToast('تم بدء التحميل');
   } catch (err) {
-    console.error(err);
     showToast('فشل تحميل الفواتير', 'error');
   } finally {
     setTimeout(() => {
