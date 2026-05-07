@@ -317,7 +317,7 @@ window.deleteOrder = async function (orderId) {
   }
 };
 
-// ── Print Invoices (Webhook) ───────────────────────────
+// ── Print Invoices ───────────────────────────
 window.printInvoices = async function () {
   const btn = document.getElementById('print-invoices-btn');
   const originalText = btn.innerHTML;
