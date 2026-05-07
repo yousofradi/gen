@@ -313,7 +313,7 @@ router.put('/:orderId', adminAuth, async (req, res) => {
 async function generateInvoiceInnerHtml(order, settings) {
   const safe = (val) => (val === undefined || val === null) ? '' : String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const num = (val) => Number(val) || 0;
-  
+
   const brandName = settings.invoicePrefix || settings.storeName || 'المتجر';
 
   // ================== PRODUCTS ==================

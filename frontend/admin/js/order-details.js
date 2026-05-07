@@ -74,47 +74,51 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!response.ok) throw new Error();
       const htmlContent = await response.text();
       
-      const element = document.createElement('div');
-      element.style.position = 'absolute';
-      element.style.left = '-9999px';
-      element.innerHTML = htmlContent;
-      document.body.appendChild(element);
-      
-      // Force font loading
-      await document.fonts.ready;
-      
-      // Execute the scaling script logic manually for html2pdf
-      const page = element.querySelector('.page');
-      const wrapper = element.querySelector('.invoice-wrapper');
-      if (page && wrapper) {
-        const pageH = 763; // approx pixels for 202mm at 96dpi
-        const pageW = 529; // approx pixels for 140mm
-        const contentH = wrapper.scrollHeight;
-        const contentW = wrapper.scrollWidth;
-        let scale = Math.min(pageH / contentH, pageW / contentW);
-        scale = Math.min(Math.max(scale, 0.55), 2.0);
-        wrapper.style.transform = `scale(${scale})`;
-        wrapper.style.width = `${100 / scale}%`;
-        wrapper.style.transformOrigin = 'center center';
+      // Use a hidden iframe to render the full HTML properly
+      let iframe = document.getElementById('pdf-render-iframe');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'pdf-render-iframe';
+        iframe.style.position = 'absolute';
+        iframe.style.width = '140mm';
+        iframe.style.height = '202mm';
+        iframe.style.left = '-10000px';
+        iframe.style.top = '0';
+        document.body.appendChild(iframe);
       }
-
-      const opt = {
-        margin: 0,
-        filename: `فاتورة-${currentOrder.orderId}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 3, 
-          useCORS: true, 
-          letterRendering: false,
-          scrollY: 0,
-          scrollX: 0
-        },
-        jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
-      };
       
-      await html2pdf().from(page).set(opt).save();
-      document.body.removeChild(element);
-      showToast('تم تحميل الفاتورة بنجاح');
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(htmlContent);
+      doc.close();
+      
+      // Wait for everything to load in the iframe
+      iframe.contentWindow.onload = async () => {
+        const page = doc.querySelector('.page');
+        if (!page) {
+          showToast('فشل تجهيز الفاتورة', 'error');
+          return;
+        }
+
+        const opt = {
+          margin: 0,
+          filename: `فاتورة-${currentOrder.orderId}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { 
+            scale: 3, 
+            useCORS: true, 
+            letterRendering: false,
+            scrollY: 0,
+            scrollX: 0,
+            windowWidth: 529, // 140mm
+            windowHeight: 763 // 202mm
+          },
+          jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+        };
+        
+        await html2pdf().from(page).set(opt).save();
+        showToast('تم تحميل الفاتورة بنجاح');
+      };
     } catch (err) {
       console.error(err);
       showToast('فشل تحميل الفاتورة', 'error');

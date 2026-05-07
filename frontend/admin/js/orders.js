@@ -335,53 +335,48 @@ window.printInvoices = async function () {
     if (!response.ok) throw new Error();
     const htmlContent = await response.text();
     
-    const element = document.createElement('div');
-    element.style.position = 'absolute';
-    element.style.left = '-9999px';
-    element.innerHTML = htmlContent;
-    document.body.appendChild(element);
+    // Use a hidden iframe for full rendering stability
+    let iframe = document.getElementById('pdf-render-iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'pdf-render-iframe';
+      iframe.style.position = 'absolute';
+      iframe.style.width = '140mm';
+      iframe.style.left = '-10000px';
+      iframe.style.top = '0';
+      document.body.appendChild(iframe);
+    }
     
-    // Force font loading
-    await document.fonts.ready;
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
     
-    // Scaling logic for all pages
-    const pages = element.querySelectorAll('.page');
-    pages.forEach(page => {
-      const wrapper = page.querySelector('.invoice-wrapper');
-      if (wrapper) {
-        const pageH = 763;
-        const pageW = 529;
-        const contentH = wrapper.scrollHeight;
-        const contentW = wrapper.scrollWidth;
-        let scale = Math.min(pageH / contentH, pageW / contentW);
-        scale = Math.min(Math.max(scale, 0.55), 2.0);
-        wrapper.style.transform = `scale(${scale})`;
-        wrapper.style.width = `${100 / scale}%`;
-        wrapper.style.transformOrigin = 'center center';
-      }
-    });
-
-    const opt = {
-      margin: 0,
-      filename: `جميع-الفواتير-${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 3, 
-        useCORS: true, 
-        letterRendering: false,
-        scrollY: 0,
-        scrollX: 0
-      },
-      jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+    iframe.contentWindow.onload = async () => {
+      const opt = {
+        margin: 0,
+        filename: `جميع-الفواتير-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 3, 
+          useCORS: true, 
+          letterRendering: false,
+          scrollY: 0,
+          scrollX: 0,
+          windowWidth: 529 // 140mm
+        },
+        jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+      };
+      
+      await html2pdf().from(doc.body).set(opt).save();
+      showToast('تم تحميل جميع الفواتير بنجاح');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
     };
-    
-    await html2pdf().from(element).set(opt).save();
-    document.body.removeChild(element);
-    showToast('تم تحميل الفواتير بنجاح');
+
   } catch (err) {
     console.error(err);
     showToast('فشل تحميل الفواتير', 'error');
-  } finally {
     btn.innerHTML = originalText;
     btn.disabled = false;
   }
