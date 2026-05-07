@@ -170,7 +170,7 @@ const api = {
     });
   },
 
-  importProducts(file, deleteAll, onProgress) {
+  importProducts(file, deleteAll, createCollections, onProgress) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', `${API_BASE}/products/import`, true);
@@ -202,6 +202,7 @@ const api = {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('deleteAll', deleteAll);
+      formData.append('createCollections', createCollections);
       xhr.send(formData);
     });
   }

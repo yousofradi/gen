@@ -55,4 +55,4 @@ router.delete('/:id', adminAuth, async (req, res, next) => {
   next();
 }, collectionController.deleteCollection);
 
-module.exports = router;
+module.exports = { router, clearCache };

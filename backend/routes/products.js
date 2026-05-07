@@ -330,7 +330,7 @@ router.put('/collection/batch', adminAuth, async (req, res) => {
 // POST /api/products/import — Bulk Import
 router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
   try {
-    const { deleteAll } = req.body;
+    const { deleteAll, createCollections } = req.body;
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const cleanPrice = (val) => {
@@ -342,7 +342,6 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
     if (deleteAll === 'true') {
       await Product.deleteMany({});
       clearCache();
-      // Also clear collection cache if it existed (we'll ensure it's cleared at end of import too)
     }
 
     const normalizeArabic = (str) => {
@@ -356,7 +355,7 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
 
     // Get all collections to map names
     const Collection = require('../models/Collection');
-    const collections = await Collection.find({});
+    let collections = await Collection.find({});
     const collectionMap = {};
     collections.forEach(c => {
       collectionMap[normalizeArabic(c.name)] = c._id;
@@ -370,11 +369,9 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
     }));
 
     for await (const row of stream) {
-      // Keys are now lowercase and trimmed
       const title = row['title'] ? row['title'].trim() : '';
       
       if (title) {
-        // Start a new product
         const product = {
           name: title,
           description: row['description'] || '',
@@ -388,7 +385,6 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
           options: []
         };
 
-        // Handle images
         const imagesVal = row['images'];
         if (imagesVal) {
           const imgs = imagesVal.split(/\s+/).filter(url => url.startsWith('http'));
@@ -404,6 +400,19 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
             const normName = normalizeArabic(name);
             if (collectionMap[normName]) {
               product.collectionIds.push(collectionMap[normName]);
+            } else if (createCollections === 'true') {
+              // Create collection if missing
+              try {
+                const newCol = new Collection({ 
+                  name, 
+                  handle: name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]/g, '') || Date.now().toString()
+                });
+                await newCol.save();
+                collectionMap[normName] = newCol._id;
+                product.collectionIds.push(newCol._id);
+              } catch (e) {
+                console.error('Failed to auto-create collection:', name, e.message);
+              }
             }
           }
         }
@@ -469,6 +478,11 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
     // Cleanup file
     try { fs.unlinkSync(req.file.path); } catch(e) {}
     clearCache();
+    if (createCollections === 'true') {
+      try {
+        require('./collectionRoutes').clearCache();
+      } catch (e) {}
+    }
 
     res.json({ message: `تم استيراد ${finalProducts.length} منتج بنجاح`, count: finalProducts.length });
   } catch (err) {

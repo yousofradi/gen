@@ -1,8 +1,8 @@
 /* ──  Storefront Theme ─────────────────────────── */
 :root {
-  --primary: #916C4F;
-  --primary-dark: #7a5a40;
-  --primary-light: #f5efe9;
+  --primary: #64748b;
+  --primary-dark: #475569;
+  --primary-light: #f1f5f9;
   --bg-main: #fafafa;
   --accent: #c9a96e;
 }
@@ -442,7 +442,7 @@
 }
 
 .product-gallery-thumb.active {
-  border-color: #492c12;
+  border-color: var(--primary);
   border-width: 2px;
 }
 
@@ -543,7 +543,7 @@
 }
 
 .radio-option input:checked+label {
-  border-color: #492c12;
+  border-color: var(--primary);
   border-width: 2px;
   font-weight: 600;
   color: #111;

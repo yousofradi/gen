@@ -31,7 +31,7 @@
     }
 
     .radio-option input[type="radio"]:checked+label {
-      background: #F3EBD7 !important;
+      background: var(--primary-light) !important;
       border-color: #d1d5db;
     }
   </style>
@@ -42,13 +42,13 @@
     <header class="store-header">
       <div class="container">
         <a href="/" class="header-icon back-btn"
-          onclick="if(window.Cart) Cart.closeCart(); if(history.length > 1) { history.back(); return false; }"><svg viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; color: var(--text-muted);">
+          onclick="if(window.Cart) Cart.closeCart(); if(history.length > 1) { history.back(); return false; }"><svg
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="width: 24px; height: 24px; color: var(--text-muted);">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6" />
           </svg></a>
-        <a href="/" class="store-logo-link"><img
-            src=""
-            alt="Logo" class="store-logo-img" style="opacity:0; transition: opacity 0.2s;"></a>
+        <a href="/" class="store-logo-link"><img src="" alt="Logo" class="store-logo-img"
+            style="opacity:0; transition: opacity 0.2s;"></a>
 
         <div class="header-icons">
           <button class="header-icon search-icon-btn" onclick="api.openSearch()">
@@ -76,7 +76,7 @@
             <div style="display: flex; flex-direction: column; gap: 20px;">
               <div class="form-group">
                 <label class="form-label" for="cust-name">الاسم بالكامل *</label>
-                <input class="form-control" id="cust-name" required placeholder="مثال: أحمد محمد علي">
+                <input class="form-control" id="cust-name" required placeholder="الاسم تثائي او ثلاثي">
               </div>
               <div class="grid-2-always" style="gap:16px;">
                 <div class="form-group" style="margin-bottom:0">
@@ -108,26 +108,30 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="cust-address">العنوان *</label>
-              <textarea class="form-control" id="cust-address" required placeholder="مثال: رقم الشقة، اسم العمارة، اسم الشارع، علامة مميزة"></textarea>
+              <textarea class="form-control" id="cust-address" required
+                placeholder="مثال: رقم الشقة، اسم العمارة، اسم الشارع، علامة مميزة"></textarea>
             </div>
             <div class="form-group">
               <label class="form-label" for="cust-notes">ملاحظات</label>
-              <textarea class="form-control" id="cust-notes" placeholder="مثال: متاح في مواعيد العمل فقط"></textarea>
+              <textarea class="form-control" id="cust-notes"
+                placeholder="ملاحظاتك للبائع (الالوان - الاشكال)"></textarea>
             </div>
             <h2 class="mb-24 mt-32">طريقة الدفع</h2>
             <div id="payment-methods-checkout" class="radio-options mb-24" style="display: grid; gap: 8px;">
-               <!-- Dynamic payment methods injected here -->
+              <!-- Dynamic payment methods injected here -->
             </div>
-            <div id="payment-instructions" style="display:none; padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:24px; font-size:0.85rem; color:var(--text-main); line-height:1.6; white-space: pre-wrap;">
+            <div id="payment-instructions"
+              style="display:none; padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:24px; font-size:0.85rem; color:var(--text-main); line-height:1.6; white-space: pre-wrap;">
             </div>
             <button type="submit" class="btn btn-primary btn-block"
-              style="padding:10px 20px;font-size:1rem;background:var(--primary,#916C4F);border-color:var(--primary,#916C4F); margin-bottom: 20px;">تأكيد
+              style="padding:10px 20px;font-size:1rem;background:var(--primary,var(--primary));border-color:var(--primary,var(--primary)); margin-bottom: 20px;">تأكيد
               الطلب</button>
           </form>
           <div>
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
               <h2 style="margin: 0;">ملخص الطلب</h2>
-              <img src="" alt="Logo" class="store-logo-img" style="height: 32px; object-fit: contain; opacity:0; transition: opacity 0.2s;">
+              <img src="" alt="Logo" class="store-logo-img"
+                style="height: 32px; object-fit: contain; opacity:0; transition: opacity 0.2s;">
             </div>
             <div id="order-items" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px"></div>
             <div class="price-summary">

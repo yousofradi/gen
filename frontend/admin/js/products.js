@@ -275,6 +275,7 @@ window.closeBulkImportModal = function () {
 window.submitCSVImport = async function () {
   const fileInput = document.getElementById('csv-file-input');
   const cleanCheckbox = document.getElementById('csv-clean-checkbox');
+  const collectionsCheckbox = document.getElementById('csv-collections-checkbox');
   const progressEl = document.getElementById('csv-progress');
   const progressBar = document.getElementById('csv-progress-bar');
   const progressText = document.getElementById('csv-progress-text');
@@ -297,7 +298,7 @@ window.submitCSVImport = async function () {
   progressText.textContent = 'جاري التحميل...';
 
   try {
-    const res = await api.importProducts(file, cleanCheckbox.checked, (percent) => {
+    const res = await api.importProducts(file, cleanCheckbox.checked, collectionsCheckbox.checked, (percent) => {
       progressBar.style.width = percent + '%';
       progressText.textContent = `جاري رفع الملف... ${percent}%`;
     });
