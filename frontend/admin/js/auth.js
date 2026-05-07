@@ -51,6 +51,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Unsaved Changes Bar
   initUnsavedChangesBar();
+
+  // Disable browser autocomplete/suggestions on all inputs
+  const disableAutocomplete = () => {
+    document.querySelectorAll('input, textarea').forEach(el => {
+      el.setAttribute('autocomplete', 'off');
+    });
+  };
+  disableAutocomplete();
+
+  // Also watch for dynamically added elements (like modals)
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === 1) { // Element
+          if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') {
+            node.setAttribute('autocomplete', 'off');
+          }
+          node.querySelectorAll?.('input, textarea').forEach(el => el.setAttribute('autocomplete', 'off'));
+        }
+      });
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 });
 
 function initUnsavedChangesBar() {
