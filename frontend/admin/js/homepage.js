@@ -149,7 +149,15 @@ function addSection(type) {
     s.showNames = true;
   } else if (type === 'banner') {
     s.imageUrl = '';
-    s.linkUrl = '';
+    s.linkType = 'none';
+    s.linkValue = '';
+    s.btnText = 'تسوق الآن';
+    s.showBtn = false;
+    // Second button
+    s.link2Type = 'none';
+    s.link2Value = '';
+    s.btn2Text = 'المزيد';
+    s.showBtn2 = false;
   } else if (type === 'text') {
     s.content = '';
   }
@@ -317,6 +325,10 @@ function renderCollectionsEditor(s) {
 
 function renderBannerEditor(s) {
   const modal = document.getElementById('section-modal');
+  const colOptions = allCollections.map(c =>
+    `<option value="${c._id}">${c.name}</option>`
+  ).join('');
+
   modal.innerHTML = `
     <div class="hp-modal-overlay" onclick="if(event.target===this) closeModal()">
       <div class="hp-modal">
@@ -326,25 +338,90 @@ function renderBannerEditor(s) {
         </div>
         <div class="hp-modal-body">
           <div class="form-row">
-            <label>العنوان</label>
+            <label>عنوان القسم (اختياري)</label>
             <input type="text" id="ed-title" value="${s.title || ''}" placeholder="عنوان اللافتة">
           </div>
-          <div class="toggle-row">
-            <span style="font-weight:600;font-size:0.9rem">أظهر العنوان</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="ed-showTitle" ${s.showTitle ? 'checked' : ''}>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
+          
           <div class="form-row" style="margin-top:16px">
-            <label>رابط الصورة</label>
-            <input type="url" id="ed-imageUrl" value="${s.imageUrl || ''}" placeholder="https://..." dir="ltr">
-            ${s.imageUrl ? `<img src="${s.imageUrl}" style="margin-top:8px;max-width:100%;border-radius:8px;max-height:200px" onerror="this.style.display='none'">` : ''}
+            <label>صورة اللافتة</label>
+            <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px">
+              <input type="text" id="ed-imageUrl" value="${s.imageUrl || ''}" placeholder="رابط الصورة https://..." dir="ltr" style="flex:1">
+              <button class="btn btn-secondary" onclick="document.getElementById('banner-upload').click()" style="padding:8px 12px; font-size:0.85rem">رفع صورة</button>
+              <input type="file" id="banner-upload" hidden accept="image/*" onchange="handleBannerUpload(this)">
+            </div>
+            <div id="banner-preview" style="text-align:center">
+              ${s.imageUrl ? `<img src="${s.imageUrl}" style="max-width:100%;border-radius:12px;max-height:150px;box-shadow:0 4px 12px rgba(0,0,0,0.1)" onerror="this.style.display='none'">` : '<div style="height:100px; background:#f8fafc; border:1px dashed #e2e8f0; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.85rem">لا توجد صورة بعد</div>'}
+            </div>
           </div>
-          <div class="form-row">
-            <label>رابط عند الضغط (اختياري)</label>
-            <input type="url" id="ed-linkUrl" value="${s.linkUrl || ''}" placeholder="https://..." dir="ltr">
+
+          <hr style="border:none;border-top:1px solid #f1f5f9;margin:20px 0">
+
+          <!-- Button 1 -->
+          <div style="background:#f8fafc; padding:16px; border-radius:12px; margin-bottom:16px">
+            <div class="toggle-row" style="margin-bottom:12px">
+              <span style="font-weight:600;font-size:0.9rem">الزر الأول</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="ed-showBtn" ${s.showBtn ? 'checked' : ''} onchange="document.getElementById('btn1-config').style.display=this.checked?'block':'none'">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="btn1-config" style="display:${s.showBtn ? 'block' : 'none'}">
+              <div class="form-row">
+                <label>نص الزر</label>
+                <input type="text" id="ed-btnText" value="${s.btnText || ''}" placeholder="مثال: تسوق الآن">
+              </div>
+              <div class="form-row">
+                <label>وجهة الرابط</label>
+                <select id="ed-linkType" onchange="toggleBannerLinkFields('1')">
+                  <option value="none" ${s.linkType === 'none' ? 'selected' : ''}>بدون رابط</option>
+                  <option value="collection" ${s.linkType === 'collection' ? 'selected' : ''}>مجموعة محددة</option>
+                  <option value="collections_page" ${s.linkType === 'collections_page' ? 'selected' : ''}>صفحة كل المجموعات</option>
+                  <option value="products_page" ${s.linkType === 'products_page' ? 'selected' : ''}>صفحة كل المنتجات</option>
+                  <option value="custom" ${s.linkType === 'custom' ? 'selected' : ''}>رابط مخصص</option>
+                </select>
+                <div id="link1-val-col" class="link-field-1 mt-8" style="display:${s.linkType === 'collection' ? 'block' : 'none'}">
+                  <select id="ed-linkValue-col-1">${colOptions}</select>
+                </div>
+                <div id="link1-val-custom" class="link-field-1 mt-8" style="display:${s.linkType === 'custom' ? 'block' : 'none'}">
+                  <input type="url" id="ed-linkValue-url-1" value="${s.linkType === 'custom' ? s.linkValue : ''}" placeholder="https://..." dir="ltr">
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- Button 2 -->
+          <div style="background:#f8fafc; padding:16px; border-radius:12px;">
+            <div class="toggle-row" style="margin-bottom:12px">
+              <span style="font-weight:600;font-size:0.9rem">الزر الثاني</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="ed-showBtn2" ${s.showBtn2 ? 'checked' : ''} onchange="document.getElementById('btn2-config').style.display=this.checked?'block':'none'">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="btn2-config" style="display:${s.showBtn2 ? 'block' : 'none'}">
+              <div class="form-row">
+                <label>نص الزر</label>
+                <input type="text" id="ed-btn2Text" value="${s.btn2Text || ''}" placeholder="مثال: تواصل معنا">
+              </div>
+              <div class="form-row">
+                <label>وجهة الرابط</label>
+                <select id="ed-link2Type" onchange="toggleBannerLinkFields('2')">
+                  <option value="none" ${s.link2Type === 'none' ? 'selected' : ''}>بدون رابط</option>
+                  <option value="collection" ${s.link2Type === 'collection' ? 'selected' : ''}>مجموعة محددة</option>
+                  <option value="collections_page" ${s.link2Type === 'collections_page' ? 'selected' : ''}>صفحة كل المجموعات</option>
+                  <option value="products_page" ${s.link2Type === 'products_page' ? 'selected' : ''}>صفحة كل المنتجات</option>
+                  <option value="custom" ${s.link2Type === 'custom' ? 'selected' : ''}>رابط مخصص</option>
+                </select>
+                <div id="link2-val-col" class="link-field-2 mt-8" style="display:${s.link2Type === 'collection' ? 'block' : 'none'}">
+                  <select id="ed-linkValue-col-2">${colOptions}</select>
+                </div>
+                <div id="link2-val-custom" class="link-field-2 mt-8" style="display:${s.link2Type === 'custom' ? 'block' : 'none'}">
+                  <input type="url" id="ed-linkValue-url-2" value="${s.link2Type === 'custom' ? s.link2Value : ''}" placeholder="https://..." dir="ltr">
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
         <div class="hp-modal-footer">
           <button class="btn btn-primary" style="background:#0f766e;border:none;padding:10px 24px;border-radius:8px;color:#fff;font-weight:600;cursor:pointer" onclick="saveBannerSection('${s.id}')">احفظ</button>
@@ -352,7 +429,18 @@ function renderBannerEditor(s) {
         </div>
       </div>
     </div>`;
+
+  // Set initial collection values if needed
+  if (s.linkType === 'collection' && s.linkValue) document.getElementById('ed-linkValue-col-1').value = s.linkValue;
+  if (s.link2Type === 'collection' && s.link2Value) document.getElementById('ed-linkValue-col-2').value = s.link2Value;
 }
+
+window.toggleBannerLinkFields = function(num) {
+  const type = document.getElementById(`ed-link${num === '1' ? '' : '2'}Type`).value;
+  document.querySelectorAll(`.link-field-${num}`).forEach(el => el.style.display = 'none');
+  if (type === 'collection') document.getElementById(`link${num}-val-col`).style.display = 'block';
+  if (type === 'custom') document.getElementById(`link${num}-val-custom`).style.display = 'block';
+};
 
 function renderTextEditor(s) {
   const modal = document.getElementById('section-modal');
@@ -420,9 +508,24 @@ window.saveBannerSection = function (id) {
   const s = sections.find(s => s.id === id);
   if (!s) return;
   s.title = document.getElementById('ed-title').value.trim();
-  s.showTitle = document.getElementById('ed-showTitle').checked;
   s.imageUrl = document.getElementById('ed-imageUrl').value.trim();
-  s.linkUrl = document.getElementById('ed-linkUrl').value.trim();
+  
+  // Btn 1
+  s.showBtn = document.getElementById('ed-showBtn').checked;
+  s.btnText = document.getElementById('ed-btnText').value.trim();
+  s.linkType = document.getElementById('ed-linkType').value;
+  if (s.linkType === 'collection') s.linkValue = document.getElementById('ed-linkValue-col-1').value;
+  else if (s.linkType === 'custom') s.linkValue = document.getElementById('ed-linkValue-url-1').value.trim();
+  else s.linkValue = '';
+
+  // Btn 2
+  s.showBtn2 = document.getElementById('ed-showBtn2').checked;
+  s.btn2Text = document.getElementById('ed-btn2Text').value.trim();
+  s.link2Type = document.getElementById('ed-link2Type').value;
+  if (s.link2Type === 'collection') s.link2Value = document.getElementById('ed-linkValue-col-2').value;
+  else if (s.link2Type === 'custom') s.link2Value = document.getElementById('ed-linkValue-url-2').value.trim();
+  else s.link2Value = '';
+
   saveSections();
   renderSections();
   closeModal();

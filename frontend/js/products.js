@@ -122,15 +122,37 @@ function renderCollectionSection(s, collections) {
 
 function renderBannerSection(s) {
   if (!s.imageUrl) return '';
-  const wrapper = s.linkUrl ? `<a href="${s.linkUrl}" style="display:block">` : '<div>';
-  const wrapperEnd = s.linkUrl ? '</a>' : '</div>';
   
+  const getLink = (type, val) => {
+    if (type === 'collection' && val) return `collection?id=${val}`;
+    if (type === 'collections_page') return 'products#collections';
+    if (type === 'products_page') return 'products';
+    if (type === 'custom' && val) return val;
+    return '';
+  };
+
+  const link1 = getLink(s.linkType, s.linkValue);
+  const link2 = getLink(s.link2Type, s.link2Value);
+  
+  const btn1 = s.showBtn ? `
+    <a href="${link1 || '#'}" class="btn btn-primary" style="padding:10px 24px; border-radius:30px; box-shadow:0 4px 12px rgba(0,0,0,0.15); text-decoration:none; display:inline-block; margin-bottom:8px; width:fit-content;">${s.btnText || 'تسوق الآن'}</a>` : '';
+
+  const btn2 = s.showBtn2 ? `
+    <a href="${link2 || '#'}" class="btn btn-secondary" style="padding:10px 24px; border-radius:30px; box-shadow:0 4px 12px rgba(0,0,0,0.15); text-decoration:none; display:inline-block; width:fit-content; border:none; background:#fff; color:var(--primary); font-weight:600;">${s.btn2Text || 'المزيد'}</a>` : '';
+
+  const btnsContainer = (s.showBtn || s.showBtn2) ? `
+    <div style="position:absolute; bottom:20px; right:20px; z-index:2; display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+      ${btn1}
+      ${btn2}
+    </div>` : '';
+
   return `
-    <section class="home-section">
-      ${s.showTitle !== false && s.title ? `<h2 class="home-section-title">${s.title}</h2>` : ''}
-      ${wrapper}
-        <img src="${s.imageUrl}" alt="${s.title || 'Banner'}" style="width:100%;border-radius:12px;max-height:400px;object-fit:contain;background:#f5efe9" loading="lazy">
-      ${wrapperEnd}
+    <section class="home-section" style="margin-bottom:24px; position:relative;">
+      ${s.showTitle !== false && s.title ? `<h2 class="home-section-title" style="margin-bottom:12px">${s.title}</h2>` : ''}
+      <div style="position:relative; border-radius:12px; overflow:hidden; box-shadow:0 2px 15px rgba(0,0,0,0.05);">
+        <img src="${s.imageUrl}" alt="${s.title || 'Banner'}" style="width:100%; display:block; max-height:500px; object-fit:cover; background:#f8fafc" loading="lazy">
+        ${btnsContainer}
+      </div>
     </section>`;
 }
 
