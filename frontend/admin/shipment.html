@@ -95,13 +95,58 @@
           <input type="hidden" id="ship-edit-id">
         </div>
 
-        <div class="table-wrapper">
-          <table>
-            <thead><tr><th>المحافظة</th><th>الرسوم</th><th>إجراءات</th></tr></thead>
-            <tbody id="shipping-tbody">
-              <tr><td colspan="3" class="text-center"><div class="spinner"></div></td></tr>
-            </tbody>
-          </table>
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
+          <!-- Bulk Actions Bar -->
+          <div id="bulk-actions-bar"
+            style="display:none; justify-content:flex-start; align-items:center; padding:16px 20px; border-bottom:1px solid #f1f5f9; background:#fff; gap:12px;">
+            <button class="btn btn-primary" onclick="unselectAll()"
+              style="border-radius:20px; padding:8px 16px; border:none; background:var(--primary); color:#fff; font-weight:600; display:flex; align-items:center; gap:8px;">
+              تم تحديد <span id="selected-count-badge">0</span>
+            </button>
+            <div style="position:relative;">
+              <button class="btn btn-secondary" onclick="toggleBulkMenu(event)"
+                style="border-radius:20px; padding:8px 16px; border:1px solid #e2e8f0; background:#fff; color:#475569; font-weight:600; display:flex; align-items:center; gap:8px;">
+                إجراءات
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div id="bulk-menu"
+                style="display:none; position:absolute; top:100%; right:0; margin-top:8px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); width:200px; z-index:100; overflow:hidden; padding:4px;">
+                
+                <button onclick="openBulkPriceModal()"
+                  style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:none; border:none; cursor:pointer; color:#475569; font-size:0.9rem; font-family:inherit; border-radius:8px; transition:background 0.2s;">
+                  <span>تعديل السعر</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+
+                <div style="height:1px; background:#f1f5f9; margin:4px 8px;"></div>
+
+                <button onclick="bulkDeleteShipping()"
+                  style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:none; border:none; cursor:pointer; color:#ef4444; font-size:0.9rem; font-family:inherit; border-radius:8px; transition:background 0.2s;">
+                  <span style="font-weight:600;">حذف المحدد</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="box-shadow:none; border-radius:0; margin:0; border:none;">
+            <table style="width:100%; border-collapse:collapse; text-align:right;">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">
+                    <input type="checkbox" id="select-all-ship" onchange="toggleSelectAll()"
+                      style="width:16px; height:16px; border-radius:4px; accent-color:var(--primary);">
+                  </th>
+                  <th>المحافظة</th>
+                  <th>الرسوم</th>
+                  <th style="text-align: center;">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="shipping-tbody">
+                <tr><td colspan="4" class="text-center"><div class="spinner"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </main>
@@ -126,17 +171,44 @@
         </div>
       </div>
     </div>
+
+    <!-- Bulk Price Selection Modal -->
+    <div id="bulk-price-modal" class="modal-overlay" style="display:none">
+      <div class="modal" style="max-width:400px">
+        <div class="modal-header">
+          <h3 class="modal-title">تعديل رسوم الشحن للمختار</h3>
+          <button class="modal-close" onclick="closeBulkPriceModal()">×</button>
+        </div>
+        <p class="text-muted text-sm mb-16" id="bulk-price-count-text">سيتم تطبيق السعر على 0 محافظات مختارة.</p>
+        <div class="form-group">
+          <label class="form-label">رسوم الشحن الجديدة (ج.م) *</label>
+          <input type="number" id="bulk-price-input" class="form-control" placeholder="مثال: 85" min="0">
+        </div>
+        <div class="flex gap-12" style="justify-content:flex-end; margin-top:24px">
+          <button class="btn btn-secondary" onclick="closeBulkPriceModal()">إلغاء</button>
+          <button class="btn btn-primary" id="bulk-price-submit-btn" onclick="submitBulkPriceUpdate()">حفظ التعديلات</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
     let shippingList = [];
-    let originalShipping = null;
+    let selectedIds = new Set();
 
     document.addEventListener('DOMContentLoaded', async () => {
       if (!requireAdmin()) return;
       loadShipping();
+
+      // Close bulk menu on click outside
+      document.addEventListener('click', (e) => {
+        const menu = document.getElementById('bulk-menu');
+        if (menu && menu.style.display === 'block' && !e.target.closest('#bulk-actions-bar')) {
+          menu.style.display = 'none';
+        }
+      });
     });
 
     window.handleGlobalDiscard = () => {
@@ -154,8 +226,9 @@
 
     async function loadShipping() {
       const tbody = document.getElementById('shipping-tbody');
+      selectedIds.clear();
+      updateBulkBar();
       try {
-        // Try DB list first, fall back to flat map
         let list = [];
         try {
           list = await api.getShippingList();
@@ -165,22 +238,114 @@
         }
         shippingList = list;
         if (!list.length) {
-          tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted" style="padding:30px">لا توجد بيانات شحن</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:30px">لا توجد بيانات شحن</td></tr>';
           return;
         }
         tbody.innerHTML = list.map(s => `
-          <tr>
+          <tr data-id="${s._id||''}">
+            <td style="text-align: center;">
+              <input type="checkbox" class="row-checkbox" onchange="toggleRowSelection('${s._id||''}', this)" ${selectedIds.has(s._id) ? 'checked' : ''} style="width:16px; height:16px; accent-color:var(--primary);">
+            </td>
             <td style="font-weight:600">${s.governorate}</td>
             <td style="color:var(--primary);font-weight:600">${formatPrice(s.fee)}</td>
-            <td>
-              <div class="flex gap-8">
-                <button class="btn btn-secondary btn-sm" onclick="editShipping('${s._id||''}','${s.governorate}',${s.fee})">تعديل</button>
-                ${s._id ? `<button class="btn btn-danger btn-sm" onclick="deleteShipping('${s._id}')">حذف</button>` : ''}
-              </div>
+            <td style="text-align: center;">
+              <button class="btn btn-secondary btn-sm" onclick="editShipping('${s._id||''}','${s.governorate}',${s.fee})">تعديل</button>
             </td>
           </tr>`).join('');
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">فشل التحميل</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">فشل التحميل</td></tr>';
+      }
+    }
+
+    function toggleRowSelection(id, checkbox) {
+      if (!id) return;
+      if (checkbox.checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+      updateBulkBar();
+    }
+
+    function toggleSelectAll() {
+      const allChecked = document.getElementById('select-all-ship').checked;
+      const checkboxes = document.querySelectorAll('.row-checkbox');
+      checkboxes.forEach(cb => {
+        const id = cb.closest('tr').dataset.id;
+        if (!id) return;
+        cb.checked = allChecked;
+        if (allChecked) selectedIds.add(id);
+        else selectedIds.delete(id);
+      });
+      updateBulkBar();
+    }
+
+    function unselectAll() {
+      selectedIds.clear();
+      document.getElementById('select-all-ship').checked = false;
+      document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const bar = document.getElementById('bulk-actions-bar');
+      const badge = document.getElementById('selected-count-badge');
+      if (selectedIds.size > 0) {
+        bar.style.display = 'flex';
+        badge.textContent = selectedIds.size;
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    function toggleBulkMenu(e) {
+      e.stopPropagation();
+      const menu = document.getElementById('bulk-menu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    async function bulkDeleteShipping() {
+      const count = selectedIds.size;
+      const confirmed = await window.showConfirmModal('تأكيد الحذف', `هل تريد حذف ${count} من المحافظات المختارة نهائياً؟`);
+      if (!confirmed) return;
+      
+      try {
+        showToast(`جاري حذف ${count} محافظة...`, 'info');
+        for (const id of selectedIds) {
+          await api.deleteShipping(id);
+        }
+        showToast('تم الحذف بنجاح');
+        loadShipping();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function openBulkPriceModal() {
+      document.getElementById('bulk-price-modal').style.display = 'flex';
+      document.getElementById('bulk-price-input').value = '';
+      document.getElementById('bulk-price-count-text').textContent = `سيتم تطبيق السعر على ${selectedIds.size} محافظات مختارة.`;
+    }
+
+    function closeBulkPriceModal() {
+      document.getElementById('bulk-price-modal').style.display = 'none';
+    }
+
+    async function submitBulkPriceUpdate() {
+      const fee = parseFloat(document.getElementById('bulk-price-input').value);
+      if (isNaN(fee)) return showToast('يرجى إدخال سعر صحيح', 'error');
+
+      const btn = document.getElementById('bulk-price-submit-btn');
+      btn.disabled = true;
+      try {
+        showToast('جاري التحديث...', 'info');
+        for (const id of selectedIds) {
+          await api.updateShipping(id, { fee });
+        }
+        closeBulkPriceModal();
+        showToast('تم تحديث الأسعار بنجاح');
+        loadShipping();
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        btn.disabled = false;
       }
     }
 
