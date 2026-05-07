@@ -1,7 +1,4 @@
-let API_BASE = 'API_URL_PLACEHOLDER';
-if (API_BASE === 'API_URL' + '_PLACEHOLDER' || !API_BASE) {
-  API_BASE = 'https://sundurashop-manage.onrender.com/api';
-}
+const API_BASE = 'API_URL_PLACEHOLDER';
 
 const api = {
   _adminKey() { return localStorage.getItem('adminKey') || ''; },
@@ -262,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Apply Global Settings ──────────────────────────────
 // Immediately apply cached store URL if exists
-(function() {
+(function () {
   const cachedUrl = localStorage.getItem('sundura_store_url');
   if (cachedUrl) {
     document.addEventListener('DOMContentLoaded', () => {
@@ -323,10 +320,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!updated) {
           document.title = settings.storeName;
         }
-        
+
         const adminBrand = document.querySelector('.admin-brand-title');
         if (adminBrand) adminBrand.textContent = settings.storeName;
-        
+
         // Update any generic placeholders in the DOM
         document.querySelectorAll('.store-name-text').forEach(el => {
           if (el.tagName === 'INPUT') el.value = settings.storeName;
@@ -362,7 +359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const waLink = settings.socialWa ? formatWaLink(settings.socialWa) : '';
 
       if (settings.socialWa) {
-        
+
         document.querySelectorAll('a[href*="wa.me"]').forEach(link => {
           link.href = waLink;
         });
@@ -372,17 +369,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 5. Social Links
       if (settings.socialFb) {
         document.querySelectorAll('a[href*="facebook.com"]').forEach(link => {
-            if (!link.classList.contains('no-brand-sync')) link.href = settings.socialFb;
+          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialFb;
         });
       }
       if (settings.socialIg) {
         document.querySelectorAll('a[href*="instagram.com"]').forEach(link => {
-            if (!link.classList.contains('no-brand-sync')) link.href = settings.socialIg;
+          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialIg;
         });
       }
       if (settings.socialTt) {
         document.querySelectorAll('a[href*="tiktok.com"]').forEach(link => {
-            if (!link.classList.contains('no-brand-sync')) link.href = settings.socialTt;
+          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialTt;
         });
       }
 
@@ -395,7 +392,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (settings.socialTt) socialHtml += `<a href="${settings.socialTt}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a3 3 0 0 1-3-3v8a8 8 0 1 1-8-8 1 1 0 0 1 1 1z"></path></svg></a>`;
         if (settings.socialTg) socialHtml += `<a href="${settings.socialTg}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg></a>`;
         if (settings.socialWa) {
-            socialHtml += `<a href="${waLink}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>`;
+          socialHtml += `<a href="${waLink}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>`;
         }
         socialHtml += '</div>';
         footerNav.insertAdjacentHTML('afterend', socialHtml);
@@ -404,22 +401,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 6. Mobile Nav Update
       const mobileNav = document.querySelector('.mobile-bottom-nav');
       if (mobileNav) {
-          const navItems = mobileNav.querySelectorAll('.nav-item');
-          // WhatsApp item (usually 4th, index 3)
-          if (navItems[3] && settings.socialWa) {
-              navItems[3].href = waLink;
-              navItems[3].title = settings.socialWa; // Hover info
-              // Add a tooltip helper for mobile if they click and hold? 
-              // Standard title works for desktop hover.
-          }
-          // Last item: Telegram (index 4)
-          if (navItems[4]) {
-              navItems[4].href = settings.socialTg || '#';
-              const span = navItems[4].querySelector('span');
-              if (span) span.textContent = 'تليجرام';
-              const svg = navItems[4].querySelector('svg');
-              if (svg) svg.innerHTML = `<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>`;
-          }
+        const navItems = mobileNav.querySelectorAll('.nav-item');
+        // WhatsApp item (usually 4th, index 3)
+        if (navItems[3] && settings.socialWa) {
+          navItems[3].href = waLink;
+          navItems[3].title = settings.socialWa; // Hover info
+          // Add a tooltip helper for mobile if they click and hold? 
+          // Standard title works for desktop hover.
+        }
+        // Last item: Telegram (index 4)
+        if (navItems[4]) {
+          navItems[4].href = settings.socialTg || '#';
+          const span = navItems[4].querySelector('span');
+          if (span) span.textContent = 'تليجرام';
+          const svg = navItems[4].querySelector('svg');
+          if (svg) svg.innerHTML = `<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>`;
+        }
       }
 
       // 7. Custom Color Palette
@@ -455,7 +452,7 @@ function applyColorPalette(hex) {
     const b = parseInt(hex.slice(5, 7), 16);
 
     document.documentElement.style.setProperty('--primary', hex);
-    
+
     // Hover: 15% darker
     const hr = Math.max(0, Math.floor(r * 0.85));
     const hg = Math.max(0, Math.floor(g * 0.85));
@@ -466,7 +463,7 @@ function applyColorPalette(hex) {
     // Light: very transparent
     const light = `rgba(${r}, ${g}, ${b}, 0.08)`;
     document.documentElement.style.setProperty('--primary-light', light);
-  } catch(e) {
+  } catch (e) {
     console.error('Failed to apply color palette', e);
   }
 }
