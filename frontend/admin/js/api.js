@@ -117,6 +117,7 @@ const api = {
   createShipping(d) { return this._request('/shipping', { method: 'POST', body: JSON.stringify(d), admin: true }); },
   updateShipping(id, d) { return this._request(`/shipping/${id}`, { method: 'PUT', body: JSON.stringify(d), admin: true }); },
   deleteShipping(id) { return this._request(`/shipping/${id}`, { method: 'DELETE', admin: true }); },
+  bulkUpdateShipping(fee) { return this._request('/shipping/bulk-update', { method: 'POST', body: JSON.stringify({ fee }), admin: true }); },
 
   // Webhooks
   getWebhooks() { return this._request('/webhooks', { admin: true }); },

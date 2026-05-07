@@ -55,11 +55,23 @@ router.post('/', adminAuth, async (req, res) => {
   }
 });
 
-// Admin: Delete governorate
-router.delete('/:id', adminAuth, async (req, res) => {
+// Admin: Bulk update all to a single fee
+router.post('/bulk-update', adminAuth, async (req, res) => {
   try {
-    await Shipping.findByIdAndDelete(req.params.id);
-    res.json({ success: true });
+    const { fee } = req.body;
+    if (fee == null || isNaN(fee)) return res.status(400).json({ error: 'Valid fee is required' });
+
+    const existingCount = await Shipping.countDocuments();
+    if (existingCount === 0) {
+      // Seed default with new fee
+      const seedData = Object.entries(defaultShippingFees).map(([gov, _]) => ({ governorate: gov, fee }));
+      await Shipping.insertMany(seedData);
+    } else {
+      // Update all existing
+      await Shipping.updateMany({}, { $set: { fee } });
+    }
+
+    res.json({ success: true, message: 'All shipping fees updated' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

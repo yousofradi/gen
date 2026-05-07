@@ -105,6 +105,27 @@
         </div>
       </div>
     </main>
+
+    <!-- Bulk Update Modal -->
+    <div id="bulk-update-modal" class="modal-overlay" style="display:none">
+      <div class="modal" style="max-width:420px">
+        <div class="modal-header">
+          <h3 class="modal-title">تحديث شامل لرسوم الشحن</h3>
+          <button class="modal-close" onclick="closeBulkModal()">×</button>
+        </div>
+        <p class="text-muted text-sm mb-16">سيتم تطبيق هذا السعر على جميع المحافظات الحالية.</p>
+        
+        <div class="form-group">
+          <label class="form-label">رسوم الشحن الجديدة (ج.م) *</label>
+          <input type="number" id="bulk-fee-input" class="form-control" placeholder="مثال: 85" min="0">
+        </div>
+
+        <div class="flex gap-12" style="justify-content:flex-end; margin-top:24px">
+          <button class="btn btn-secondary" onclick="closeBulkModal()">إلغاء</button>
+          <button class="btn btn-primary" id="bulk-submit-btn" onclick="submitBulkUpdate()">تحديث الكل</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="js/api.js"></script>
@@ -213,42 +234,36 @@
       catch (e) { showToast(e.message, 'error'); }
     }
 
-    async function bulkUpdateShipping() {
-      const confirmed = await window.showConfirmModal('تأكيد التحديث', 'هل أنت متأكد من تحديث أسعار الشحن لجميع المحافظات وحذف الأسعار القديمة؟');
-      if (!confirmed) return;
-      
-      const newFees = [
-        { governorate: 'القاهرة', fee: 85 }, { governorate: 'الجيزة', fee: 85 },
-        { governorate: 'الإسكندرية', fee: 85 }, { governorate: 'البحيرة', fee: 85 },
-        { governorate: 'القليوبية', fee: 85 }, { governorate: 'الغربية', fee: 85 },
-        { governorate: 'المنوفية', fee: 85 }, { governorate: 'دمياط', fee: 85 },
-        { governorate: 'الدقهلية', fee: 85 }, { governorate: 'كفر الشيخ', fee: 85 },
-        { governorate: 'الشرقية', fee: 85 }, { governorate: 'الاسماعيلية', fee: 95 },
-        { governorate: 'السويس', fee: 95 }, { governorate: 'بورسعيد', fee: 95 },
-        { governorate: 'الفيوم', fee: 110 }, { governorate: 'بني سويف', fee: 110 },
-        { governorate: 'المنيا', fee: 110 }, { governorate: 'اسيوط', fee: 110 },
-        { governorate: 'سوهاج', fee: 130 }, { governorate: 'قنا', fee: 130 },
-        { governorate: 'أسوان', fee: 130 }, { governorate: 'الأقصر', fee: 130 },
-        { governorate: 'البحر الأحمر', fee: 130 }, { governorate: 'مرسي مطروح', fee: 135 },
-        { governorate: 'الوادي الجديد', fee: 135 }, { governorate: 'شمال سيناء', fee: 135 },
-        { governorate: 'جنوب سيناء', fee: 135 }
-      ];
+    function openBulkModal() {
+      document.getElementById('bulk-update-modal').style.display = 'flex';
+      document.getElementById('bulk-fee-input').value = '';
+    }
 
+    function closeBulkModal() {
+      document.getElementById('bulk-update-modal').style.display = 'none';
+    }
+
+    async function submitBulkUpdate() {
+      const fee = parseFloat(document.getElementById('bulk-fee-input').value);
+      if (isNaN(fee)) return showToast('يرجى إدخال سعر صحيح', 'error');
+
+      const btn = document.getElementById('bulk-submit-btn');
+      btn.disabled = true;
       try {
-        showToast('جاري التحديث... قد يستغرق بضع ثوانٍ', 'info');
-        // Delete all existing
-        for (const s of shippingList) {
-          if (s._id) await api.deleteShipping(s._id);
-        }
-        // Insert new
-        for (const s of newFees) {
-          await api.createShipping(s);
-        }
-        showToast('تم تحديث المحافظات بنجاح <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><polyline points="20 6 9 17 4 12"/></svg>');
+        showToast('جاري تحديث كافة المحافظات...', 'info');
+        await api.bulkUpdateShipping(fee);
+        closeBulkModal();
+        showToast('تم تحديث جميع المحافظات بنجاح <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><polyline points="20 6 9 17 4 12"/></svg>');
         loadShipping();
       } catch (err) {
         showToast(err.message || 'فشل التحديث الشامل', 'error');
+      } finally {
+        btn.disabled = false;
       }
+    }
+
+    async function bulkUpdateShipping() {
+      openBulkModal();
     }
   </script>
 </body>
