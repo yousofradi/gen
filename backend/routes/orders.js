@@ -78,7 +78,7 @@ router.post('/', async (req, res) => {
     });
 
     await order.save();
-    sendWebhook('order.created', order.toObject());
+    await sendWebhook('order.created', order.toObject());
     res.status(201).json(order);
   } catch (err) {
     console.error('Order creation error:', err);
@@ -297,9 +297,9 @@ router.put('/:orderId', adminAuth, async (req, res) => {
     );
 
     if (updates.forcePaymentWebhook || oldOrder.paidAmount !== order.paidAmount) {
-      sendWebhook('order.paid', order.toObject());
+      await sendWebhook('order.paid', order.toObject());
     } else if (!oldOrder.paid && order.paid) {
-      sendWebhook('order.paid', order.toObject());
+      await sendWebhook('order.paid', order.toObject());
     }
 
     res.json(order);

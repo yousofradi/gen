@@ -95,23 +95,27 @@ async function sendWebhook(event, data) {
 
             console.log(`[WhatsApp] Sending to ${waUrl} for ${conf.number}`);
 
-            fetch(waUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': conf.apikey
-              },
-              body: JSON.stringify({
-                number: conf.number,
-                text: msg,
-                delay: 123,
-                linkPreview: false,
-                mentionsEveryOne: false,
-                mentioned: ["{{remoteJID}}"]
-              })
-            })
-              .then(res => res.json().then(json => console.log(`[WhatsApp] Response from ${conf.instance}:`, json)))
-              .catch(err => console.error(`[WhatsApp] Failed for instance ${conf.instance}:`, err.message));
+            try {
+              const res = await fetch(waUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': conf.apikey
+                },
+                body: JSON.stringify({
+                  number: conf.number,
+                  text: msg,
+                  delay: 123,
+                  linkPreview: true,
+                  mentionsEveryOne: true,
+                  mentioned: ["{{remoteJID}}"]
+                })
+              });
+              const json = await res.json();
+              console.log(`[WhatsApp] Response from ${conf.instance}:`, json);
+            } catch (err) {
+              console.error(`[WhatsApp] Failed for instance ${conf.instance}:`, err.message);
+            }
           } else {
             if (!shouldSend) console.log(`[WhatsApp] Skipping ${conf.instance} - trigger mismatch`);
           }
