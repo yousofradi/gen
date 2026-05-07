@@ -60,6 +60,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
+  // Action: Open Invoice
+  window.openInvoice = () => {
+    if (!currentOrder) return;
+    const adminKey = localStorage.getItem('adminKey') || '';
+    window.open(`${API_BASE}/orders/${currentOrder.orderId}/invoice?ADMIN_API_KEY=${adminKey}`, '_blank');
+  };
+
   // Global Discard Handler
   window.handleGlobalDiscard = () => {
     if (!originalOrder) return;

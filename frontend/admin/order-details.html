@@ -298,23 +298,44 @@
             <button class="btn btn-secondary" onclick="toggleDetailsMenu(event)"
               style="border-radius:24px; padding:8px 24px; background:#fff; border:1px solid #e2e8f0; color:#475569; font-weight:600; display:flex; align-items:center; gap:8px;">
               المزيد
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </button>
             <div id="details-menu" class="dropdown-menu-box">
               <button class="dropdown-item-btn" onclick="archiveCurrentOrder()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
                 <span>أرشفة</span>
               </button>
 
               <button class="dropdown-item-btn danger" onclick="cancelOrder()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
                 <span>إلغاء الطلب</span>
               </button>
 
               <div class="dropdown-divider"></div>
 
               <button class="dropdown-item-btn danger" onclick="deleteCurrentOrder()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
                 <span style="font-weight:600;">حذف نهائي</span>
               </button>
             </div>
@@ -489,12 +510,14 @@
       <div class="modal-body">
         <div class="form-group mb-16">
           <label class="form-label">الاسم</label>
-          <input type="text" id="modal-c-name" class="form-control" placeholder="اسم العميل" readonly style="background-color: #f8fafc; cursor: not-allowed; border-color: #e2e8f0; color: #64748b;">
+          <input type="text" id="modal-c-name" class="form-control" placeholder="اسم العميل" readonly
+            style="background-color: #f8fafc; cursor: not-allowed; border-color: #e2e8f0; color: #64748b;">
         </div>
         <div class="grid-2" style="gap:16px; margin-bottom:16px;">
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label">رقم الهاتف</label>
-            <input type="tel" id="modal-c-phone" class="form-control" placeholder="01xxxxxxxxx" readonly style="background-color: #f8fafc; cursor: not-allowed; border-color: #e2e8f0; color: #64748b;">
+            <input type="tel" id="modal-c-phone" class="form-control" placeholder="01xxxxxxxxx" readonly
+              style="background-color: #f8fafc; cursor: not-allowed; border-color: #e2e8f0; color: #64748b;">
           </div>
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label">هاتف آخر</label>
@@ -651,7 +674,8 @@
   <div class="modal-overlay" id="ready-confirm-modal" style="display: none;">
     <div class="modal-box" style="max-width: 450px; border-radius: 16px;">
       <div class="modal-header" style="border:none; padding-bottom:8px;">
-        <h3 style="width:100%; text-align:right; font-size:1.1rem; color:#1e293b; font-weight:600;">هل تريد تعليم هذا الطلب كجاهز؟</h3>
+        <h3 style="width:100%; text-align:right; font-size:1.1rem; color:#1e293b; font-weight:600;">هل تريد تعليم هذا
+          الطلب كجاهز؟</h3>
       </div>
       <div class="modal-footer"
         style="border:none; justify-content: flex-start; gap: 12px; flex-direction: row-reverse; border-top: 1px solid #f1f5f9; padding-top:20px;">
