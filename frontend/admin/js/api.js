@@ -1,3 +1,39 @@
+// ── Immediate Branding Application ──────────────────────────
+(function () {
+  const cachedName = localStorage.getItem('sundura_store_name');
+  const cachedColor = localStorage.getItem('sundura_primary_color');
+  const cachedLogo = localStorage.getItem('sundura_store_logo');
+  const cachedUrl = localStorage.getItem('sundura_store_url');
+
+  const apply = () => {
+    if (cachedName) {
+      document.querySelectorAll('.store-name-text').forEach(el => el.textContent = cachedName);
+      if (document.title.includes('—')) {
+        const parts = document.title.split('—');
+        document.title = parts[0].trim() + ' — ' + cachedName;
+      }
+    }
+    if (cachedColor) {
+      document.documentElement.style.setProperty('--primary', cachedColor);
+      const style = document.createElement('style');
+      style.id = 'dynamic-primary-style';
+      style.textContent = `.admin-nav a.active { background: ${cachedColor}15 !important; color: ${cachedColor} !important; } .admin-nav a.active svg { color: ${cachedColor} !important; }`;
+      if (!document.getElementById('dynamic-primary-style')) document.head.appendChild(style);
+    }
+    if (cachedLogo) {
+      document.querySelectorAll('.store-logo-img, img[src*="cmo1fsgmc060f01lwhwpn6ga7"]').forEach(img => img.src = cachedLogo);
+      const loginLogo = document.getElementById('login-brand-logo');
+      if (loginLogo) loginLogo.innerHTML = `<img src="${cachedLogo}" style="max-height:100%; max-width:150px; display:block; margin:0 auto;">`;
+    }
+    if (cachedUrl) {
+      document.querySelectorAll('.admin-store-preview').forEach(a => a.href = cachedUrl);
+    }
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  else apply();
+})();
+
 const API_BASE = 'API_URL_PLACEHOLDER';
 console.log('Admin API_BASE:', API_BASE);
 
@@ -259,23 +295,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ── Apply Global Settings ──────────────────────────────
-// Immediately apply cached store URL if exists
-(function () {
-  const cachedUrl = localStorage.getItem('sundura_store_url');
-  if (cachedUrl) {
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.admin-store-preview').forEach(a => a.href = cachedUrl);
-    });
-  }
-})();
-
+// ── Settings Loader ──────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const settings = await api.getSetting('sundura_global_settings');
     if (settings) {
       // 1. Logo
       if (settings.storeLogo) {
+        localStorage.setItem('sundura_store_logo', settings.storeLogo);
         document.querySelectorAll('.store-logo-img, img[src*="cmo1fsgmc060f01lwhwpn6ga7"]').forEach(img => {
           img.src = settings.storeLogo;
           img.style.opacity = '1';
@@ -287,9 +314,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
-      // 1.1 Store URL (Preview Button)
+      // 1.1 Store URL & Name Caching
+      if (settings.storeUrl) localStorage.setItem('sundura_store_url', settings.storeUrl);
+      if (settings.storeName) {
+        localStorage.setItem('sundura_store_name', settings.storeName);
+        document.querySelectorAll('.store-name-text').forEach(el => el.textContent = settings.storeName);
+      }
+
       if (settings.storeUrl) {
-        localStorage.setItem('sundura_store_url', settings.storeUrl);
         document.querySelectorAll('.admin-store-preview').forEach(a => {
           a.href = settings.storeUrl;
         });
@@ -423,6 +455,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // 7. Custom Color Palette
       if (settings.primaryColor) {
+        localStorage.setItem('sundura_primary_color', settings.primaryColor);
         applyColorPalette(settings.primaryColor);
       }
 
