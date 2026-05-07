@@ -66,7 +66,9 @@ async function sendWebhook(event, data) {
         const configs = waConfigSetting.value;
         
         for (const conf of configs) {
-          const shouldSend = (event === conf.trigger);
+          // Check if event is in the triggers array
+          const triggers = conf.triggers || [];
+          const shouldSend = triggers.includes(event);
           
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
             let msg = `رقم الاوردر: ${data.orderId}\n` +
@@ -79,7 +81,7 @@ async function sendWebhook(event, data) {
                      `المتبقي: ${data.totalPrice - (data.paidAmount || 0)}`;
             }
 
-            // Evolution API Send Text
+            // Evolution API Send Text (Matching the provided example)
             const waUrl = `${conf.baseUrl}/message/sendText/${conf.instance}`;
             fetch(waUrl, {
               method: 'POST',
@@ -90,8 +92,10 @@ async function sendWebhook(event, data) {
               body: JSON.stringify({
                 number: conf.number,
                 text: msg,
-                delay: 1000,
-                linkPreview: false
+                delay: 1200,
+                linkPreview: true,
+                mentionsEveryOne: false,
+                mentioned: []
               })
             }).catch(err => console.error(`WhatsApp sending failed for instance ${conf.instance}:`, err.message));
           }
