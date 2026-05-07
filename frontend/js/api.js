@@ -282,6 +282,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           img.src = settings.storeLogo;
           img.style.opacity = '1';
         });
+
+        const loginLogo = document.getElementById('login-brand-logo');
+        if (loginLogo) {
+          loginLogo.innerHTML = `<img src="${settings.storeLogo}" style="max-height:100%; max-width:150px; display:block; margin:0 auto;">`;
+        }
       }
 
       // 1.1 Store URL (Preview Button)
