@@ -54,6 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initUnsavedChangesBar() {
+  if (document.body.hasAttribute('data-no-unsaved-bar')) return;
+
   // Inject CSS
   const style = document.createElement('style');
   style.textContent = `
