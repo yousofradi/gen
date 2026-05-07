@@ -109,13 +109,8 @@ async function sendWebhook(event, data) {
                   number: cleanNumber,
                   text: msg,
                   delay: 123,
-                  linkPreview: true,
-                  mentionsEveryOne: true,
-                  mentioned: ["{{remoteJID}}"],
-                  quoted: {
-                    key: { id: "<string>" },
-                    message: { conversation: "<string>" }
-                  }
+                  linkPreview: false,
+                  mentionsEveryOne: false
                 })
               });
               const json = await res.json();
