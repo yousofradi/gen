@@ -190,6 +190,7 @@ window.editSection = function (id) {
     renderProductsEditor(s);
   } else if (s.type === 'collections') {
     renderCollectionsEditor(s);
+    initColSortable(s.id);
   } else if (s.type === 'banner') {
     renderBannerEditor(s);
   } else if (s.type === 'text') {
@@ -304,12 +305,13 @@ function renderCollectionsEditor(s) {
             <div id="selected-cols-list">
               ${selectedIds.length ? selectedIds.map(cid => {
     const c = allCollections.find(x => x._id === cid);
-    return c ? `<div class="col-picker-item selected" style="justify-content:space-between">
+    return c ? `<div class="col-picker-item selected" style="justify-content:space-between" data-cid="${cid}">
                   <div style="display:flex;align-items:center;gap:10px">
-                    ${c.imageUrl ? `<img src="${c.imageUrl}" alt="">` : ''}
+                    <div class="col-drag-handle" style="cursor:grab;color:#94a3b8;padding:0 8px">⠿</div>
+                    ${c.imageUrl ? `<img src="${c.imageUrl}" alt="" style="width:30px;height:30px;border-radius:4px">` : ''}
                     <span>${c.name}</span>
                   </div>
-                  <button onclick="removeSelectedCol('${s.id}','${cid}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:1.2rem">×</button>
+                  <button onclick="removeSelectedCol('${s.id}','${cid}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:1.2rem;padding:4px 10px">×</button>
                 </div>` : '';
   }).join('') : '<div style="text-align:center;padding:16px;color:#94a3b8;background:#f9fafb;border-radius:8px">لم يتم اختيار أي مجموعة بعد</div>'}
             </div>
@@ -634,3 +636,20 @@ window.removeSelectedCol = function (sectionId, colId) {
   saveSections();
   editSection(sectionId); // Re-render modal
 };
+
+function initColSortable(sectionId) {
+  const list = document.getElementById('selected-cols-list');
+  if (!list) return;
+  
+  new Sortable(list, {
+    handle: '.col-drag-handle',
+    animation: 150,
+    onEnd: () => {
+      const s = sections.find(x => x.id === sectionId);
+      if (!s) return;
+      const newOrder = Array.from(list.children).map(el => el.getAttribute('data-cid')).filter(Boolean);
+      s.selectedCollections = newOrder;
+      saveSections();
+    }
+  });
+}
