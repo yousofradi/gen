@@ -511,7 +511,13 @@ window.saveOrderChanges = async function (silent = false) {
 
   try {
     const updates = {
-      items: currentOrder.items,
+      items: currentOrder.items.map(item => ({
+        ...item,
+        selectedOptions: (item.selectedOptions || []).map(opt => ({
+          groupName: opt.groupName,
+          label: opt.label
+        }))
+      })),
       discount: currentOrder.discount,
       paymentMethod: currentOrder.paymentMethod,
       paidAmount: currentOrder.paidAmount,

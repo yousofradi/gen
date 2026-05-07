@@ -189,9 +189,9 @@ window.updateTotalPrice = function() {
     variantImg = matchingVariant.imageUrl;
     isAvailable = matchingVariant.active !== false && (matchingVariant.quantity === null || matchingVariant.quantity > 0);
   } else {
-    // Fallback to sum of options logic or base price
-    finalBasePrice = optionsOriginalTotal > 0 ? optionsOriginalTotal : currentProduct.basePrice;
-    finalSalePrice = optionsSaleTotal > 0 ? optionsSaleTotal : (currentProduct.salePrice || currentProduct.basePrice);
+    // Correct additive logic: base price + sum of option prices
+    finalBasePrice = currentProduct.basePrice + optionsOriginalTotal;
+    finalSalePrice = (currentProduct.salePrice || currentProduct.basePrice) + optionsSaleTotal;
     isAvailable = currentProduct.quantity === null || currentProduct.quantity > 0;
   }
   
@@ -344,8 +344,9 @@ window.addProductToCart = function() {
     finalSalePrice = matchingVariant.salePrice !== null ? matchingVariant.salePrice : matchingVariant.price;
     if (matchingVariant.imageUrl) itemToSave.imageUrl = matchingVariant.imageUrl;
   } else {
-    finalBasePrice = optionsOriginalTotal > 0 ? optionsOriginalTotal : currentProduct.basePrice;
-    finalSalePrice = optionsSaleTotal > 0 ? optionsSaleTotal : (currentProduct.salePrice || currentProduct.basePrice);
+    // Correct additive logic
+    finalBasePrice = currentProduct.basePrice + optionsOriginalTotal;
+    finalSalePrice = (currentProduct.salePrice || currentProduct.basePrice) + optionsSaleTotal;
   }
 
   itemToSave.basePrice = finalBasePrice;
