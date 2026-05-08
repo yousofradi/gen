@@ -261,7 +261,7 @@ function renderSelectModalLists(query = '') {
 window.toggleProductSelect = function (id, add) {
   if (add) {
     const p = allProducts.find(p => p._id === id);
-    if (p) collectionProducts.push(p);
+    if (p) collectionProducts.unshift(p);
   } else {
     collectionProducts = collectionProducts.filter(p => p._id !== id);
   }

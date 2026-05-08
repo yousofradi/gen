@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
       gap: 24px;
       align-items: start;
     }
+
     .image-upload-area {
       border: 1px dashed #ccc;
       border-radius: 8px;
@@ -24,18 +26,21 @@
       background: #f9f9f9;
       position: relative;
     }
+
     .image-upload-area img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       border-radius: 8px;
     }
+
     .image-actions {
       display: flex;
       justify-content: center;
       gap: 16px;
       margin-top: 12px;
     }
+
     .btn-text {
       background: none;
       border: none;
@@ -43,8 +48,11 @@
       cursor: pointer;
       font-weight: 500;
     }
-    .btn-text.danger { color: red; }
-    
+
+    .btn-text.danger {
+      color: red;
+    }
+
     .editor-toolbar {
       border: 1px solid #ccc;
       border-bottom: none;
@@ -54,6 +62,7 @@
       gap: 8px;
       border-radius: 4px 4px 0 0;
     }
+
     .editor-content {
       border: 1px solid #ccc;
       min-height: 200px;
@@ -61,7 +70,7 @@
       border-radius: 0 0 4px 4px;
       outline: none;
     }
-    
+
     .collection-products-header {
       display: flex;
       justify-content: space-between;
@@ -71,6 +80,7 @@
       padding-bottom: 8px;
       border-bottom: 1px solid #eee;
     }
+
     .product-row {
       display: flex;
       align-items: center;
@@ -78,103 +88,212 @@
       border-bottom: 1px solid #eee;
       gap: 16px;
     }
+
     .product-row img {
-      width: 40px; height: 40px; border-radius: 4px; object-fit: cover;
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      object-fit: cover;
     }
-    .btn-reorder { color: #666; cursor: pointer; }
-    .btn-remove { color: red; cursor: pointer; background: none; border: none; font-size: 1.2rem; }
-    
+
+    .btn-reorder {
+      color: #666;
+      cursor: pointer;
+    }
+
+    .btn-remove {
+      color: red;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+    }
+
     /* Modals */
     .modal-overlay {
-      position: fixed; top:0; left:0; right:0; bottom:0;
-      background: rgba(0,0,0,0.5); z-index: 1000;
-      display: flex; align-items: center; justify-content: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .modal {
-      background: #fff; width: 800px; max-width: 90%;
-      border-radius: 8px; padding: 24px; max-height: 90vh;
-      display: flex; flex-direction: column;
+      background: #fff;
+      width: 800px;
+      max-width: 90%;
+      border-radius: 8px;
+      padding: 24px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
     }
-    .modal-header { display: flex; justify-content: space-between; margin-bottom: 16px; font-weight: bold; }
-    .modal-body { overflow-y: auto; flex: 1; margin-bottom: 16px; }
-    .modal-footer { display: flex; justify-content: space-between; }
-    .hidden { display: none !important; }
-    
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      font-weight: bold;
+    }
+
+    .modal-body {
+      overflow-y: auto;
+      flex: 1;
+      margin-bottom: 16px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
     .select-products-grid {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
       width: 100%;
     }
+
     .product-list-box {
-      border: 1px solid #eee; border-radius: 4px;
-      height: 250px; overflow-y: auto;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      height: 250px;
+      overflow-y: auto;
       width: 100%;
     }
+
     .product-item {
-      display: flex; align-items: center; gap: 12px; padding: 10px;
-      border-bottom: 1px solid #eee; cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
     }
-    .product-item:hover { background: #f9f9f9; }
+
+    .product-item:hover {
+      background: #f9f9f9;
+    }
 
     @media (max-width: 768px) {
-      .form-layout { grid-template-columns: 1fr; }
-      .modal { padding: 16px; max-width: 95%; }
+      .form-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .modal {
+        padding: 16px;
+        max-width: 95%;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="admin-layout">
-    
+
     <aside class="admin-sidebar">
       <div class="admin-brand-header">
         <div class="admin-brand-title store-name-text"></div>
         <a href="#" target="_blank" class="admin-store-preview">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
           معاينة المتجر
         </a>
       </div>
-      <button class="sidebar-toggle" style="position:absolute; top:20px; left:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#475569;">☰</button>
-      
+      <button class="sidebar-toggle"
+        style="position:absolute; top:20px; left:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#475569;">☰</button>
+
       <nav class="admin-nav">
         <a href="/">
-          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
           الرئيسية
         </a>
         <a href="orders.html">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
           الطلبات
         </a>
         <a href="customers.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
           العملاء
         </a>
         <a href="products.html">
-          <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+          </svg>
           المنتجات
         </a>
         <a href="collections.html" class="active">
-          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
           المجموعات
         </a>
         <a href="homepage.html">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
           تخصيص الواجهة
         </a>
         <a href="shipment.html">
-          <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          <svg viewBox="0 0 24 24">
+            <rect x="1" y="3" width="15" height="13"></rect>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+          </svg>
           الشحن
         </a>
         <a href="settings.html">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg>
           إعدادات المتجر
         </a>
         <a href="webhooks.html">
-          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
           Webhooks
         </a>
         <a href="#" onclick="logout()" class="logout">
-          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
           خروج
         </a>
       </nav>
@@ -183,8 +302,12 @@
     <main class="admin-main">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
         <h1 class="page-title" style="margin:0; display:flex; align-items:center; gap:8px">
-          <a href="collections.html" style="font-size:1.1rem; color:var(--text-main); text-decoration:none; font-weight:700; display:flex; align-items:center; gap:6px">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          <a href="collections.html"
+            style="font-size:1.1rem; color:var(--text-main); text-decoration:none; font-weight:700; display:flex; align-items:center; gap:6px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
             التصنيفات
           </a>
         </h1>
@@ -195,7 +318,7 @@
           <div>
             <div class="admin-card">
               <h3 style="margin-bottom:16px;font-size:0.9rem;text-align:right">معلومات</h3>
-              
+
               <div style="display:flex; align-items:center; margin-bottom:16px;">
                 <label style="width: 80px; font-weight:500;">الاسم</label>
                 <input class="form-control" id="c-name" required placeholder="مثال: منتجات المدارس" style="flex:1">
@@ -227,31 +350,44 @@
             <div class="admin-card" style="padding:0">
               <div style="padding:12px; border-bottom:1px solid #eee">
                 <div style="position:relative;">
-                  <input type="text" class="form-control" placeholder="ابحث في المنتجات المضافة..." id="products-search" style="padding-left:36px;">
-                  <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                  <input type="text" class="form-control" placeholder="ابحث في المنتجات المضافة..." id="products-search"
+                    style="padding-left:36px;">
+                  <span
+                    style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"><svg
+                      width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      style="vertical-align: middle;">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg></span>
                 </div>
               </div>
               <div id="collection-products-list">
                 <!-- Products will load here -->
               </div>
             </div>
-            
+
           </div>
 
           <!-- Image (Sidebar) -->
           <div class="admin-card">
             <h3 style="margin-bottom:16px;font-size:0.9rem;text-align:right">صورة</h3>
-            <div class="image-upload-area" id="image-preview-container" style="cursor: pointer" onclick="document.getElementById('collection-image-upload').click()">
+            <div class="image-upload-area" id="image-preview-container" style="cursor: pointer"
+              onclick="document.getElementById('collection-image-upload').click()">
               <span style="color:#aaa">لا توجد صورة</span>
             </div>
             <div id="upload-progress" class="upload-progress-container" style="display:none; margin-top: 16px;">
-              <div class="upload-progress-text" id="upload-progress-text" style="font-size: 0.8rem; margin-bottom: 4px; text-align: center;"></div>
-              <div class="upload-progress-bar-bg"><div class="upload-progress-bar-fill" style="width:0%"></div></div>
+              <div class="upload-progress-text" id="upload-progress-text"
+                style="font-size: 0.8rem; margin-bottom: 4px; text-align: center;"></div>
+              <div class="upload-progress-bar-bg">
+                <div class="upload-progress-bar-fill" style="width:0%"></div>
+              </div>
             </div>
             <div class="image-actions" style="flex-wrap: wrap;">
-              <input type="file" id="collection-image-upload" accept="image/*" style="display:none" onchange="uploadCollectionImage(this.files)">
+              <input type="file" id="collection-image-upload" accept="image/*" style="display:none"
+                onchange="uploadCollectionImage(this.files)">
               <button type="button" class="btn-text danger" onclick="removeImage()">إزالة</button>
-              <button type="button" class="btn-text" onclick="document.getElementById('collection-image-upload').click()">رفع صورة</button>
+              <button type="button" class="btn-text"
+                onclick="document.getElementById('collection-image-upload').click()">رفع صورة</button>
               <button type="button" class="btn-text" onclick="promptImage()">رابط</button>
             </div>
             <input type="hidden" id="c-image">
@@ -272,8 +408,15 @@
         <div>
           <div style="font-weight:bold;margin-bottom:8px;text-align:right">المنتجات المتبقية</div>
           <div style="position:relative;">
-            <input type="text" id="available-search" class="form-control" placeholder="بحث..." style="margin-bottom:8px;border:none;border-bottom:1px solid #eee;border-radius:0;padding-left:36px;">
-            <span style="position:absolute; left:10px; top:40%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+            <input type="text" id="available-search" class="form-control" placeholder="بحث..."
+              style="margin-bottom:8px;border:none;border-bottom:1px solid #eee;border-radius:0;padding-left:36px;">
+            <span
+              style="position:absolute; left:10px; top:40%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"><svg
+                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="vertical-align: middle;">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg></span>
           </div>
           <div class="product-list-box" style="border-top:none" id="available-products-box"></div>
         </div>
@@ -313,5 +456,5 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
   <script src="js/collection-form.js"></script>
 </body>
-</html>
 
+</html>
