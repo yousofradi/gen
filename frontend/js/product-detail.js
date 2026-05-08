@@ -189,9 +189,22 @@ window.updateTotalPrice = function() {
     variantImg = matchingVariant.imageUrl;
     isAvailable = matchingVariant.active !== false && (matchingVariant.quantity === null || matchingVariant.quantity > 0);
   } else {
-    // Correct additive logic: base price + sum of option prices
-    finalBasePrice = currentProduct.basePrice + optionsOriginalTotal;
-    finalSalePrice = (currentProduct.salePrice || currentProduct.basePrice) + optionsSaleTotal;
+    const hasVariants = currentProduct.variants && currentProduct.variants.length > 0;
+    if (hasVariants) {
+      // While selecting variants, show product base price
+      finalBasePrice = currentProduct.basePrice;
+      finalSalePrice = currentProduct.salePrice || currentProduct.basePrice;
+    } else {
+      // For products using Options as absolute prices (no variants)
+      // If options have prices, they REPLACE the base price to avoid double-charging
+      if (optionsOriginalTotal > 0 || optionsSaleTotal > 0) {
+        finalBasePrice = optionsOriginalTotal;
+        finalSalePrice = optionsSaleTotal;
+      } else {
+        finalBasePrice = currentProduct.basePrice;
+        finalSalePrice = (currentProduct.salePrice || currentProduct.basePrice);
+      }
+    }
     isAvailable = currentProduct.quantity === null || currentProduct.quantity > 0;
   }
   
@@ -344,9 +357,19 @@ window.addProductToCart = function() {
     finalSalePrice = matchingVariant.salePrice !== null ? matchingVariant.salePrice : matchingVariant.price;
     if (matchingVariant.imageUrl) itemToSave.imageUrl = matchingVariant.imageUrl;
   } else {
-    // Correct additive logic
-    finalBasePrice = currentProduct.basePrice + optionsOriginalTotal;
-    finalSalePrice = (currentProduct.salePrice || currentProduct.basePrice) + optionsSaleTotal;
+    const hasVariants = currentProduct.variants && currentProduct.variants.length > 0;
+    if (hasVariants) {
+      finalBasePrice = currentProduct.basePrice;
+      finalSalePrice = currentProduct.salePrice || currentProduct.basePrice;
+    } else {
+      if (optionsOriginalTotal > 0 || optionsSaleTotal > 0) {
+        finalBasePrice = optionsOriginalTotal;
+        finalSalePrice = optionsSaleTotal;
+      } else {
+        finalBasePrice = currentProduct.basePrice;
+        finalSalePrice = (currentProduct.salePrice || currentProduct.basePrice);
+      }
+    }
   }
 
   itemToSave.basePrice = finalBasePrice;
