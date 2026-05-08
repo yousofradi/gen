@@ -339,7 +339,8 @@ ${pagesHtml}
         html: Buffer.from(fullHtml).toString('base64'),
         format: 'A5',
         printBackground: true,
-        preferCssPageSize: true
+        preferCssPageSize: true,
+        compression: true
       })
     });
 
@@ -462,7 +463,8 @@ window.onload = function() {
         html: Buffer.from(fullHtml).toString('base64'),
         format: 'A5',
         printBackground: true,
-        preferCssPageSize: true
+        preferCssPageSize: true,
+        compression: true
       })
     });
 
