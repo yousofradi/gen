@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let allOrdersData = [];
 let currentFilter = 'all';
+let currentPage = 1;
+let currentLimit = 30;
+let totalPages = 1;
 
 async function loadOrders() {
   const tbody = document.getElementById('orders-tbody');
@@ -40,6 +43,7 @@ setInterval(loadOrdersSilently, 30000);
 
 window.setFilter = function (filter) {
   currentFilter = filter;
+  currentPage = 1; // Reset to page 1 on filter change
   document.querySelectorAll('.order-tab').forEach(el => el.classList.remove('active'));
   document.querySelector(`.order-tab[data-filter="${filter}"]`)?.classList.add('active');
 
@@ -77,7 +81,48 @@ window.filterOrdersClient = function () {
     );
   }
 
-  renderOrders(filtered);
+  // Pagination
+  const total = filtered.length;
+  totalPages = Math.ceil(total / currentLimit) || 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const start = (currentPage - 1) * currentLimit;
+  const end = start + currentLimit;
+  const pageData = filtered.slice(start, end);
+
+  updatePaginationInfo(total);
+  renderOrders(pageData);
+};
+
+function updatePaginationInfo(total) {
+  const infoEl = document.getElementById('pagination-info');
+  const pageDropdown = document.getElementById('page-dropdown');
+  const prevBtn = document.getElementById('prev-page');
+  const nextBtn = document.getElementById('next-page');
+
+  if (infoEl) infoEl.textContent = total.toString();
+  if (prevBtn) prevBtn.disabled = currentPage <= 1;
+  if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+  if (pageDropdown) {
+    let optionsHtml = '';
+    for (let i = 1; i <= totalPages; i++) {
+      optionsHtml += `<option value="${i}" ${i === currentPage ? 'selected' : ''}>${i}</option>`;
+    }
+    pageDropdown.innerHTML = optionsHtml;
+  }
+}
+
+window.changePage = function(delta) {
+  const newPage = currentPage + delta;
+  if (newPage < 1 || newPage > totalPages) return;
+  currentPage = newPage;
+  filterOrdersClient();
+};
+
+window.goToPage = function(page) {
+  currentPage = parseInt(page) || 1;
+  filterOrdersClient();
 };
 
 window.updateFilterCounts = function () {
