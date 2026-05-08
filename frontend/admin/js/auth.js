@@ -81,7 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!document.querySelector('link[rel="manifest"]')) {
       const link = document.createElement('link');
       link.rel = 'manifest';
-      link.href = '/admin/manifest.json';
+      // Use the dynamic manifest from our API that includes the store logo
+      link.href = '/api/settings/pwa/manifest.json';
       document.head.appendChild(link);
     }
 
