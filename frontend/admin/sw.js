@@ -18,6 +18,10 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Bypass cache for API calls to avoid fetch errors and ensure fresh data
+  if (e.request.url.includes('/api/')) {
+    return;
+  }
   e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
 });
 
