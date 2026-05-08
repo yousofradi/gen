@@ -237,10 +237,18 @@ window.updateTotalPrice = function() {
     }
   }
 
-  // Update image if variant has one
-  if (variantImg) {
+  // Update image if variant has one, otherwise use product main image
+  const targetImg = variantImg || (currentProduct.images && currentProduct.images[0]) || currentProduct.imageUrl;
+  if (targetImg) {
     const mainImg = document.getElementById('main-product-img');
-    if (mainImg) mainImg.src = variantImg;
+    if (mainImg) {
+      mainImg.src = targetImg;
+      // Also update thumbnail active states if we switched to a specific image
+      const thumbs = document.querySelectorAll('.product-gallery-thumb');
+      thumbs.forEach((t, i) => {
+        t.classList.toggle('active', t.src === targetImg);
+      });
+    }
   }
 
   updateDisabledOptions(selectedOptionsMap);
