@@ -14,7 +14,7 @@ function calcTotals(items, shippingFee, orderDiscount = 0) {
     // We try to find the unit price from item.unitPrice, item.price, or item.basePrice
     const unitPrice = Number(item.unitPrice) || Number(item.price) || Number(item.basePrice) || 0;
     const itemDiscount = Number(item.discount) || 0;
-    
+
     const rowTotal = Math.max(0, (unitPrice * item.quantity) - itemDiscount);
     item.finalPrice = rowTotal; // Store as line total in DB
     subtotal += rowTotal;
@@ -38,10 +38,7 @@ async function generateInvoiceInnerHtml(order, settings) {
     return `
       <tr>
         <td style="text-align: right; padding-right: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:34px; height:34px; border-radius:4px; object-fit:cover; border:1px solid #eee;">` : ''}
-            <span style="flex:1">${safe(p.name)} ${optionsText ? `<br><small style="color:#666; font-size:10px;">${safe(optionsText)}</small>` : ''}</span>
-          </div>
+          ${safe(p.name)} ${optionsText ? `<br><small style="color:#666; font-size:10px;">${safe(optionsText)}</small>` : ''}
         </td>
         <td>${safe(p.quantity)}</td>
         <td>${num(unitPrice)}</td>
@@ -67,7 +64,7 @@ async function generateInvoiceInnerHtml(order, settings) {
   const total = num(order.totalPrice);
   const paid = num(order.paidAmount);
   const remaining = total - paid;
-  
+
   // Add 10 EGP extra fee if not fully paid (COD fee)
   const codFee = remaining > 0 ? 10 : 0;
   const displayRemaining = remaining + codFee;
@@ -189,7 +186,7 @@ router.post('/', async (req, res) => {
     });
 
     await order.save();
-    
+
     // Fetch store logo for notification
     let storeLogo = '/admin/logo.png';
     try {
@@ -198,7 +195,7 @@ router.post('/', async (req, res) => {
       if (globalSettings && globalSettings.value.storeLogo) {
         storeLogo = globalSettings.value.storeLogo;
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // Send push notification to admins
     sendPushToAdmins({
@@ -206,7 +203,7 @@ router.post('/', async (req, res) => {
       body: `طلب بقيمة ${order.totalPrice} ج.م من ${order.customer.name}`,
       icon: storeLogo,
       sound: 'https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3',
-      data: { 
+      data: {
         url: `/admin/order-details.html?id=${order.orderId}`,
         sound: 'https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3'
       }
@@ -340,7 +337,7 @@ ${pagesHtml}
         format: 'A5',
         printBackground: true,
         preferCssPageSize: true,
-        compression: 'medium'
+        compression: 'low'
       })
     });
 
@@ -464,7 +461,7 @@ window.onload = function() {
         format: 'A5',
         printBackground: true,
         preferCssPageSize: true,
-        compression: 'medium'
+        compression: 'low'
       })
     });
 
