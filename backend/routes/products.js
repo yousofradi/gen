@@ -166,22 +166,54 @@ router.get('/handle/:handle', async (req, res) => {
   }
 });
 
+const { uploadToCloudinary, isDriveUrl } = require('../utils/cloudinary');
+
+// Helper to process drive images in payload
+async function processDriveImages(body) {
+  try {
+    if (isDriveUrl(body.imageUrl)) {
+      body.imageUrl = await uploadToCloudinary(body.imageUrl);
+    }
+    if (Array.isArray(body.images)) {
+      for (let i = 0; i < body.images.length; i++) {
+        if (isDriveUrl(body.images[i])) {
+          body.images[i] = await uploadToCloudinary(body.images[i]);
+        }
+      }
+    }
+    if (Array.isArray(body.variants)) {
+      for (let v of body.variants) {
+        if (isDriveUrl(v.imageUrl)) {
+          v.imageUrl = await uploadToCloudinary(v.imageUrl);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error processing drive images:', err);
+  }
+}
+
 // ── Admin ───────────────────────────────────────────────
 
 // POST /api/products — create
 router.post('/', adminAuth, async (req, res) => {
   try {
-    const { name, basePrice, salePrice, imageUrl, images, description, options, variants, status, quantity, handle, collectionId, collectionIds } = req.body;
+    const body = req.body;
+    const { name, basePrice } = body;
 
     if (!name || basePrice == null) {
       return res.status(400).json({ error: 'Name and basePrice are required' });
     }
 
+    // Process images if they are from Google Drive
+    await processDriveImages(body);
+
     const count = await Product.countDocuments();
     const product = new Product({ 
-      name, basePrice, salePrice, imageUrl, images, description, options, variants,
-      sortOrder: count, status, quantity, handle, collectionId, collectionIds 
+      ...body,
+      sortOrder: count
     });
+    
     await product.save();
     clearCache();
     res.status(201).json(product);
@@ -196,21 +228,14 @@ router.post('/', adminAuth, async (req, res) => {
 // PUT /api/products/:id — update
 router.put('/:id', adminAuth, async (req, res) => {
   try {
-    const { name, basePrice, salePrice, imageUrl, images, description, options, variants, active, status, quantity, handle, collectionId, collectionIds } = req.body;
-
-    const updateData = { name, basePrice, imageUrl, images, description, options };
-    if (salePrice !== undefined) updateData.salePrice = salePrice;
-    if (variants !== undefined) updateData.variants = variants;
-    if (active !== undefined) updateData.active = active;
-    if (status !== undefined) updateData.status = status;
-    if (quantity !== undefined) updateData.quantity = quantity;
-    if (handle !== undefined) updateData.handle = handle;
-    if (collectionId !== undefined) updateData.collectionId = collectionId;
-    if (collectionIds !== undefined) updateData.collectionIds = collectionIds;
+    const body = req.body;
+    
+    // Process images if they are from Google Drive
+    await processDriveImages(body);
 
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      updateData,
+      body,
       { new: true, runValidators: true }
     );
 
