@@ -47,7 +47,6 @@ function updatePaginationInfo(total) {
   const infoEl = document.getElementById('pagination-info');
   const prevBtn = document.getElementById('prev-page');
   const nextBtn = document.getElementById('next-page');
-  const countAll = document.getElementById('count-all');
   const pageDropdown = document.getElementById('page-dropdown');
   const limitDropdown = document.getElementById('items-per-page');
 
@@ -261,7 +260,7 @@ window.setFilter = function (f) {
   loadProducts();
 };
 
-async function deleteProduct(id, name) {
+window.deleteProduct = async function (id, name) {
   const confirmed = await window.showConfirmModal('تأكيد الحذف', `هل أنت متأكد من حذف المنتج "${name}"؟`);
   if (!confirmed) return;
   try {
