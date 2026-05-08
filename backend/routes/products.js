@@ -51,12 +51,9 @@ router.get('/', async (req, res) => {
       query.name = { $regex: search, $options: 'i' };
     }
 
-    // Filter by variable products (has options or variants)
+    // Filter by variable products (has at least one option group)
     if (hasOptions === 'true') {
-      query.$or = [
-        { 'options.0': { $exists: true } },
-        { 'variants.0': { $exists: true } }
-      ];
+      query['options.0'] = { $exists: true };
     }
 
     // Filter by collection

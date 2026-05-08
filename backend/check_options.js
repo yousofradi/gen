@@ -15,9 +15,23 @@ async function check() {
     console.log('Products with options array not empty:', withOptions);
     console.log('Products with variants array not empty:', withVariants);
 
-    if (withOptions > 0) {
-      const one = await Product.findOne({ options: { $exists: true, $not: { $size: 0 } } });
-      console.log('Example product with options:', one.name, JSON.stringify(one.options));
+    if (total > 0) {
+      console.log('\n--- Sample Products Check ---');
+      const sample = await Product.find().limit(5);
+      sample.forEach(p => {
+        console.log(`Product: ${p.name}`);
+        console.log(`- Options: ${JSON.stringify(p.options)}`);
+        console.log(`- Variants: ${JSON.stringify(p.variants)}`);
+        console.log('---');
+      });
+
+      const withEmptyOptions = await Product.countDocuments({ options: [] });
+      const withNullOptions = await Product.countDocuments({ options: null });
+      const withMissingOptions = await Product.countDocuments({ options: { $exists: false } });
+
+      console.log('Count options is []:', withEmptyOptions);
+      console.log('Count options is null:', withNullOptions);
+      console.log('Count options is missing:', withMissingOptions);
     }
   } catch (e) {
     console.error('Connection or Query Error:', e);
