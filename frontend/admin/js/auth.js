@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!document.querySelector('link[rel="manifest"]')) {
       const link = document.createElement('link');
       link.rel = 'manifest';
-      link.href = 'manifest.json';
+      link.href = '/admin/manifest.json';
       document.head.appendChild(link);
     }
 
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Register Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
+        navigator.serviceWorker.register('/admin/sw.js')
           .then(reg => console.log('Admin SW Registered'))
           .catch(err => console.log('Admin SW Registration failed', err));
       });

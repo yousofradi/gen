@@ -1,13 +1,21 @@
 {
+  "id": "sundura-admin-v1",
   "name": "Sundura Admin",
   "short_name": "Admin",
-  "start_url": "index.html",
+  "description": "Store Management Dashboard",
+  "start_url": "/admin/index.html",
+  "scope": "/admin/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#64748b",
-  "description": "Manage your store orders, products, and customers.",
   "orientation": "portrait",
   "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
       "sizes": "512x512",
