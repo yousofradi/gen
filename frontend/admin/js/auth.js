@@ -77,13 +77,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── PWA Initialization ──
   const initPWA = () => {
-    // 1. Inject Manifest
-    if (!document.querySelector('link[rel="manifest"]')) {
-      const link = document.createElement('link');
+    // 1. Generate Dynamic Manifest with Store Logo
+    const storeLogo = localStorage.getItem('sundura_store_logo') || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    const storeName = localStorage.getItem('sundura_store_name') || 'Sundura Admin';
+
+    const manifest = {
+      "id": "sundura-admin-v1",
+      "name": storeName,
+      "short_name": storeName.split(' ')[0],
+      "description": "Store Management Dashboard",
+      "start_url": "index.html",
+      "scope": "/admin/",
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#64748b",
+      "orientation": "portrait",
+      "icons": [
+        {
+          "src": storeLogo,
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any"
+        },
+        {
+          "src": storeLogo,
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
+    };
+
+    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    const manifestUrl = URL.createObjectURL(manifestBlob);
+
+    let link = document.querySelector('link[rel="manifest"]');
+    if (!link) {
+      link = document.createElement('link');
       link.rel = 'manifest';
-      link.href = 'manifest.json';
       document.head.appendChild(link);
     }
+    link.href = manifestUrl;
 
     // 2. Inject PWA Meta Tags
     const metaTags = [

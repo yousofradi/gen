@@ -176,11 +176,21 @@ router.post('/', async (req, res) => {
 
     await order.save();
     
+    // Fetch store logo for notification
+    let storeLogo = '/admin/logo.png';
+    try {
+      const Setting = require('../models/Setting');
+      const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
+      if (globalSettings && globalSettings.value.storeLogo) {
+        storeLogo = globalSettings.value.storeLogo;
+      }
+    } catch (e) {}
+
     // Send push notification to admins
     sendPushToAdmins({
       title: 'طلب جديد! 📦',
       body: `طلب بقيمة ${order.totalPrice} ج.م من ${order.customer.name}`,
-      icon: '/admin/logo.png',
+      icon: storeLogo,
       sound: 'https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3',
       data: { 
         url: `/admin/order-details.html?id=${order.orderId}`,
