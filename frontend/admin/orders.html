@@ -17,34 +17,34 @@
       }
       .orders-table-wrap table {
         table-layout: fixed !important;
-        min-width: 0 !important;
         width: 100% !important;
         border-spacing: 0;
+        border-collapse: collapse;
       }
       .orders-table-wrap table th, .orders-table-wrap table td {
-        padding: 8px 2px !important;
-        font-size: 0.75rem !important;
+        padding: 8px 1px !important;
+        font-size: 0.72rem !important;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        box-sizing: border-box !important;
       }
-      /* Column Widths (RTL: 1=Right, 5=Left) */
-      .orders-table-wrap th:nth-child(1), .orders-table-wrap td:nth-child(1) { width: 30px !important; }
-      .orders-table-wrap th:nth-child(2), .orders-table-wrap td:nth-child(2) { width: 40px !important; text-align: center !important; }
-      /* Customer in center */
-      .orders-table-wrap th:nth-child(3), .orders-table-wrap td:nth-child(3) { width: auto !important; text-align: center !important; }
-      /* Status in far left (RTL left) and smaller */
-      .orders-table-wrap th:nth-child(5), .orders-table-wrap td:nth-child(5) { width: 75px !important; text-align: left !important; }
+      /* Column Widths (Percentages to fit exactly) */
+      .orders-table-wrap th:nth-child(1), .orders-table-wrap td:nth-child(1) { width: 8% !important; }
+      .orders-table-wrap th:nth-child(2), .orders-table-wrap td:nth-child(2) { width: 14% !important; text-align: center !important; }
+      .orders-table-wrap th:nth-child(3), .orders-table-wrap td:nth-child(3) { width: 53% !important; text-align: center !important; }
+      .orders-table-wrap th:nth-child(5), .orders-table-wrap td:nth-child(5) { width: 25% !important; text-align: left !important; }
 
       .status-badge-pill {
         padding: 2px 4px;
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         margin: 0 !important;
+        max-width: 100%;
       }
       
-      /* Ensure no horizontal overflow on body */
-      body { overflow-x: hidden !important; }
-      .admin-main { padding: 10px 4px !important; overflow-x: hidden !important; }
+      body { overflow-x: hidden !important; width: 100vw; }
+      .admin-main { padding: 8px 2px !important; overflow-x: hidden !important; width: 100%; box-sizing: border-box; }
+      .admin-card { padding: 10px 4px !important; margin: 0 !important; width: 100%; box-sizing: border-box; border-radius: 0; }
     }
 
     @media (max-width: 540px) {
