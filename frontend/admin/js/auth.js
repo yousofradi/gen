@@ -81,10 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!document.querySelector('link[rel="manifest"]')) {
       const link = document.createElement('link');
       link.rel = 'manifest';
-      
-      // Use API_BASE if available (from api.js), otherwise fallback to relative
-      const apiPath = (typeof API_BASE !== 'undefined' && API_BASE !== 'API_URL_PLACEHOLDER') ? API_BASE : '';
-      link.href = apiPath + '/settings/pwa/manifest.json';
+      link.href = 'manifest.json';
       document.head.appendChild(link);
     }
 

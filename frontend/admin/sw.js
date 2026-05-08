@@ -1,10 +1,10 @@
 const CACHE_NAME = 'admin-cache-v3';
 const assets = [
-  '/admin/index.html',
-  '/admin/css/style.css',
-  '/admin/js/api.js',
-  '/admin/js/auth.js',
-  '/api/settings/pwa/manifest.json'
+  'index.html',
+  'css/style.css',
+  'js/api.js',
+  'js/auth.js',
+  'manifest.json'
 ];
 
 self.addEventListener('install', e => {

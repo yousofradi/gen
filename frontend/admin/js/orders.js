@@ -67,8 +67,6 @@ window.filterOrdersClient = function () {
 
   if (currentFilter === 'pending') {
     filtered = filtered.filter(o => o.status === 'pending');
-  } else if (currentFilter === 'unpaid') {
-    filtered = filtered.filter(o => !o.paid && (o.totalPrice > (o.paidAmount || 0)));
   }
 
   if (query) {
@@ -90,7 +88,6 @@ window.updateFilterCounts = function () {
 
     if (elAll) elAll.textContent = allOrdersData.length;
     if (elPending) elPending.textContent = allOrdersData.filter(o => o.status === 'pending').length;
-    if (elUnpaid) elUnpaid.textContent = allOrdersData.filter(o => !o.paid && (o.totalPrice > (o.paidAmount || 0))).length;
   }
 
   // Show number only for active tab
