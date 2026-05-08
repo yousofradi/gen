@@ -54,9 +54,11 @@ function updatePaginationInfo(total) {
   if (infoEl) infoEl.textContent = `إجمالي: ${total} - صفحة ${currentPage} من ${totalPages}`;
   if (prevBtn) prevBtn.disabled = currentPage <= 1;
   if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
-  if (countAll) countAll.textContent = total;
-  const countVar = document.getElementById('count-variable');
-  if (countVar && currentFilter === 'variable') countVar.textContent = total;
+  if (currentFilter === 'variable') {
+    if (countVar) countVar.textContent = total;
+  } else {
+    if (countAll) countAll.textContent = total;
+  }
 
   if (pageDropdown) {
     let optionsHtml = '';

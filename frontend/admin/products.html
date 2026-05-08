@@ -20,6 +20,60 @@
       .flex-between { flex-direction: column; align-items: stretch; gap: 12px; }
       .order-tabs { overflow-x: auto; white-space: nowrap; padding-bottom: 8px; }
     }
+
+    .order-tab {
+      font-size: 0.95rem;
+      color: #64748b;
+      cursor: pointer;
+      position: relative;
+      padding-bottom: 16px;
+      margin-bottom: -16px;
+      transition: all 0.2s;
+    }
+
+    .order-tab:hover {
+      color: var(--primary, #0f766e);
+    }
+
+    .order-tab.active {
+      color: var(--primary, #0f766e);
+      font-weight: 600;
+    }
+
+    .order-tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--primary, #0f766e);
+    }
+
+    .tab-badge {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-right: 4px;
+    }
+
+    .order-tabs {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 4px;
+    }
+
+    .order-tabs::-webkit-scrollbar {
+      display: none;
+    }
   </style>
 </head>
 <body>
