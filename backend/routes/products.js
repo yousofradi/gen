@@ -22,10 +22,10 @@ function clearCache() {
 // GET /api/products — list all (with pagination & collection filter)
 router.get('/', async (req, res) => {
   try {
-    const { page, limit, admin, collectionId, search } = req.query;
+    const { page, limit, admin, collectionId, search, hasOptions } = req.query;
     
     // Simple caching for public requests
-    const cacheKey = JSON.stringify({ page, limit, admin, collectionId, search });
+    const cacheKey = JSON.stringify({ page, limit, admin, collectionId, search, hasOptions });
     if (admin !== 'true' && productCache.has(cacheKey)) {
       const cached = productCache.get(cacheKey);
       if (Date.now() - cached.time < CACHE_DURATION) {
@@ -49,6 +49,11 @@ router.get('/', async (req, res) => {
     // Server-side search by name
     if (search) {
       query.name = { $regex: search, $options: 'i' };
+    }
+
+    // Filter by variable products (has options)
+    if (hasOptions === 'true') {
+      query.options = { $exists: true, $not: { $size: 0 } };
     }
 
     // Filter by collection

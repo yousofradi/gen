@@ -62,12 +62,13 @@ const api = {
   },
 
   // Products
-  getProducts(page, limit, admin = true, collectionId = '', search = '') {
+  getProducts(page, limit, admin = true, collectionId = '', search = '', hasOptions = '') {
     let url = `/products?admin=${admin}`;
     if (page) url += `&page=${page}`;
     if (limit) url += `&limit=${limit}`;
     if (collectionId) url += `&collectionId=${collectionId}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (hasOptions) url += `&hasOptions=${hasOptions}`;
     return this._request(url, { useCache: !admin });
   },
   searchProducts(query) {

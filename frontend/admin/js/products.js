@@ -9,13 +9,15 @@ let currentPage = 1;
 let totalPages = 1;
 let currentLimit = 30;
 let searchQuery = '';
+let currentFilter = 'all';
 
 async function loadProducts() {
   const tbody = document.getElementById('products-tbody');
   tbody.innerHTML = '<tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>';
   try {
+    const hasOptions = currentFilter === 'variable' ? 'true' : '';
     const [res, collections] = await Promise.all([
-      api.getProducts(currentPage, currentLimit, true, '', searchQuery),
+      api.getProducts(currentPage, currentLimit, true, '', searchQuery, hasOptions),
       api.getCollections().catch(() => [])
     ]);
     const colMap = {};
@@ -53,6 +55,8 @@ function updatePaginationInfo(total) {
   if (prevBtn) prevBtn.disabled = currentPage <= 1;
   if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
   if (countAll) countAll.textContent = total;
+  const countVar = document.getElementById('count-variable');
+  if (countVar && currentFilter === 'variable') countVar.textContent = total;
 
   if (pageDropdown) {
     let optionsHtml = '';
@@ -244,9 +248,12 @@ window.filterProductsClient = function () {
 };
 
 window.setFilter = function (f) {
-  // Not used anymore as we moved to server-side search, 
-  // but if we had a status filter on the server we'd use it here.
-  // For now we'll just keep it simple.
+  currentFilter = f;
+  currentPage = 1;
+  document.querySelectorAll('.order-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.filter === f);
+  });
+  loadProducts();
 };
 
 async function deleteProduct(id, name) {
