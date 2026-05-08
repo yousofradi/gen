@@ -8,46 +8,61 @@
   <link rel="stylesheet" href="css/style.css">
   <style>
     @media (max-width: 768px) {
+
       /* Hide: Products(4), Payment(6), Total(7), Date(8) */
-      .orders-table-wrap th:nth-child(4), .orders-table-wrap td:nth-child(4),
-      .orders-table-wrap th:nth-child(6), .orders-table-wrap td:nth-child(6),
-      .orders-table-wrap th:nth-child(7), .orders-table-wrap td:nth-child(7),
-      .orders-table-wrap th:nth-child(8), .orders-table-wrap td:nth-child(8) {
+      .orders-table-wrap th:nth-child(4),
+      .orders-table-wrap td:nth-child(4),
+      .orders-table-wrap th:nth-child(6),
+      .orders-table-wrap td:nth-child(6),
+      .orders-table-wrap th:nth-child(7),
+      .orders-table-wrap td:nth-child(7),
+      .orders-table-wrap th:nth-child(8),
+      .orders-table-wrap td:nth-child(8) {
         display: none !important;
       }
+
       .orders-table-wrap table {
         table-layout: fixed !important;
         min-width: 0 !important;
         width: 100% !important;
         border-spacing: 0;
       }
-      .orders-table-wrap table th, .orders-table-wrap table td {
+
+      .orders-table-wrap table th,
+      .orders-table-wrap table td {
         padding: 8px 2px !important;
         font-size: 0.75rem !important;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+
       /* Column Widths (RTL: 1=Right, 5=Left) */
-      .orders-table-wrap th:nth-child(1), .orders-table-wrap td:nth-child(1) { width: 30px !important; }
+      /* Column Widths (RTL: 1=Right, 5=Left) */
+      .orders-table-wrap th:nth-child(1), .orders-table-wrap td:nth-child(1) { width: 32px !important; }
       .orders-table-wrap th:nth-child(2), .orders-table-wrap td:nth-child(2) { width: 40px !important; text-align: center !important; }
-      /* Reduce Customer column width */
-      .orders-table-wrap th:nth-child(3), .orders-table-wrap td:nth-child(3) { width: 150px !important; text-align: right !important; }
-      /* Status column takes the rest of the space */
-      .orders-table-wrap th:nth-child(5), .orders-table-wrap td:nth-child(5) { width: auto !important; text-align: right !important; }
+      .orders-table-wrap th:nth-child(3), .orders-table-wrap td:nth-child(3) { width: auto !important; text-align: right !important; }
+      .orders-table-wrap th:nth-child(5), .orders-table-wrap td:nth-child(5) { width: 95px !important; text-align: right !important; }
 
       .status-badge-pill {
         padding: 2px 4px;
         font-size: 0.65rem;
         margin: 0 !important;
       }
-      
+
       /* Ensure no horizontal overflow on body */
-      body { overflow-x: hidden !important; }
-      .admin-main { padding: 10px 4px !important; overflow-x: hidden !important; }
+      body {
+        overflow-x: hidden !important;
+      }
+
+      .admin-main {
+        padding: 10px 4px !important;
+        overflow-x: hidden !important;
+      }
     }
 
     @media (max-width: 540px) {
+
       /* Make buttons smaller on phone screen */
       .page-actions-container {
         flex-direction: row-reverse;
@@ -271,15 +286,28 @@
           تخصيص الواجهة
         </a>
         <a href="shipment.html">
-          <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          <svg viewBox="0 0 24 24">
+            <rect x="1" y="3" width="15" height="13"></rect>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+          </svg>
           الشحن
         </a>
         <a href="webhooks.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
           Webhooks
         </a>
         <a href="whatsapp.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14h.9a4.3 4.3 0 0 1 3 1.3 4.3 4.3 0 0 1 1.3 3Z"></path></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14h.9a4.3 4.3 0 0 1 3 1.3 4.3 4.3 0 0 1 1.3 3Z">
+            </path>
+          </svg>
           WhatsApp
         </a>
         <a href="settings.html">
@@ -358,23 +386,44 @@
               <button class="btn btn-secondary" onclick="toggleBulkMenu(event)"
                 style="border-radius:20px; padding:8px 16px; border:1px solid #e2e8f0; background:#fff; color:#475569; font-weight:600; display:flex; align-items:center; gap:8px;">
                 المزيد
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               <div id="bulk-menu" class="dropdown-menu-box" style="right: 0; left: auto;">
                 <button class="dropdown-item-btn" onclick="bulkAction('archive')">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                    <path d="m3.3 7 8.7 5 8.7-5" />
+                    <path d="M12 22V12" />
+                  </svg>
                   <span>أرشفة</span>
                 </button>
 
                 <button class="dropdown-item-btn danger" onclick="bulkAction('cancel')">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
                   <span>إلغاء الطلب</span>
                 </button>
 
                 <div class="dropdown-divider"></div>
 
                 <button class="dropdown-item-btn danger" onclick="bulkAction('delete')">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
                   <span style="font-weight:600;">حذف نهائي</span>
                 </button>
               </div>
