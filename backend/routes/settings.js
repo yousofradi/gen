@@ -68,6 +68,7 @@ router.get('/pwa/manifest.json', async (req, res) => {
     };
 
     res.header('Content-Type', 'application/manifest+json');
+    res.header('Access-Control-Allow-Origin', '*');
     res.json(manifest);
   } catch (err) {
     res.status(500).json({ error: err.message });

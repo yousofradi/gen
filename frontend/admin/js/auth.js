@@ -81,8 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!document.querySelector('link[rel="manifest"]')) {
       const link = document.createElement('link');
       link.rel = 'manifest';
-      // Use the dynamic manifest from our API that includes the store logo
-      link.href = '/api/settings/pwa/manifest.json';
+      
+      // Use API_BASE if available (from api.js), otherwise fallback to relative
+      const apiPath = (typeof API_BASE !== 'undefined' && API_BASE !== 'API_URL_PLACEHOLDER') ? API_BASE : '';
+      link.href = apiPath + '/settings/pwa/manifest.json';
       document.head.appendChild(link);
     }
 
@@ -105,7 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Register Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/admin/sw.js')
+        // Use relative path for sw.js to ensure it works on any subpath
+        navigator.serviceWorker.register('sw.js')
           .then(reg => console.log('Admin SW Registered'))
           .catch(err => console.log('Admin SW Registration failed', err));
       });
