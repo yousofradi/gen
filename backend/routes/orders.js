@@ -10,12 +10,16 @@ const { sendPushToAdmins } = require('../utils/push');
 function calcTotals(items, shippingFee, orderDiscount = 0) {
   let subtotal = 0;
   for (const item of items) {
-    const optionsPrice = (item.selectedOptions || []).reduce((s, o) => s + (o.price || 0), 0);
-    const itemDiscount = item.discount || 0;
-    item.finalPrice = Math.max(0, ((item.basePrice + optionsPrice) * item.quantity) - itemDiscount);
-    subtotal += item.finalPrice;
+    // Standardized Pricing Model: finalPrice is the LINE TOTAL (unit * qty - disc)
+    // We try to find the unit price from item.unitPrice, item.price, or item.basePrice
+    const unitPrice = Number(item.unitPrice) || Number(item.price) || Number(item.basePrice) || 0;
+    const itemDiscount = Number(item.discount) || 0;
+    
+    const rowTotal = Math.max(0, (unitPrice * item.quantity) - itemDiscount);
+    item.finalPrice = rowTotal; // Store as line total in DB
+    subtotal += rowTotal;
   }
-  const totalPrice = Math.max(0, subtotal + shippingFee - orderDiscount);
+  const totalPrice = Math.max(0, subtotal + (Number(shippingFee) || 0) - (Number(orderDiscount) || 0));
   return { subtotal, totalPrice };
 }
 
@@ -28,14 +32,15 @@ async function generateInvoiceInnerHtml(order, settings) {
 
   // ================== PRODUCTS ==================
   const productsHtml = order.items.map((p) => {
-    const unitPrice = p.basePrice + (p.selectedOptions || []).reduce((s, op) => s + (op.price || 0), 0);
+    // Unit price derivation for display
+    const unitPrice = Number(p.unitPrice) || Number(p.price) || Number(p.basePrice) || 0;
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
     return `
       <tr>
         <td>${safe(p.name)} ${optionsText ? `(${safe(optionsText)})` : ''}</td>
         <td>${safe(p.quantity)}</td>
         <td>${num(unitPrice)}</td>
-        <td>${num(p.quantity) * num(unitPrice)} ج</td>
+        <td>${num(p.finalPrice)} ج</td>
       </tr>
     `;
   }).join('');
@@ -659,13 +664,22 @@ router.get('/:orderId', adminAuth, async (req, res) => {
 router.put('/:orderId', adminAuth, async (req, res) => {
   try {
     const { orderId } = req.params;
-    const updates = req.body;
+    let updates = req.body;
     let query = { orderId: orderId };
     if (mongoose.Types.ObjectId.isValid(orderId)) {
       query = { $or: [{ orderId: orderId }, { _id: orderId }] };
     }
     const oldOrder = await Order.findOne(query);
     if (!oldOrder) return res.status(404).json({ error: 'Order not found' });
+
+    // Recalculate totals if items, shipping, or discount changed
+    const items = updates.items || oldOrder.items;
+    const shippingFee = (updates.shippingFee !== undefined) ? updates.shippingFee : oldOrder.shippingFee;
+    const discount = (updates.discount !== undefined) ? updates.discount : oldOrder.discount;
+
+    const { totalPrice } = calcTotals(items, shippingFee, discount);
+    updates.totalPrice = totalPrice;
+    updates.paid = (Number(updates.paidAmount || oldOrder.paidAmount) >= totalPrice);
 
     const order = await Order.findOneAndUpdate(query, { $set: updates }, { new: true, runValidators: true });
 
@@ -675,6 +689,7 @@ router.put('/:orderId', adminAuth, async (req, res) => {
 
     res.json(order);
   } catch (err) {
+    console.error('Order update error:', err);
     res.status(500).json({ error: 'Failed to update order' });
   }
 });

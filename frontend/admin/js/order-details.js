@@ -193,8 +193,6 @@ function renderItems() {
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
     const optText = (item.selectedOptions || []).map(op => op.label).join(' / ');
-    const unitPrice = item.basePrice + (item.selectedOptions || []).reduce((s, op) => s + (op.price || 0), 0);
-
     return `
       <div style="padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #fff; display: flex; flex-direction: column; gap: 14px;">
         <!-- Top Row -->
@@ -211,7 +209,7 @@ function renderItems() {
           
           <!-- Left side: Unit Price Block and Total Price -->
           <div style="display: flex; align-items: center; gap: 16px; flex: 1; justify-content: space-between;">
-            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${formatPrice(unitPrice)}x${item.quantity} </div>
+            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${formatPrice(item.basePrice)}x${item.quantity} </div>
             <div style="font-weight: 700; font-size: 1rem; color: #1e293b; min-width: 80px; text-align: left; flex: 1;">${formatPrice(item.finalPrice)}</div>
           </div>
         </div>
@@ -246,12 +244,12 @@ function updateTotals() {
   let subtotal = 0;
 
   o.items.forEach(item => {
-    const optExtra = (item.selectedOptions || []).reduce((s, op) => s + (op.price || 0), 0);
-    item.finalPrice = Math.max(0, (item.basePrice + optExtra) * item.quantity - (item.discount || 0));
+    // Standardized Absolute Pricing Model: basePrice is the unit price
+    item.finalPrice = Math.max(0, (item.basePrice * item.quantity) - (item.discount || 0));
     subtotal += item.finalPrice;
   });
 
-  o.totalPrice = Math.max(0, subtotal + o.shippingFee - (o.discount || 0));
+  o.totalPrice = Math.max(0, subtotal + (o.shippingFee || 0) - (o.discount || 0));
 
   document.getElementById('sum-subtotal').textContent = formatPrice(subtotal);
   document.getElementById('sum-items-count').textContent = o.items.reduce((s, i) => s + i.quantity, 0);
@@ -553,21 +551,23 @@ window.saveOrderChanges = async function (silent = false) {
   }
 
   try {
-    const updates = {
-      items: currentOrder.items.map(item => ({
-        ...item,
-        selectedOptions: (item.selectedOptions || []).map(opt => ({
-          groupName: opt.groupName,
-          label: opt.label
-        }))
-      })),
-      discount: currentOrder.discount,
-      paymentMethod: currentOrder.paymentMethod,
-      paidAmount: currentOrder.paidAmount,
-      paid: currentOrder.paidAmount >= currentOrder.totalPrice,
-      customer: currentOrder.customer,
-      forcePaymentWebhook: currentOrder.forcePaymentWebhook
-    };
+      const updates = {
+        items: currentOrder.items.map(item => ({
+          ...item,
+          selectedOptions: (item.selectedOptions || []).map(opt => ({
+            groupName: opt.groupName,
+            label: opt.label
+          }))
+        })),
+        discount: currentOrder.discount,
+        shippingFee: currentOrder.shippingFee,
+        totalPrice: currentOrder.totalPrice,
+        paymentMethod: currentOrder.paymentMethod,
+        paidAmount: currentOrder.paidAmount,
+        paid: currentOrder.paidAmount >= currentOrder.totalPrice,
+        customer: currentOrder.customer,
+        forcePaymentWebhook: currentOrder.forcePaymentWebhook
+      };
 
     await api.updateOrder(currentOrder.orderId, updates);
     currentOrder.forcePaymentWebhook = false; // Reset the flag
