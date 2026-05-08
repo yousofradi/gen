@@ -4,7 +4,7 @@ const assets = [
   '/admin/css/style.css',
   '/admin/js/api.js',
   '/admin/js/auth.js',
-  '/admin/manifest.json'
+  '/api/settings/pwa/manifest.json'
 ];
 
 self.addEventListener('install', e => {
