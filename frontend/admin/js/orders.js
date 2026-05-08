@@ -129,7 +129,7 @@ function renderOrders(orders) {
     } else if (o.paid) {
       statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#dcfce7; color:#16a34a; font-size:0.85rem; font-weight:600;">مدفوع <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><polyline points="20 6 9 17 4 12"/></svg></span>`;
     } else if (o.paidAmount > 0) {
-      statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#fef3c7; color:#92400e; font-size:0.85rem; font-weight:600; text-align:center; min-width:110px;">مدفوع جزئياً<div style="font-size:0.75rem; font-weight:normal; opacity:0.9; margin-top:2px;">المتبقي: ${formatPrice(o.totalPrice - o.paidAmount)}</div></span>`;
+      statusBadge = `<span style="display:inline-block; padding:4px 8px; border-radius:16px; background:#fef3c7; color:#92400e; font-size:0.8rem; font-weight:600; text-align:center;">مدفوع جزئياً<div style="font-size:0.7rem; font-weight:normal; opacity:0.9; margin-top:2px;">المتبقي: ${formatPrice(o.totalPrice - o.paidAmount)}</div></span>`;
     } else {
       statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#f1f5f9; color:#475569; font-size:0.85rem; font-weight:600;">غير مدفوع</span>`;
     }

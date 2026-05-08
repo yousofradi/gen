@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="css/style.css">
   <style>
     @media (max-width: 768px) {
-
       /* Hide: Products(4), Payment(6), Total(7), Date(8) */
       .orders-table-wrap th:nth-child(4), .orders-table-wrap td:nth-child(4),
       .orders-table-wrap th:nth-child(6), .orders-table-wrap td:nth-child(6),
@@ -16,9 +15,28 @@
       .orders-table-wrap th:nth-child(8), .orders-table-wrap td:nth-child(8) {
         display: none !important;
       }
+      .orders-table-wrap table {
+        table-layout: fixed !important;
+        min-width: 0 !important;
+        width: 100% !important;
+      }
       .orders-table-wrap table th, .orders-table-wrap table td {
-        padding: 10px 8px !important;
-        font-size: 0.85rem !important;
+        padding: 10px 4px !important;
+        font-size: 0.8rem !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      /* Column Widths */
+      .orders-table-wrap th:nth-child(1), .orders-table-wrap td:nth-child(1) { width: 35px !important; }
+      .orders-table-wrap th:nth-child(2), .orders-table-wrap td:nth-child(2) { width: 50px !important; text-align: center !important; }
+      .orders-table-wrap th:nth-child(3), .orders-table-wrap td:nth-child(3) { width: auto !important; }
+      .orders-table-wrap th:nth-child(5), .orders-table-wrap td:nth-child(5) { width: 90px !important; text-align: center !important; }
+
+      .status-badge-pill {
+        padding: 2px 6px;
+        font-size: 0.65rem;
+        min-width: 0 !important;
       }
     }
 
