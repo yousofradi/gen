@@ -101,11 +101,13 @@
     .hidden { display: none !important; }
     
     .select-products-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
     .product-list-box {
       border: 1px solid #eee; border-radius: 4px;
-      height: 400px; overflow-y: auto;
+      height: 250px; overflow-y: auto;
     }
     .product-item {
       display: flex; align-items: center; gap: 12px; padding: 8px;
@@ -265,16 +267,16 @@
       </div>
       <div class="modal-body select-products-grid">
         <div>
-          <div style="font-weight:bold;margin-bottom:8px;text-align:center">المنتجات المختارة</div>
-          <div class="product-list-box" id="selected-products-box"></div>
-        </div>
-        <div>
-          <div style="font-weight:bold;margin-bottom:8px;text-align:center">المنتجات المتبقية</div>
+          <div style="font-weight:bold;margin-bottom:8px;text-align:right">المنتجات المتبقية</div>
           <div style="position:relative;">
             <input type="text" id="available-search" class="form-control" placeholder="بحث..." style="margin-bottom:8px;border:none;border-bottom:1px solid #eee;border-radius:0;padding-left:36px;">
             <span style="position:absolute; left:10px; top:40%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
           </div>
           <div class="product-list-box" style="border-top:none" id="available-products-box"></div>
+        </div>
+        <div>
+          <div style="font-weight:bold;margin-bottom:8px;text-align:right">المنتجات المختارة</div>
+          <div class="product-list-box" id="selected-products-box"></div>
         </div>
       </div>
       <div class="modal-footer">
