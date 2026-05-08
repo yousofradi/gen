@@ -37,7 +37,12 @@ async function generateInvoiceInnerHtml(order, settings) {
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
     return `
       <tr>
-        <td>${safe(p.name)} ${optionsText ? `(${safe(optionsText)})` : ''}</td>
+        <td style="text-align: right; padding-right: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:34px; height:34px; border-radius:4px; object-fit:cover; border:1px solid #eee;">` : ''}
+            <span style="flex:1">${safe(p.name)} ${optionsText ? `<br><small style="color:#666; font-size:10px;">${safe(optionsText)}</small>` : ''}</span>
+          </div>
+        </td>
         <td>${safe(p.quantity)}</td>
         <td>${num(unitPrice)}</td>
         <td>${num(p.finalPrice)} ج</td>
@@ -62,6 +67,10 @@ async function generateInvoiceInnerHtml(order, settings) {
   const total = num(order.totalPrice);
   const paid = num(order.paidAmount);
   const remaining = total - paid;
+  
+  // Add 10 EGP extra fee if not fully paid (COD fee)
+  const codFee = remaining > 0 ? 10 : 0;
+  const displayRemaining = remaining + codFee;
 
   // ================== PHONE ==================
   let phone = safe(order.customer.phone);
@@ -104,7 +113,7 @@ async function generateInvoiceInnerHtml(order, settings) {
 
     <div class="paid-box">
       <div class="row green"><span>المدفوع</span><span>${paid} ج</span></div>
-      <div class="row red"><span>${remtext}</span><span>${remaining} ج</span></div>
+      <div class="row red"><span>${remtext}</span><span>${displayRemaining} ج</span></div>
     </div>
 
     <div class="notes-section">
@@ -278,6 +287,8 @@ body { margin: 0; padding: 0; }
 .items-table { width: 100%; border-collapse: collapse; }
 .items-table thead { background: #f5ede0; }
 .items-table th, .items-table td { padding: 6px 6px; font-weight: 600; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5; }
+.items-table tbody tr:nth-child(even) { background-color: #f9f6ef; }
+.items-table tbody tr:nth-child(odd) { background-color: #ffffff; }
 .items-table td:first-child, .items-table th:first-child { text-align: right; }
 .summary { background: #f5ede0; padding: 1px 6px; }
 .row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
@@ -520,6 +531,8 @@ body { margin: 0; padding: 0; }
 .items-table { width: 100%; border-collapse: collapse; }
 .items-table thead { background: #f5ede0; }
 .items-table th, .items-table td { padding: 6px 6px; font-weight: 600; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5; }
+.items-table tbody tr:nth-child(even) { background-color: #f9f6ef; }
+.items-table tbody tr:nth-child(odd) { background-color: #ffffff; }
 .items-table td:first-child, .items-table th:first-child { text-align: right; }
 .summary { background: #f5ede0; padding: 1px 6px; }
 .row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
