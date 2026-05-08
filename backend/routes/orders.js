@@ -30,6 +30,10 @@ async function generateInvoiceInnerHtml(order, settings) {
 
   const brandName = settings.invoicePrefix || settings.storeName || 'المتجر';
 
+  const isLargeOrder = order.items.length > 7;
+  const rowPadding = isLargeOrder ? '3px 6px' : '6px 6px';
+  const fontSize = isLargeOrder ? '11px' : '12px';
+
   // ================== PRODUCTS ==================
   const productsHtml = order.items.map((p) => {
     // Unit price derivation for display
@@ -37,12 +41,12 @@ async function generateInvoiceInnerHtml(order, settings) {
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
     return `
       <tr>
-        <td style="text-align: right; padding-right: 8px;">
-          ${safe(p.name)} ${optionsText ? `<br><small style="color:#666; font-size:10px;">${safe(optionsText)}</small>` : ''}
+        <td style="text-align: right; padding: ${rowPadding}; padding-right: 8px; font-size: ${fontSize};">
+          ${safe(p.name)} ${optionsText ? `<span style="font-size:0.85em; color:#666;"> (${safe(optionsText)})</span>` : ''}
         </td>
-        <td>${safe(p.quantity)}</td>
-        <td>${num(unitPrice)}</td>
-        <td>${num(p.finalPrice)} ج</td>
+        <td style="padding: ${rowPadding}; font-size: ${fontSize};">${safe(p.quantity)}</td>
+        <td style="padding: ${rowPadding}; font-size: ${fontSize};">${num(unitPrice)}</td>
+        <td style="padding: ${rowPadding}; font-size: ${fontSize};">${num(p.finalPrice)} ج</td>
       </tr>
     `;
   }).join('');
