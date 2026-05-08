@@ -627,7 +627,10 @@ function renderVariantsTable() {
           <td style="text-align:right">
             <div style="display:flex; align-items:center;">
               <button type="button" class="btn-gallery-teal" onclick="openGalleryModal(${c.originalIndex})">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                ${c.imageUrl 
+                  ? `<img src="${c.imageUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">`
+                  : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`
+                }
               </button>
               <span style="color:#0f766e; font-weight:500">${otherOptions || parentVal}</span>
             </div>
