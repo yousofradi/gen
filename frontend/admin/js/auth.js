@@ -74,6 +74,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   observer.observe(document.body, { childList: true, subtree: true });
+
+  // ── PWA Initialization ──
+  const initPWA = () => {
+    // 1. Inject Manifest
+    if (!document.querySelector('link[rel="manifest"]')) {
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'manifest.json';
+      document.head.appendChild(link);
+    }
+
+    // 2. Inject PWA Meta Tags
+    const metaTags = [
+      { name: 'mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+      { name: 'theme-color', content: '#64748b' }
+    ];
+    metaTags.forEach(tag => {
+      if (!document.querySelector(`meta[name="${tag.name}"]`)) {
+        const m = document.createElement('meta');
+        m.name = tag.name;
+        m.content = tag.content;
+        document.head.appendChild(m);
+      }
+    });
+
+    // 3. Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Admin SW Registered'))
+          .catch(err => console.log('Admin SW Registration failed', err));
+      });
+    }
+  };
+  initPWA();
 });
 
 function initUnsavedChangesBar() {
