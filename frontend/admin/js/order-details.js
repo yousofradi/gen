@@ -901,3 +901,35 @@ window.confirmMarkAsReady = async function () {
     document.body.classList.remove('is-loading');
   }
 };
+window.printOrderInvoice = async function () {
+  if (!currentOrder) return;
+  const adminKey = localStorage.getItem('adminKey') || '';
+  const orderId = currentOrder.orderId;
+  
+  showToast('جاري تجهيز الفاتورة...', 'info');
+  
+  try {
+    const url = `${API_BASE}/orders/${orderId}/invoice?adminKey=${adminKey}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Failed to generate PDF');
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `invoice-${orderId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    a.remove();
+    
+    showToast('تم بدء التحميل');
+  } catch (err) {
+    console.error('PDF Download Error:', err);
+    showToast('فشل تحميل الفاتورة: ' + err.message, 'error');
+  }
+};

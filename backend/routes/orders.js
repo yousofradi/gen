@@ -340,7 +340,7 @@ ${pagesHtml}
         format: 'A5',
         printBackground: true,
         preferCssPageSize: true,
-        compression: true
+        compression: 'medium'
       })
     });
 
@@ -464,7 +464,7 @@ window.onload = function() {
         format: 'A5',
         printBackground: true,
         preferCssPageSize: true,
-        compression: true
+        compression: 'medium'
       })
     });
 
