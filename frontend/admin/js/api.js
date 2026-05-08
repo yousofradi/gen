@@ -224,9 +224,14 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toast.remove?.(), 4500);
 }
 
+// ── Scroll Lock Utilities ──────────────────────────────
+window.lockScroll = function() { document.body.style.overflow = 'hidden'; };
+window.unlockScroll = function() { document.body.style.overflow = ''; };
+
 // ── Global Confirm Modal ────────────────────────────────
 window.showConfirmModal = function (title, message) {
   return new Promise((resolve) => {
+    lockScroll();
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
     modal.innerHTML = `
@@ -248,15 +253,18 @@ window.showConfirmModal = function (title, message) {
 
     modal.querySelector('#confirm-yes').onclick = () => {
       modal.remove();
+      unlockScroll();
       resolve(true);
     };
     modal.querySelector('#confirm-no').onclick = () => {
       modal.remove();
+      unlockScroll();
       resolve(false);
     };
     modal.onclick = (e) => {
       if (e.target === modal) {
         modal.remove();
+        unlockScroll();
         resolve(false);
       }
     };

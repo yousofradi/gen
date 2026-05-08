@@ -104,19 +104,22 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
+      width: 100%;
     }
     .product-list-box {
       border: 1px solid #eee; border-radius: 4px;
       height: 250px; overflow-y: auto;
+      width: 100%;
     }
     .product-item {
-      display: flex; align-items: center; gap: 12px; padding: 8px;
+      display: flex; align-items: center; gap: 12px; padding: 10px;
       border-bottom: 1px solid #eee; cursor: pointer;
     }
     .product-item:hover { background: #f9f9f9; }
 
     @media (max-width: 768px) {
       .form-layout { grid-template-columns: 1fr; }
+      .modal { padding: 16px; max-width: 95%; }
     }
   </style>
 </head>

@@ -121,10 +121,12 @@ function updateImagePreview(url) {
 window.promptImage = function () {
   document.getElementById('modal-image-url').value = document.getElementById('c-image').value || '';
   document.getElementById('image-url-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 };
 
 window.closeImageModal = function () {
   document.getElementById('image-url-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 };
 
 window.applyImageUrl = function () {
@@ -223,11 +225,13 @@ window.removeProductFromCollection = function (id) {
 
 window.openSelectModal = function () {
   document.getElementById('select-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
   renderSelectModalLists();
 };
 
 window.closeSelectModal = function () {
   document.getElementById('select-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 };
 
 function renderSelectModalLists(query = '') {
