@@ -271,9 +271,9 @@
     .variant-group-card.display-mode .variant-group-body {
       padding: 12px 16px;
       display: flex;
-      justify-content: flex-start;
-      gap: 16px;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
       cursor: pointer;
     }
 
@@ -722,6 +722,14 @@
       padding: 24px;
       max-height: 50vh;
       overflow-y: auto;
+    }
+
+    @media (max-width: 600px) {
+      .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+        padding: 16px;
+        gap: 8px;
+      }
     }
 
     .gallery-item {

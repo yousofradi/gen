@@ -700,7 +700,7 @@ window.openGalleryModal = function (idx) {
   const confirmBtn = document.getElementById('confirm-gallery-selection');
 
   grid.innerHTML = productImages.map((img, i) => `
-    <div class="gallery-item ${variants[idx].imageUrl === img ? 'selected' : ''}" onclick="selectGalleryImage('${img}')">
+    <div class="gallery-item ${variants[idx].imageUrl === img ? 'selected' : ''}" data-url="${img}" onclick="selectGalleryImage('${img}')">
       <div class="gallery-item-check"></div>
       <img src="${img}">
     </div>
@@ -712,11 +712,14 @@ window.openGalleryModal = function (idx) {
   }
 
   document.getElementById('gallery-modal').style.display = 'flex';
+  if (window.lockScroll) window.lockScroll();
 }
 
 window.selectGalleryImage = function (url) {
   document.querySelectorAll('.gallery-item').forEach(el => {
-    el.classList.toggle('selected', el.querySelector('img').src === url);
+    // Compare using the data-url attribute which is reliable
+    const itemUrl = el.dataset.url;
+    el.classList.toggle('selected', itemUrl === url);
   });
   variants[currentPickingVariantIndex].imageUrl = url;
 
@@ -726,6 +729,7 @@ window.selectGalleryImage = function (url) {
 
 window.closeGalleryModal = function () {
   document.getElementById('gallery-modal').style.display = 'none';
+  if (window.unlockScroll) window.unlockScroll();
   renderVariantsTable();
 }
 
@@ -777,6 +781,7 @@ function openBulkEditModal() {
     `;
   }).join('');
   modal.style.display = 'flex';
+  if (window.lockScroll) window.lockScroll();
 }
 
 
@@ -786,6 +791,7 @@ window.updateBulkField = function (idx, field, val) {
 
 function closeBulkEditModal() {
   document.getElementById('bulk-edit-modal').style.display = 'none';
+  if (window.unlockScroll) window.unlockScroll();
   renderVariantsTable();
 }
 
