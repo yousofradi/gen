@@ -180,7 +180,12 @@ router.post('/', async (req, res) => {
     sendPushToAdmins({
       title: 'طلب جديد! 📦',
       body: `طلب بقيمة ${order.totalPrice} ج.م من ${order.customer.name}`,
-      data: { url: `/admin/order-details.html?id=${order.orderId}` }
+      icon: '/admin/logo.png',
+      sound: 'https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3',
+      data: { 
+        url: `/admin/order-details.html?id=${order.orderId}`,
+        sound: 'https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3'
+      }
     });
 
     await sendWebhook('order.created', order.toObject());

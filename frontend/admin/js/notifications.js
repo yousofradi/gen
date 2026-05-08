@@ -45,6 +45,21 @@ async function initPushNotifications() {
   }
 }
 
+// ── Audio Alert System ──
+function playKaching() {
+  const audio = new Audio('https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3');
+  audio.play().catch(e => console.log('Audio playback blocked until user interaction'));
+}
+
+// Listen for messages from Service Worker (optional but good for sync)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data && event.data.type === 'PUSH_RECEIVED') {
+      playKaching();
+    }
+  });
+}
+
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');

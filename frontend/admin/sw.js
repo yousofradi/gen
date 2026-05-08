@@ -36,11 +36,21 @@ self.addEventListener('push', event => {
     icon: data.icon || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
     badge: '/admin/favicon.ico',
     data: data.data || {},
-    vibrate: [200, 100, 200]
+    vibrate: [200, 100, 200], // Kaching vibration pattern
+    sound: data.sound || 'https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3',
+    tag: 'order-notification',
+    renotify: true
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    Promise.all([
+      self.registration.showNotification(data.title, options),
+      self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'PUSH_RECEIVED', data });
+        });
+      })
+    ])
   );
 });
 
