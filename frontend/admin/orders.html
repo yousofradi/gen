@@ -30,10 +30,11 @@
       }
       /* Column Widths (RTL: 1=Right, 5=Left) */
       .orders-table-wrap th:nth-child(1), .orders-table-wrap td:nth-child(1) { width: 30px !important; }
-      .orders-table-wrap th:nth-child(2), .orders-table-wrap td:nth-child(2) { width: 45px !important; text-align: center !important; }
-      .orders-table-wrap th:nth-child(3), .orders-table-wrap td:nth-child(3) { width: auto !important; text-align: right !important; }
-      /* Move Status column text to the right so it touches Customer */
-      .orders-table-wrap th:nth-child(5), .orders-table-wrap td:nth-child(5) { width: 85px !important; text-align: right !important; }
+      .orders-table-wrap th:nth-child(2), .orders-table-wrap td:nth-child(2) { width: 40px !important; text-align: center !important; }
+      /* Reduce Customer column width so it doesn't push status to the far left */
+      .orders-table-wrap th:nth-child(3), .orders-table-wrap td:nth-child(3) { width: 140px !important; text-align: right !important; }
+      /* Status column takes the rest of the space, but content is right-aligned to stay close to customer */
+      .orders-table-wrap th:nth-child(5), .orders-table-wrap td:nth-child(5) { width: auto !important; text-align: right !important; }
 
       .status-badge-pill {
         padding: 2px 4px;
