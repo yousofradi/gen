@@ -17,7 +17,8 @@
     "mongoose": "^8.9.5",
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "web-push": "^3.6.7"
   },
   "engines": {
     "node": ">=18.0.0"

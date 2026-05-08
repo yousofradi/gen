@@ -22,6 +22,7 @@ app.use('/api/settings', require('./routes/settings'));
 app.use('/api/seed', require('./routes/seed'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/customers', require('./routes/customerRoutes'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Serve static uploads with long cache
 app.use('/uploads', express.static('uploads', {

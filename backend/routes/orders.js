@@ -4,6 +4,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const adminAuth = require('../middleware/adminAuth');
 const sendWebhook = require('../utils/webhook');
+const { sendPushToAdmins } = require('../utils/push');
 
 // Helper: recalculate totals from items + shipping + discount
 function calcTotals(items, shippingFee, orderDiscount = 0) {
@@ -174,6 +175,14 @@ router.post('/', async (req, res) => {
     });
 
     await order.save();
+    
+    // Send push notification to admins
+    sendPushToAdmins({
+      title: 'طلب جديد! 📦',
+      body: `طلب بقيمة ${order.totalPrice} ج.م من ${order.customer.name}`,
+      data: { url: `/admin/order-details.html?id=${order.orderId}` }
+    });
+
     await sendWebhook('order.created', order.toObject());
     res.status(201).json(order);
   } catch (err) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'admin-cache-v2';
+const CACHE_NAME = 'admin-cache-v3';
 const assets = [
   '/admin/index.html',
   '/admin/css/style.css',
@@ -19,4 +19,42 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+});
+
+// ── Push Notification Handler ──
+self.addEventListener('push', event => {
+  let data = { title: 'Sundura Admin', body: 'New notification' };
+  try {
+    data = event.data.json();
+  } catch (e) {
+    console.log('Push data is not JSON, using as text');
+    if (event.data) data.body = event.data.text();
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+    badge: '/admin/favicon.ico',
+    data: data.data || {},
+    vibrate: [200, 100, 200]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const urlToOpen = event.notification.data.url || '/admin/index.html';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url === urlToOpen && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(urlToOpen);
+    })
+  );
 });

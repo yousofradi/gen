@@ -110,6 +110,13 @@ document.addEventListener('DOMContentLoaded', () => {
           .catch(err => console.log('Admin SW Registration failed', err));
       });
     }
+
+    // 4. Inject Notifications Script
+    if (!document.querySelector('script[src*="notifications.js"]')) {
+      const script = document.createElement('script');
+      script.src = 'js/notifications.js';
+      document.body.appendChild(script);
+    }
   };
   initPWA();
 });
