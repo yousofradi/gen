@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     showToast('جاري تجهيز الفاتورة...', 'info');
 
     try {
-        const url = `${API_URL}/orders/${orderId}/download-image?adminKey=${adminKey}`;
+        const url = `${API_BASE}/orders/${orderId}/download-image?adminKey=${adminKey}`;
         const response = await fetch(url);
         
         if (!response.ok) {
