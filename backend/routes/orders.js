@@ -28,32 +28,27 @@ async function generateInvoiceInnerHtml(order, settings) {
   const safe = (val) => (val === undefined || val === null) ? '' : String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const num = (val) => Number(val) || 0;
 
-  const brandName = settings.invoicePrefix || settings.storeName || 'المتجر';
-
-  const isLargeOrder = order.items.length > 7;
-  const rowPadding = isLargeOrder ? '3px 6px' : '6px 6px';
-  const fontSize = isLargeOrder ? '11px' : '12px';
+  const brandName = settings.storeNameAr || settings.storeName || 'سندورا سكوب';
 
   // ================== PRODUCTS ==================
   const productsHtml = order.items.map((p) => {
-    // Unit price derivation for display
     const unitPrice = Number(p.unitPrice) || Number(p.price) || Number(p.basePrice) || 0;
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
+    const lineTotal = p.finalPrice;
+    
     return `
-      <tr>
-        <td style="text-align: right; padding: ${rowPadding}; padding-right: 8px; font-size: ${fontSize};">
-          <div style="display:flex; align-items:center; gap:8px; justify-content: flex-start;">
-            ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:45px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #eee;">` : '<div style="width:45px; height:45px; background:#f5f5f5; border-radius:6px;"></div>'}
-            <div style="flex:1;">
-              <div style="font-weight:700;">${safe(p.name)}</div>
-              ${optionsText ? `<div style="font-size:0.85em; color:#666; margin-top:2px;">${safe(optionsText)}</div>` : ''}
-            </div>
-          </div>
-        </td>
-        <td style="padding: ${rowPadding}; font-size: ${fontSize};">${safe(p.quantity)}</td>
-        <td style="padding: ${rowPadding}; font-size: ${fontSize};">${num(unitPrice)}</td>
-        <td style="padding: ${rowPadding}; font-size: ${fontSize};">${num(p.finalPrice)} ج</td>
-      </tr>
+    <tr>
+      <td style="text-align: right; display:flex; align-items:center; gap:8px;">
+        ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:6px; margin-left:8px;">` : ''}
+        <div>
+          <div style="font-weight:700;">${safe(p.name)}</div>
+          ${optionsText ? `<div style="font-size:10px; color:#666;">(${safe(optionsText)})</div>` : ''}
+        </div>
+      </td>
+      <td>${safe(p.quantity)}</td>
+      <td>${num(unitPrice)}</td>
+      <td>${num(lineTotal)} ج</td>
+    </tr>
     `;
   }).join('');
 
@@ -75,9 +70,8 @@ async function generateInvoiceInnerHtml(order, settings) {
   const paid = num(order.paidAmount);
   const remaining = total - paid;
 
-  // Add 10 EGP extra fee if not fully paid (COD fee)
-  const codFee = remaining > 0 ? 10 : 0;
-  const displayRemaining = remaining + codFee;
+  // Add 10 EGP extra fee if not fully paid (COD fee logic from user's sample)
+  const displayRemaining = remaining > 0 ? (remaining + 10) : 0;
 
   // ================== PHONE ==================
   let phone = safe(order.customer.phone);
@@ -93,45 +87,94 @@ async function generateInvoiceInnerHtml(order, settings) {
 
   return `
 <div class="invoice">
-  <table class="customer-table">
-    <tbody>
-      <tr><td class="label-column">الاسم</td><td class="value-column">${safe(order.customer.name)}</td></tr>
-      <tr><td class="label-column">الهاتف</td><td class="value-column">${phone}</td></tr>
-      <tr><td class="label-column">المحافظة</td><td class="value-column">${safe(order.customer.government)}</td></tr>
-      <tr><td class="label-column">العنوان</td><td class="value-column">${safe(order.customer.address)}</td></tr>
-    </tbody>
-  </table>
 
-  <div class="order-section">
-    <table class="items-table">
-      <thead>
-        <tr><th>المنتج</th><th>عدد</th><th>سعر</th><th>إجمالي</th></tr>
-      </thead>
-      <tbody>
-        ${productsHtml}
-      </tbody>
-    </table>
+<table class="customer-table">
+<tbody>
 
-    <div class="summary">
-      <div class="row"><span>المبلغ الفرعي</span><span>${sub} ج</span></div>
-      <div class="row"><span>مصاريف الشحن (${safe(order.customer.government)})</span><span>${shipping} ج</span></div>
-      <div class="row grand"><span>الإجمالي</span><span>${total} ج</span></div>
-    </div>
+<tr>
+<td class="label-column">الاسم</td>
+<td class="value-column">${safe(order.customer.name)}</td>
+</tr>
 
-    <div class="paid-box">
-      <div class="row green"><span>المدفوع</span><span>${paid} ج</span></div>
-      <div class="row red"><span>${remtext}</span><span>${displayRemaining} ج</span></div>
-    </div>
+<tr>
+<td class="label-column">الهاتف</td>
+<td class="value-column" dir="ltr">${phone}</td>
+</tr>
 
-    <div class="notes-section">
-      <div class="notes-title">ملاحظات :</div>
-      <div style="line-height:1.6; font-weight:700;">
-        ${notesHtml}
-      </div>
-    </div>
+<tr>
+<td class="label-column">المحافظة</td>
+<td class="value-column">${safe(order.customer.government)}</td>
+</tr>
 
-    <div class="footer">♡ شكراً لشرائك من متجر ${brandName} ♡</div>
-  </div>
+<tr>
+<td class="label-column">العنوان</td>
+<td class="value-column">${safe(order.customer.address)}</td>
+</tr>
+
+</tbody>
+</table>
+
+<div class="order-section">
+
+<table class="items-table">
+<thead>
+<tr>
+<th>المنتج</th>
+<th>عدد</th>
+<th>سعر</th>
+<th>إجمالي</th>
+</tr>
+</thead>
+
+<tbody>
+${productsHtml}
+</tbody>
+</table>
+
+<div class="summary">
+<div class="row">
+<span>المبلغ الفرعي</span>
+<span>${sub} ج</span>
+</div>
+
+<div class="row">
+<span>مصاريف الشحن (${safe(order.customer.government)})</span>
+<span>${shipping} ج</span>
+</div>
+
+<div class="row grand">
+<span>الإجمالي</span>
+<span>${total} ج</span>
+</div>
+</div>
+
+<div class="paid-box">
+
+<div class="row green">
+<span>المدفوع</span>
+<span>${paid} ج</span>
+</div>
+
+<div class="row red">
+<span>${remtext}</span>
+<span>${displayRemaining} ج</span>
+</div>
+
+</div>
+
+<div class="notes-section">
+<div class="notes-title">ملاحظات :</div>
+
+<div style="line-height:1.6; font-weight:700;">
+${notesHtml}
+</div>
+</div>
+
+<div class="footer">
+♡ شكراً لشرائك من متجر ${brandName} ♡
+</div>
+
+</div>
 </div>
 `;
 }
@@ -266,8 +309,8 @@ router.get('/bulk/download-pdf', adminAuth, async (req, res) => {
 <head>
 <meta charset="UTF-8">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
-* { font-family: 'Cairo', sans-serif !important; box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
+* { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
 @page { size: A5; margin: 4mm; }
 body { margin: 0; padding: 0; }
 .page {
@@ -390,15 +433,15 @@ router.get('/:orderId/download-image', adminAuth, async (req, res) => {
 <head>
 <meta charset="UTF-8">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
-* { font-family: 'Cairo', sans-serif !important; box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
+* { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
 body { margin: 0; padding: 0; background: #fff; }
 .invoice-container { width: 500px; margin: 0 auto; background: #fff; padding: 10px; }
 
 /* USER CSS START */
 .invoice { width: 100%; direction: rtl; padding: 10px 5px; }
 .customer-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 7px; }
-.customer-table td { border: 1px solid #000; font-size: 10px; font-weight: 600; text-align: center; padding: 4px; }
+.customer-table td { border: 1px solid #000; font-size: 11px; font-weight: 600; text-align: center; padding: 6px; }
 .label-column { width: 25%; background: #fff; }
 .value-column { width: 75%; }
 .order-section { border: 1px solid #000; }
@@ -428,19 +471,18 @@ body { margin: 0; padding: 0; background: #fff; }
     // Call SnapRender API
     const apiKey = process.env.SNAPRENDER_API_KEY;
     if (!apiKey) throw new Error('SNAPRENDER_API_KEY is missing');
-
-    const response = await fetch('https://api.snap-render.com/v1/render', {
+    const response = await fetch('https://app.snap-render.com/v1/screenshot', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-KEY': apiKey
+        'X-API-Key': process.env.SNAPRENDER_API_KEY
       },
       body: JSON.stringify({
-        html: Buffer.from(fullHtml).toString('base64'),
-        format: 'png',
-        width: 520,
+        html: generateInvoiceInnerHtml(order),
+        type: 'png',
+        width: 500,
         fullPage: true,
-        omitBackground: false
+        deviceScaleFactor: 2
       })
     });
 
@@ -489,8 +531,8 @@ router.get('/:orderId/invoice', adminAuth, async (req, res) => {
 <head>
 <meta charset="UTF-8">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
-* { font-family: 'Cairo', sans-serif !important; box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
+* { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
 @page { size: A5; margin: 4mm; }
 body { margin: 0; padding: 0; }
 .page {
