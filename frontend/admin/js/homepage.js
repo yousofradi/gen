@@ -121,10 +121,11 @@ function renderSections() {
   sortableInstance = new Sortable(list, {
     handle: '.hp-drag',
     animation: 150,
-    onEnd: () => {
+    onEnd: async () => {
       const newOrder = Array.from(list.children).map(el => el.getAttribute('data-id'));
       sections = newOrder.map(id => sections.find(s => s.id === id)).filter(Boolean);
-      saveSections();
+      await saveSections();
+      showToast('تم تحديث الترتيب بنجاح');
     }
   });
 }
@@ -133,7 +134,7 @@ function showTypePicker() {
   document.getElementById('type-picker-area').classList.toggle('hidden');
 }
 
-function addSection(type) {
+async function addSection(type) {
   const s = { id: genId(), type, title: '', showTitle: true };
 
   if (type === 'products') {
@@ -163,9 +164,10 @@ function addSection(type) {
   }
 
   sections.push(s);
-  saveSections();
+  await saveSections();
   renderSections();
   document.getElementById('type-picker-area').classList.add('hidden');
+  showToast('تم إضافة القسم بنجاح');
 
   // Open edit immediately
   editSection(s.id);

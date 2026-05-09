@@ -199,12 +199,13 @@ function renderProductsList(productsToRender = collectionProducts) {
   sortableList = new Sortable(list, {
     handle: '.btn-reorder',
     animation: 150,
-    onEnd: function () {
+    onEnd: async function () {
       // Re-sync array based on DOM
       const rows = Array.from(list.children);
       const newOrderIds = rows.map(r => r.getAttribute('data-id'));
       collectionProducts = newOrderIds.map(id => collectionProducts.find(p => p._id === id)).filter(Boolean);
       if (window.markAsModified) window.markAsModified();
+      if (collectionId) await autoSaveCollection();
     }
   });
 }
@@ -215,10 +216,11 @@ function filterCollectionProducts(e) {
   renderProductsList(filtered);
 }
 
-window.removeProductFromCollection = function (id) {
+window.removeProductFromCollection = async function (id) {
   collectionProducts = collectionProducts.filter(p => p._id !== id);
   renderProductsList();
   if (window.markAsModified) window.markAsModified();
+  if (collectionId) await autoSaveCollection();
 };
 
 /* --- Select Products Modal --- */
@@ -258,7 +260,7 @@ function renderSelectModalLists(query = '') {
   `).join('');
 }
 
-window.toggleProductSelect = function (id, add) {
+window.toggleProductSelect = async function (id, add) {
   if (add) {
     const p = allProducts.find(p => p._id === id);
     if (p) collectionProducts.unshift(p);
@@ -267,6 +269,7 @@ window.toggleProductSelect = function (id, add) {
   }
   renderSelectModalLists(document.getElementById('available-search').value.toLowerCase());
   if (window.markAsModified) window.markAsModified();
+  if (collectionId) await autoSaveCollection();
 };
 
 function filterAvailableProducts(e) {
@@ -282,7 +285,43 @@ window.openReorderModal = function () {
   showToast('يمكنك سحب وإفلات المنتجات في القائمة للترتيب', 'info');
 };
 
-/* --- Save --- */
+async function autoSaveCollection() {
+  if (!collectionId) return;
+  const data = {
+    name: document.getElementById('c-name').value.trim(),
+    urlName: document.getElementById('c-url').value.trim() || undefined,
+    imageUrl: document.getElementById('c-image').value,
+    description: document.getElementById('c-desc').innerHTML.trim(),
+    productOrder: collectionProducts.map(p => p._id)
+  };
+
+  try {
+    const savedCol = await api.updateCollection(collectionId, data);
+    
+    // Also update products collection batch if needed
+    // In auto-save we only update the collection metadata (name, order, etc)
+    // The actual product-to-collection mapping might need an extra call if it's a new product added
+    
+    // Update products mapping
+    const productIds = collectionProducts.map(p => p._id);
+    await api._request(`/products/collection/batch`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        productIds: productIds,
+        collectionId: collectionId,
+        action: 'set'
+      }),
+      admin: true
+    });
+
+    originalCollection = JSON.parse(JSON.stringify(savedCol));
+    if (window.hideBar) window.hideBar();
+    showToast('تم الحفظ تلقائياً');
+  } catch (err) {
+    console.error('Auto-save failed', err);
+    showToast('فشل الحفظ التلقائي', 'error');
+  }
+}
 
 async function saveCollection(e) {
   e.preventDefault();
