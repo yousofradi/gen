@@ -594,19 +594,19 @@ function renderVariantsTable() {
             </div>
           </td>
           <td>
-            <div class="currency-input-group disabled">
+            <div class="currency-input-group">
               <span class="addon">ج.م</span>
-              <input type="text" value="${priceRange}" disabled>
+              <input type="number" placeholder="${priceRange}" onchange="bulkUpdateGroup('${parentVal}', 'price', this.value)" onclick="event.stopPropagation()">
             </div>
           </td>
           <td>
-            <div class="currency-input-group disabled">
+            <div class="currency-input-group">
               <span class="addon">ج.م</span>
-              <input type="text" value="${salePriceRange}" disabled>
+              <input type="number" placeholder="${salePriceRange}" onchange="bulkUpdateGroup('${parentVal}', 'salePrice', this.value)" onclick="event.stopPropagation()">
             </div>
           </td>
           <td style="text-align:center">
-            <input type="text" class="qty-input" value="${totalQty}" disabled style="background:#f9fafb; color:#667085">
+            <input type="number" class="qty-input" placeholder="${totalQty}" onchange="bulkUpdateGroup('${parentVal}', 'quantity', this.value)" onclick="event.stopPropagation()">
           </td>
         </tr>
       `;
@@ -679,6 +679,22 @@ window.updateVariantField = function (idx, field, val) {
   }
   if (window.markAsModified) safeMarkAsModified();
 }
+
+window.bulkUpdateGroup = function(parentVal, field, val) {
+  const firstGroupName = optionGroups[0]?.name;
+  if (!firstGroupName) return;
+  
+  const numericVal = val === '' ? (field === 'quantity' || field === 'cost' ? null : 0) : Number(val);
+  
+  variants.forEach(v => {
+    if (v.combination[firstGroupName] === parentVal) {
+      v[field] = numericVal;
+    }
+  });
+  
+  renderVariantsTable();
+  if (window.markAsModified) safeMarkAsModified();
+};
 
 window.removeVariant = function (idx) {
   variants.splice(idx, 1);
