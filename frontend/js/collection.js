@@ -7,7 +7,7 @@ let currentCollectionId = null;
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
-  let slug = params.get('u');
+  let slug = params.get('u') || params.get('handle');
   
   // Fallback: extract slug from path /collection/SLUG
   if (!id && !slug) {
@@ -106,7 +106,7 @@ function renderProductCard(p) {
   const img = getImg(p);
   const salePrice = p.salePrice || p.basePrice;
   const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
-  const productLink = p.handle ? `product/${p.handle}` : `product?id=${p._id}`;
+  const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
   const hasOptions = p.options && p.options.length > 0;
   
   const pJson = JSON.stringify({
