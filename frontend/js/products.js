@@ -109,7 +109,7 @@ function renderCollectionSection(s, collections) {
       <div class="cat-grid" id="collections-grid">
         ${displayCols.map(c => {
           const img = c.imageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZWZlOSIvPjwvc3ZnPg==';
-          const link = c.urlName ? `collection/${c.urlName}` : `collection?id=${c._id}`;
+          const link = c.urlName ? `collection.html?handle=${c.urlName}` : `collection.html?id=${c._id}`;
           return `
             <a href="${link}" class="cat-item">
               <img src="${img}" alt="${c.name}" loading="lazy" onerror="this.style.background='#f5efe9'">
@@ -124,9 +124,9 @@ function renderBannerSection(s) {
   if (!s.imageUrl) return '';
   
   const getLink = (type, val) => {
-    if (type === 'collection' && val) return `collection?id=${val}`;
-    if (type === 'collections_page') return 'products#collections';
-    if (type === 'products_page') return 'products';
+    if (type === 'collection' && val) return `collection.html?id=${val}`;
+    if (type === 'collections_page') return 'products.html#collections';
+    if (type === 'products_page') return 'products.html';
     if (type === 'custom' && val) return val;
     return '';
   };
@@ -176,7 +176,7 @@ function renderStoreCard(p) {
   const img = getImg(p);
   const salePrice = p.salePrice || p.basePrice;
   const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
-  const productLink = p.handle ? `product/${p.handle}` : `product?id=${p._id}`;
+  const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
   const hasOptions = p.options && p.options.length > 0;
   
   const pJson = JSON.stringify({

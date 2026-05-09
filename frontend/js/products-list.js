@@ -89,7 +89,7 @@ function renderProductCard(p) {
   const img = getImg(p);
   const salePrice = p.salePrice || p.basePrice;
   const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
-  const productLink = p.handle ? `product/${p.handle}` : `product?id=${p._id}`;
+  const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
   const hasOptions = p.options && p.options.length > 0;
   
   const pJson = JSON.stringify({
