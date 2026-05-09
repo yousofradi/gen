@@ -60,46 +60,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
-  // Action: Print Invoice (High Quality Native Method)
-  window.openInvoice = async function openInvoice() {
+  // Action: Download Invoice as Image (High Quality SnapRender)
+  window.printOrderInvoice = async function printOrderInvoice() {
     const adminKey = localStorage.getItem('adminKey') || '';
-    const orderId = window.location.search.split('id=')[1];
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('id') || (currentOrder ? currentOrder.orderId : null);
     if (!orderId) return;
     
-    const btn = document.querySelector('button[onclick="openInvoice()"]');
-    const originalText = btn ? btn.innerText : 'تحميل الفاتورة';
-    
-    if (btn) {
-        btn.innerText = 'جاري التحميل...';
-        btn.disabled = true;
-    }
+    showToast('جاري تجهيز الفاتورة...', 'info');
 
     try {
-        const url = `${API_URL}/orders/${orderId}/download-pdf?adminKey=${adminKey}`;
+        const url = `${API_URL}/orders/${orderId}/download-image?adminKey=${adminKey}`;
         const response = await fetch(url);
         
         if (!response.ok) {
             const error = await response.text();
-            throw new Error(error || 'Failed to generate PDF');
+            throw new Error(error || 'Failed to generate invoice image');
         }
 
         const blob = await response.blob();
         const downloadUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = downloadUrl;
-        a.download = `invoice-${orderId}.pdf`;
+        a.download = `invoice-${orderId}.png`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(downloadUrl);
         a.remove();
+        showToast('تم بدء التحميل');
     } catch (err) {
-        console.error('PDF Download Error:', err);
-        alert('حدث خطأ أثناء تحميل الفاتورة: ' + err.message);
-    } finally {
-        if (btn) {
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
+        console.error('Invoice Download Error:', err);
+        showToast('حدث خطأ أثناء تحميل الفاتورة: ' + err.message, 'error');
     }
 }
 
@@ -901,35 +892,4 @@ window.confirmMarkAsReady = async function () {
     document.body.classList.remove('is-loading');
   }
 };
-window.printOrderInvoice = async function () {
-  if (!currentOrder) return;
-  const adminKey = localStorage.getItem('adminKey') || '';
-  const orderId = currentOrder.orderId;
-  
-  showToast('جاري تجهيز الفاتورة...', 'info');
-  
-  try {
-    const url = `${API_BASE}/orders/${orderId}/invoice?adminKey=${adminKey}`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to generate PDF');
-    }
-
-    const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = `invoice-${orderId}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(downloadUrl);
-    a.remove();
-    
-    showToast('تم بدء التحميل');
-  } catch (err) {
-    console.error('PDF Download Error:', err);
-    showToast('فشل تحميل الفاتورة: ' + err.message, 'error');
-  }
-};
+// printOrderInvoice consolidated at top
