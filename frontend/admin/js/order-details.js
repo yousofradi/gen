@@ -70,7 +70,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     showToast('جاري تجهيز الفاتورة...', 'info');
 
     try {
-        const url = `${API_BASE}/orders/${orderId}/download-image?adminKey=${adminKey}`;
+        const baseUrl = window.API_BASE || (typeof API_BASE !== 'undefined' ? API_BASE : '');
+        const url = `${baseUrl}/orders/${orderId}/download-image?adminKey=${adminKey}`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -353,12 +354,8 @@ window.applyPaymentChanges = async function () {
   renderOrder();
   closeModal('payment-modal');
 
-  // Save immediately
-  await saveOrderChanges(true);
-
-  // Hide the unsaved changes bar
-  const bar = document.getElementById('unsaved-changes-bar');
-  if (bar) bar.classList.remove('visible');
+  // Trigger unsaved changes bar
+  if (window.markAsModified) window.markAsModified();
 };
 
 // ── Actions ────────────────────────────────────────────
@@ -439,6 +436,11 @@ window.applyItemQty = function () {
     if (window.markAsModified) window.markAsModified();
   }
   closeModal('item-qty-modal');
+  
+  // Refresh ready modal if open
+  if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
+    markAsReady();
+  }
 };
 
 window.openItemDiscountModal = function (idx) {
@@ -495,6 +497,11 @@ window.applyOrderDiscount = async function () {
 
   // Trigger unsaved changes bar
   if (window.markAsModified) window.markAsModified();
+
+  // Refresh ready modal if open
+  if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
+    markAsReady();
+  }
 };
 
 window.openItemDiscountModal = function (idx) {
@@ -516,6 +523,11 @@ window.applyItemDiscount = async function () {
 
     // Trigger unsaved changes bar
     if (window.markAsModified) window.markAsModified();
+
+    // Refresh ready modal if open
+    if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
+      markAsReady();
+    }
   }
 };
 
@@ -524,12 +536,8 @@ window.markFullyPaid = async function () {
   currentOrder.forcePaymentWebhook = true;
   renderOrder();
 
-  // Save immediately
-  await saveOrderChanges(true);
-
-  // Hide the unsaved changes bar
-  const bar = document.getElementById('unsaved-changes-bar');
-  if (bar) bar.classList.remove('visible');
+  // Trigger unsaved changes bar
+  if (window.markAsModified) window.markAsModified();
 };
 
 // ── Save ───────────────────────────────────────────────
@@ -874,7 +882,72 @@ window.deleteCurrentOrder = async function () {
 
 window.markAsReady = function () {
   if (!currentOrder) return;
+  
+  const modalItems = document.getElementById('ready-modal-items');
+  const modalTotal = document.getElementById('ready-total-val');
+  
+  if (modalItems) {
+    modalItems.innerHTML = currentOrder.items.map((item, idx) => {
+      const imgHtml = item.imageUrl
+        ? `<img src="${item.imageUrl}" style="width:60px; height:60px; border-radius:12px; object-fit:cover; border:1px solid #f1f5f9;" alt="${item.name}">`
+        : `<div style="width:60px; height:60px; border-radius:12px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
+        
+      const optText = (item.selectedOptions || []).map(op => op.label).join(' / ');
+      
+      return `
+        <div style="background:#fff; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:12px; border:1px solid #f1f5f9;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+            <div style="display:flex; gap:12px; flex:1;">
+              ${imgHtml}
+              <div style="text-align:right;">
+                <div style="font-weight:700; font-size:0.95rem; color:#1e293b; margin-bottom:4px;">${item.name}</div>
+                ${optText ? `<div style="font-size:0.8rem; color:#64748b;">${optText}</div>` : ''}
+              </div>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-weight:800; font-size:1.1rem; color:#1e293b;">${formatPrice(item.finalPrice)}</div>
+              <div style="font-size:0.8rem; color:#94a3b8; font-weight:500; margin-top:2px;" dir="ltr">${formatPrice(item.basePrice)}x${item.quantity}</div>
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f8fafc; padding-top:12px;">
+            <div style="display:flex; gap:8px;">
+               <button class="btn btn-sm" onclick="openItemDiscountModal(${idx})" style="background:#f8fafc; border:none; color:#475569; padding:6px 12px; border-radius:10px; font-size:0.75rem; font-weight:700; display:flex; align-items:center; gap:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="16" r="3"/><line x1="16" y1="8" x2="8" y2="16"/></svg>
+                خصم
+              </button>
+              <div style="display:flex; align-items:center; background:#f8fafc; border-radius:10px; height:32px; overflow:hidden;">
+                <button onclick="updateItemQtyInModal(${idx}, ${item.quantity + 1})" style="width:30px; border:none; background:transparent; font-weight:700;">+</button>
+                <div style="width:24px; text-align:center; font-size:0.85rem; font-weight:700;">${item.quantity}</div>
+                <button onclick="${item.quantity > 1 ? `updateItemQtyInModal(${idx}, ${item.quantity - 1})` : ''}" style="width:30px; border:none; background:transparent; font-weight:700;" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
+              </div>
+            </div>
+            <button onclick="removeItemInModal(${idx})" style="background:transparent; border:none; color:#ef4444; font-size:0.75rem; font-weight:700;">إزالة</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  if (modalTotal) {
+    modalTotal.textContent = formatPrice(currentOrder.totalPrice);
+  }
+  
   openModal('ready-confirm-modal');
+};
+
+window.updateItemQtyInModal = function(idx, val) {
+  updateItemQty(idx, val);
+  markAsReady(); // Refresh modal
+};
+
+window.removeItemInModal = function(idx) {
+  // Use current removeItem logic but handle confirmation or just do it
+  currentOrder.items.splice(idx, 1);
+  updateTotals();
+  renderItems();
+  markAsReady(); // Refresh modal
+  if (window.markAsModified) window.markAsModified();
 };
 
 window.confirmMarkAsReady = async function () {
@@ -883,9 +956,10 @@ window.confirmMarkAsReady = async function () {
     document.body.classList.add('is-loading');
     const updated = await api.updateOrder(currentOrder.orderId, { status: 'ready' });
     currentOrder = updated;
-    originalOrder = JSON.parse(JSON.stringify(updated));
+    if (typeof originalOrder !== 'undefined') originalOrder = JSON.parse(JSON.stringify(updated));
     renderOrder();
     showToast('تم تجهيز الطلب بنجاح', 'success');
+    if (window.hideBar) window.hideBar();
   } catch (err) {
     showToast('فشل تحديث حالة الطلب', 'error');
   } finally {

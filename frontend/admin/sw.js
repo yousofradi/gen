@@ -18,6 +18,10 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Skip caching for API requests and cross-origin calls
+  if (e.request.url.includes('/api/')) {
+    return; // Let it fall through to the network naturally
+  }
   e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
 });
 

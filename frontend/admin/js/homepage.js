@@ -124,8 +124,7 @@ function renderSections() {
     onEnd: async () => {
       const newOrder = Array.from(list.children).map(el => el.getAttribute('data-id'));
       sections = newOrder.map(id => sections.find(s => s.id === id)).filter(Boolean);
-      await saveSections();
-      showToast('تم تحديث الترتيب بنجاح');
+      if (window.markAsModified) window.markAsModified();
     }
   });
 }
@@ -164,7 +163,7 @@ async function addSection(type) {
   }
 
   sections.push(s);
-  await saveSections();
+  if (window.markAsModified) window.markAsModified();
   renderSections();
   document.getElementById('type-picker-area').classList.add('hidden');
   showToast('تم إضافة القسم بنجاح');
@@ -177,9 +176,8 @@ window.deleteSection = async function (id) {
   const ok = await window.showConfirmModal('حذف القسم', 'هل تريد حذف هذا القسم؟');
   if (!ok) return;
   sections = sections.filter(s => s.id !== id);
-  saveSections();
+  if (window.markAsModified) window.markAsModified();
   renderSections();
-  showToast('تم حذف القسم');
 };
 
 window.editSection = function (id) {
@@ -609,7 +607,7 @@ window.toggleColSelection = function (sectionId, colId, el) {
     el.classList.add('selected');
     el.querySelector('input').checked = true;
   }
-  saveSections();
+  if (window.markAsModified) window.markAsModified();
 };
 
 window.closeColPicker = function () {
@@ -635,7 +633,7 @@ window.removeSelectedCol = function (sectionId, colId) {
   const s = sections.find(s => s.id === sectionId);
   if (!s || !s.selectedCollections) return;
   s.selectedCollections = s.selectedCollections.filter(id => id !== colId);
-  saveSections();
+  if (window.markAsModified) window.markAsModified();
   editSection(sectionId); // Re-render modal
 };
 
@@ -651,7 +649,7 @@ function initColSortable(sectionId) {
       if (!s) return;
       const newOrder = Array.from(list.children).map(el => el.getAttribute('data-cid')).filter(Boolean);
       s.selectedCollections = newOrder;
-      saveSections();
+      if (window.markAsModified) window.markAsModified();
     }
   });
 }

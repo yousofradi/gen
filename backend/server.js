@@ -9,7 +9,15 @@ const app = express();
 const compression = require('compression');
 app.use(compression()); // gzip all responses
 
-app.use(cors());
+// ── CORS Configuration ──────────────────────────────────
+const corsOptions = {
+  origin: true, // Reflect request origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
+  exposedHeaders: ['Content-Disposition'],
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '5mb' }));
 
 // ── Routes ──────────────────────────────────────────────

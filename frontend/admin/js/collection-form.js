@@ -187,10 +187,13 @@ function renderProductsList(productsToRender = collectionProducts) {
 
   list.innerHTML = productsToRender.map(p => `
     <div class="product-row" data-id="${p._id}">
-      <div class="btn-reorder">☰</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <input type="checkbox" class="product-select-cb" data-id="${p._id}" onchange="updateProductSelectionUI()">
+        <div class="btn-reorder">☰</div>
+      </div>
       <img src="${p.imageUrl || p.images?.[0] || ''}" onerror="this.style.display='none'">
       <div style="flex:1;font-weight:500">${p.name}</div>
-      <div style="color:${p.active ? 'green' : 'red'};font-size:0.8rem">● ${p.active ? 'نشط' : 'غير نشط'}</div>
+      <div class="status-toggle" onclick="toggleProductRowStatus('${p._id}', ${!p.active})" style="color:${p.active ? 'green' : 'red'};font-size:0.8rem; cursor:pointer; user-select:none; padding:4px 8px; border-radius:4px; background:${p.active ? '#f0fdf4' : '#fef2f2'}">● ${p.active ? 'نشط' : 'غير نشط'}</div>
       <button type="button" class="btn-remove" onclick="removeProductFromCollection('${p._id}')">×</button>
     </div>
   `).join('');
@@ -203,9 +206,33 @@ function renderProductsList(productsToRender = collectionProducts) {
       // Re-sync array based on DOM
       const rows = Array.from(list.children);
       const newOrderIds = rows.map(r => r.getAttribute('data-id'));
-      collectionProducts = newOrderIds.map(id => collectionProducts.find(p => p._id === id)).filter(Boolean);
+      
+      // If the moved item was selected, move all other selected items with it
+      const movedId = evt.item.getAttribute('data-id');
+      const selectedIds = Array.from(document.querySelectorAll('.product-select-cb:checked')).map(cb => cb.getAttribute('data-id'));
+      
+      if (selectedIds.includes(movedId)) {
+        // Move all selected items together
+        const nonSelectedIds = newOrderIds.filter(id => !selectedIds.includes(id));
+        const finalOrderIds = [];
+        let inserted = false;
+        
+        for (const id of nonSelectedIds) {
+          if (!inserted && newOrderIds.indexOf(id) > evt.newIndex) {
+            finalOrderIds.push(...selectedIds);
+            inserted = true;
+          }
+          finalOrderIds.push(id);
+        }
+        if (!inserted) finalOrderIds.push(...selectedIds);
+        
+        collectionProducts = finalOrderIds.map(id => collectionProducts.find(p => p._id === id)).filter(Boolean);
+        renderProductsList(); // Re-render to show new grouped order
+      } else {
+        collectionProducts = newOrderIds.map(id => collectionProducts.find(p => p._id === id)).filter(Boolean);
+      }
+      
       if (window.markAsModified) window.markAsModified();
-      if (collectionId) await autoSaveCollection();
     }
   });
 }
@@ -220,7 +247,6 @@ window.removeProductFromCollection = async function (id) {
   collectionProducts = collectionProducts.filter(p => p._id !== id);
   renderProductsList();
   if (window.markAsModified) window.markAsModified();
-  if (collectionId) await autoSaveCollection();
 };
 
 /* --- Select Products Modal --- */
@@ -269,7 +295,6 @@ window.toggleProductSelect = async function (id, add) {
   }
   renderSelectModalLists(document.getElementById('available-search').value.toLowerCase());
   if (window.markAsModified) window.markAsModified();
-  if (collectionId) await autoSaveCollection();
 };
 
 function filterAvailableProducts(e) {
@@ -279,6 +304,75 @@ function filterAvailableProducts(e) {
 window.saveSelectedProducts = function () {
   renderProductsList();
   closeSelectModal();
+};
+
+window.updateProductSelectionUI = function() {
+  const selected = document.querySelectorAll('.product-select-cb:checked');
+  const bar = document.getElementById('collection-bulk-bar');
+  if (bar) {
+    bar.style.display = selected.length > 0 ? 'flex' : 'none';
+    const countEl = document.getElementById('selected-products-count');
+    if (countEl) countEl.textContent = selected.length;
+  }
+};
+
+window.toggleSelectAllProducts = function(masterCb) {
+  const cbs = document.querySelectorAll('.product-select-cb');
+  cbs.forEach(cb => cb.checked = masterCb.checked);
+  updateProductSelectionUI();
+};
+
+window.bulkRemoveProducts = async function() {
+  const selected = document.querySelectorAll('.product-select-cb:checked');
+  if (selected.length === 0) return;
+
+  const confirmed = await window.showConfirmModal('إزالة المنتجات', `هل أنت متأكد من إزالة ${selected.length} منتجات من هذه المجموعة؟`);
+  if (!confirmed) return;
+
+  const idsToRemove = Array.from(selected).map(cb => cb.getAttribute('data-id'));
+  collectionProducts = collectionProducts.filter(p => !idsToRemove.includes(p._id));
+  
+  renderProductsList();
+  updateProductSelectionUI();
+  if (window.markAsModified) window.markAsModified();
+};
+
+window.bulkUpdateStatus = async function(active) {
+  const selected = document.querySelectorAll('.product-select-cb:checked');
+  if (selected.length === 0) return;
+
+  const ids = Array.from(selected).map(cb => cb.getAttribute('data-id'));
+  
+  // Update local state
+  collectionProducts.forEach(p => {
+    if (ids.includes(p._id)) p.active = active;
+  });
+
+  renderProductsList();
+  updateProductSelectionUI();
+  if (window.markAsModified) window.markAsModified();
+  showToast(`تم ${active ? 'تفعيل' : 'تعطيل'} المنتجات المحددة`);
+};
+
+window.toggleProductRowStatus = function(id, newStatus) {
+  const selectedCbs = Array.from(document.querySelectorAll('.product-select-cb:checked'));
+  const selectedIds = selectedCbs.map(cb => cb.getAttribute('data-id'));
+  
+  if (selectedIds.includes(id)) {
+    // If the clicked row is selected, apply to all selected
+    collectionProducts.forEach(p => {
+      if (selectedIds.includes(p._id)) p.active = newStatus;
+    });
+    showToast(`تم ${newStatus ? 'تفعيل' : 'تعطيل'} ${selectedIds.length} منتجات`);
+  } else {
+    // Just this row
+    const p = collectionProducts.find(x => x._id === id);
+    if (p) p.active = newStatus;
+  }
+  
+  renderProductsList();
+  updateProductSelectionUI();
+  if (window.markAsModified) window.markAsModified();
 };
 
 window.openReorderModal = function () {

@@ -34,54 +34,26 @@
   --sidebar-w: 240px;
 }
 
-/* ── Shimmer Loading ────────────────────────────────── */
-.shimmer {
-  background: #f6f7f8;
-  background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-  background-repeat: no-repeat;
-  background-size: 800px 104px;
-  display: inline-block;
-  position: relative;
-  animation-duration: 1.2s;
-  animation-fill-mode: forwards;
-  animation-iteration-count: infinite;
-  animation-name: shimmer;
-  animation-timing-function: linear;
-  border-radius: 4px;
+/* ── Skeleton Loading ── */
+.skeleton {
+  background: #f1f5f9;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.8s infinite ease-in-out;
+  border-radius: 8px;
+  display: block;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -468px 0;
-  }
-
-  100% {
-    background-position: 468px 0;
-  }
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-.is-loading .loading-hide {
-  visibility: hidden;
-}
-
-.is-loading .loading-shimmer {
-  position: relative;
-  overflow: hidden;
-}
-
-.is-loading .loading-shimmer::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #f6f7f8;
-  background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-  background-repeat: no-repeat;
-  animation: shimmer 1.2s linear infinite;
-  z-index: 10;
-}
+.skeleton-text { height: 14px; margin-bottom: 8px; border-radius: 4px; }
+.skeleton-title { width: 60%; height: 24px; margin-bottom: 12px; border-radius: 6px; }
+.skeleton-row { height: 50px; width: 100%; margin-bottom: 8px; border-radius: 8px; }
+.skeleton-circle { width: 40px; height: 40px; border-radius: 50%; }
+.skeleton-img { width: 60px; height: 60px; border-radius: 8px; }
 
 /* ── Reset ───────────────────────────────────────────── */
 *,
@@ -114,6 +86,13 @@ a:hover {
 img {
   max-width: 100%;
   display: block;
+  object-fit: contain;
+  background: #fff;
+}
+
+.product-img, .pli-img, .item-img, .collection-img {
+  object-fit: contain !important;
+  background-color: #fff !important;
 }
 
 /* ── Layout ──────────────────────────────────────────── */

@@ -39,61 +39,24 @@
   background: #f1f5f9;
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
-  animation: skeletonPulse 1.5s infinite linear;
+  animation: skeletonPulse 1.8s infinite ease-in-out;
   border-radius: 8px;
+  display: block;
 }
 
 @keyframes skeletonPulse {
-  from {
-    background-position: 200% 0;
-  }
-
-  to {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-.skeleton-img {
-  width: 100%;
-  aspect-ratio: 1/1;
-  border-radius: 12px;
-}
-
-.skeleton-thumb {
-  width: 54px;
-  height: 54px;
-  border-radius: 8px;
-}
-
-.skeleton-title {
-  width: 60%;
-  height: 28px;
-  margin-bottom: 16px;
-}
-
-.skeleton-price {
-  width: 30%;
-  height: 24px;
-  margin-bottom: 24px;
-}
-
-.skeleton-desc {
-  width: 100%;
-  height: 100px;
-  margin-bottom: 24px;
-}
-
-.skeleton-btn {
-  width: 100%;
-  height: 48px;
-  border-radius: 12px;
-}
-
-.skeleton-breadcrumb {
-  width: 120px;
-  height: 16px;
-  margin: 12px 0 20px;
-}
+.skeleton-img { width: 100%; aspect-ratio: 1/1; border-radius: 12px; }
+.skeleton-thumb { width: 54px; height: 54px; border-radius: 8px; }
+.skeleton-text { height: 14px; margin-bottom: 8px; border-radius: 4px; }
+.skeleton-title { width: 60%; height: 24px; margin-bottom: 12px; border-radius: 6px; }
+.skeleton-price { width: 30%; height: 20px; margin-bottom: 16px; border-radius: 4px; }
+.skeleton-btn { width: 100%; height: 40px; border-radius: 10px; }
+.skeleton-row { height: 60px; width: 100%; margin-bottom: 12px; border-radius: 8px; }
+.skeleton-circle { width: 40px; height: 40px; border-radius: 50%; }
 
 
 .store-header .container {
@@ -255,11 +218,14 @@
   position: relative;
 }
 
-.store-product-img img {
+.product-card-img img,
+.product-image-container img,
+.cart-item-img img,
+.order-item-img img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  background: #ffffff;
+  object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
 .store-product-info {
@@ -422,7 +388,7 @@
 .product-gallery-main img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .product-gallery-thumbs {
@@ -449,7 +415,7 @@
   height: 30px;
   flex-shrink: 0;
   border-radius: 8px;
-  object-fit: contain;
+  object-fit: cover;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   cursor: pointer;
@@ -1005,7 +971,7 @@
   width: 52px;
   height: 52px;
   border-radius: 8px;
-  object-fit: contain;
+  object-fit: cover;
   background: #ffffff;
   border: 1px solid #eee;
   flex-shrink: 0;

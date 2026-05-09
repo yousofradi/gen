@@ -266,7 +266,7 @@ function initUnsavedChangesBar() {
 
   const isSelectionControl = (el) => {
     if (!el) return false;
-    return el.id && el.id.startsWith('select-all') ||
+    return (el.id && el.id.startsWith('select-all')) ||
       el.classList.contains('order-checkbox') ||
       el.classList.contains('product-checkbox') ||
       el.classList.contains('collection-checkbox') ||

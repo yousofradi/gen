@@ -548,7 +548,7 @@ select.form-control {
   width: 68px;
   height: 68px;
   border-radius: var(--radius-sm);
-  object-fit: contain;
+  object-fit: cover;
   background: #ffffff;
   border: 1px solid var(--border-color);
   flex-shrink: 0;
@@ -1381,7 +1381,7 @@ input[type=number] {
   width: 64px;
   height: 64px;
   border-radius: 10px;
-  object-fit: contain;
+  object-fit: cover;
   background: #ffffff;
   flex-shrink: 0;
   border: 1px solid #f0f0f0;
@@ -1805,7 +1805,7 @@ input[type=number] {
   /* Product Form image preview */
   #img-preview-el {
     width: 100%;
-    object-fit: contain;
+    object-fit: cover;
   }
 
   /* Admin header actions */
