@@ -193,7 +193,7 @@ function renderStoreCard(p) {
       <a href="${productLink}" style="display:block; text-decoration:none; color:inherit; flex:1;">
         <div class="store-product-img" style="position:relative; background:#f8fafc;">
           ${img ? `
-            <img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.style.display='none'">
+            <img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain" loading="lazy" onerror="this.style.display='none'">
           ` : `<svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="150" fill="#f5f5f5"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#999" font-size="14">No Image</text></svg>`}
           ${hasDiscount ? '<span class="discount-badge">خصم</span>' : ''}
         </div>

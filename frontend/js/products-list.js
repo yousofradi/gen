@@ -105,7 +105,7 @@ function renderProductCard(p) {
     <div class="store-product-card" style="display:flex;flex-direction:column;">
       <a href="${productLink}" style="display:block; text-decoration:none; color:inherit; flex:1;">
         <div class="store-product-img" style="position:relative">
-          ${img ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.style.display='none'">` : ''}
+          ${img ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain" loading="lazy" onerror="this.style.display='none'">` : ''}
           ${hasDiscount ? '<span class="discount-badge">خصم</span>' : ''}
         </div>
         <div class="store-product-info">
