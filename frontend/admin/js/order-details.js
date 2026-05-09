@@ -614,8 +614,13 @@ window.cancelOrder = async function () {
   }
 };
 
-// ── Modal Products ─────────────────────────────────────
+// ── Modal Products (Persistent Selection) ───────────────
+let modalSelectedProducts = new Set(); // Stores product IDs
+let modalSelectedVariants = new Map(); // Key: pid-comboStr, Value: {pid, combo, price}
+
 window.openProductsModal = async function () {
+  modalSelectedProducts.clear();
+  modalSelectedVariants.clear();
   openModal('products-modal');
   if (Object.keys(collectionsMap).length === 0) {
     try {
@@ -627,6 +632,16 @@ window.openProductsModal = async function () {
       });
     } catch (e) { }
   }
+  
+  if (allProducts.length === 0) {
+    const listEl = document.getElementById('modal-products-list');
+    listEl.innerHTML = '<div style="padding:20px; text-align:center;">جاري تحميل المنتجات...</div>';
+    try {
+      allProducts = await api.getProducts();
+    } catch (err) {
+      console.error('Failed to load products for modal', err);
+    }
+  }
   renderModalProducts();
 };
 
@@ -634,34 +649,19 @@ window.closeProductsModal = function () {
   closeModal('products-modal');
 };
 
-window.toggleProductVariants = function (pid) {
-  const el = document.getElementById(`variants-${pid}`);
-  const icon = document.getElementById(`icon-${pid}`);
-  if (!el) return;
-  if (el.style.display === 'none') {
-    el.style.display = 'block';
-    icon.style.transform = 'rotate(180deg)';
-  } else {
-    el.style.display = 'none';
-    icon.style.transform = 'rotate(0deg)';
-  }
+window.handleModalSelect = function(pid, checked) {
+  if (checked) modalSelectedProducts.add(pid);
+  else modalSelectedProducts.delete(pid);
 };
 
-function getProductCombinations(options) {
-  if (!options || options.length === 0) return [];
-  let results = [[]];
-  for (const group of options) {
-    const currentResults = [];
-    const values = group.values;
-    for (const res of results) {
-      for (const val of values) {
-        currentResults.push([...res, { groupName: group.name, label: val.label, price: val.price }]);
-      }
-    }
-    results = currentResults;
+window.handleModalVariantSelect = function(pid, comboStr, price, checked) {
+  const key = `${pid}-${comboStr}`;
+  if (checked) {
+    modalSelectedVariants.set(key, { pid, combo: JSON.parse(decodeURIComponent(comboStr)), price });
+  } else {
+    modalSelectedVariants.delete(key);
   }
-  return results;
-}
+};
 
 window.renderModalProducts = function () {
   const q = document.getElementById('modal-search').value.toLowerCase().trim();
@@ -673,6 +673,7 @@ window.renderModalProducts = function () {
   if (col) filtered = filtered.filter(p => p.collectionId === col);
 
   listEl.innerHTML = filtered.map(p => {
+    const isChecked = modalSelectedProducts.has(p._id);
     const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" class="pli-img">` : `<div class="pli-img"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
     const hasOptions = p.options && p.options.length > 0;
     const effectiveBase = (p.salePrice && p.salePrice < p.basePrice) ? p.salePrice : p.basePrice;
@@ -688,43 +689,55 @@ window.renderModalProducts = function () {
                 <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(effectiveBase)}</div>
               </div>
             </div>
-            <input type="checkbox" class="pli-checkbox product-select-cb" value="${p._id}" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
+            <input type="checkbox" class="pli-checkbox product-select-cb" value="${p._id}" 
+              ${isChecked ? 'checked' : ''}
+              onchange="handleModalSelect('${p._id}', this.checked)"
+              style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
           </label>
         </div>
       `;
     }
 
     let variantsHtml = '';
+    const combinations = p.variants && p.variants.length > 0 ? [] : getProductCombinations(p.options);
+    
     if (p.variants && p.variants.length > 0) {
       variantsHtml = p.variants.map((v, idx) => {
         const comboList = Object.entries(v.combination).map(([g, l]) => ({ groupName: g, label: l }));
         const title = comboList.map(c => c.label).join(' / ');
         const finalPrice = (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price;
         const comboStr = encodeURIComponent(JSON.stringify(comboList));
+        const vKey = `${p._id}-${comboStr}`;
         return `
           <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
             <div style="display:flex; align-items:center; gap:12px;">
               <div style="font-size:0.9rem;font-weight:500;">${title}</div>
               <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
             </div>
-            <input type="checkbox" class="pli-checkbox product-variant-cb" data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}">
+            <input type="checkbox" class="pli-checkbox product-variant-cb" 
+              data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
+              ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
+              onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
           </label>
         `;
       }).join('');
     } else {
-      const combinations = getProductCombinations(p.options);
       variantsHtml = combinations.map((combo, idx) => {
         const title = combo.map(c => c.label).join(' / ');
         const extraPrice = combo.reduce((sum, c) => sum + (c.price || 0), 0);
         const finalPrice = effectiveBase + extraPrice;
         const comboStr = encodeURIComponent(JSON.stringify(combo));
+        const vKey = `${p._id}-${comboStr}`;
         return `
           <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
             <div style="display:flex; align-items:center; gap:12px;">
               <div style="font-size:0.9rem;font-weight:500;">${title}</div>
               <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
             </div>
-            <input type="checkbox" class="pli-checkbox product-variant-cb" data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}">
+            <input type="checkbox" class="pli-checkbox product-variant-cb" 
+              data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
+              ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
+              onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
           </label>
         `;
       }).join('');
@@ -749,35 +762,10 @@ window.renderModalProducts = function () {
   }).join('');
 };
 
-window.openProductsModal = async function () {
-  openModal('products-modal');
-
-  if (allProducts.length === 0) {
-    const listEl = document.getElementById('modal-products-list');
-    listEl.innerHTML = '<div style="padding:20px; text-align:center;">جاري تحميل المنتجات...</div>';
-    try {
-      const [products, collections] = await Promise.all([
-        api.getProducts(),
-        api.getCollections()
-      ]);
-      allProducts = products;
-      const colFilter = document.getElementById('modal-col-filter');
-      colFilter.innerHTML = '<option value="">جميع المنتجات</option>';
-      collections.forEach(c => {
-        colFilter.add(new Option(c.name, c._id));
-      });
-    } catch (err) {
-      console.error('Failed to load products for modal', err);
-    }
-  }
-  renderModalProducts();
-};
-
 window.addSelectedProducts = function () {
-  // 1. Add simple products
-  const checkedSimple = document.querySelectorAll('.product-select-cb:checked');
-  checkedSimple.forEach(cb => {
-    const p = allProducts.find(x => x._id === cb.value);
+  // 1. Add simple products from persistent set
+  modalSelectedProducts.forEach(pid => {
+    const p = allProducts.find(x => x._id === pid);
     if (p) {
       const effectiveBase = (p.salePrice && p.salePrice < p.basePrice) ? p.salePrice : p.basePrice;
       const existing = currentOrder.items.find(i => i.productId === p._id && (!i.selectedOptions || i.selectedOptions.length === 0));
@@ -798,14 +786,12 @@ window.addSelectedProducts = function () {
     }
   });
 
-  // 2. Add variants
-  const checkedVariants = document.querySelectorAll('.product-variant-cb:checked');
-  checkedVariants.forEach(cb => {
-    const p = allProducts.find(x => x._id === cb.dataset.pid);
+  // 2. Add variants from persistent map
+  modalSelectedVariants.forEach(v => {
+    const p = allProducts.find(x => x._id === v.pid);
     if (p) {
-      const variantPrice = parseFloat(cb.dataset.price);
-      const combo = JSON.parse(decodeURIComponent(cb.dataset.combo));
-      // Check if this exact variant is already in cart
+      const variantPrice = v.price;
+      const combo = v.combo;
       const existing = currentOrder.items.find(i => {
         if (i.productId !== p._id) return false;
         if (!i.selectedOptions || i.selectedOptions.length !== combo.length) return false;
@@ -884,70 +870,81 @@ window.markAsReady = function () {
   if (!currentOrder) return;
   
   const modalItems = document.getElementById('ready-modal-items');
-  const modalTotal = document.getElementById('ready-total-val');
+  const orderIdEl = document.getElementById('ready-modal-order-id');
+  if (orderIdEl) orderIdEl.textContent = `#${currentOrder.orderId}`;
   
-  if (modalItems) {
-    modalItems.innerHTML = currentOrder.items.map((item, idx) => {
+  // Track fulfillment locally in the modal
+  if (!window.fulfillmentState || window.fulfillmentOrderRef !== currentOrder.orderId) {
+    window.fulfillmentOrderRef = currentOrder.orderId;
+    window.fulfillmentState = currentOrder.items.map(item => ({
+      ...item,
+      current: 0
+    }));
+  }
+
+  const renderFulfillmentList = () => {
+    modalItems.innerHTML = window.fulfillmentState.map((item, idx) => {
       const imgHtml = item.imageUrl
-        ? `<img src="${item.imageUrl}" style="width:60px; height:60px; border-radius:12px; object-fit:cover; border:1px solid #f1f5f9;" alt="${item.name}">`
-        : `<div style="width:60px; height:60px; border-radius:12px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
+        ? `<div style="position:relative; width:64px; height:64px;">
+             <img src="${item.imageUrl}" style="width:64px; height:64px; border-radius:16px; object-fit:cover; border:1px solid #f1f5f9;" alt="${item.name}">
+             <div style="position:absolute; bottom:-4px; right:-4px; background:#fef3c7; color:#d97706; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+               ${item.current}/${item.quantity}
+             </div>
+           </div>`
+        : `<div style="position:relative; width:64px; height:64px; border-radius:16px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;">
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+             <div style="position:absolute; bottom:-4px; right:-4px; background:#fef3c7; color:#d97706; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+               ${item.current}/${item.quantity}
+             </div>
+           </div>`;
         
       const optText = (item.selectedOptions || []).map(op => op.label).join(' / ');
       
       return `
-        <div style="background:#fff; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:12px; border:1px solid #f1f5f9;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
-            <div style="display:flex; gap:12px; flex:1;">
-              ${imgHtml}
-              <div style="text-align:right;">
-                <div style="font-weight:700; font-size:0.95rem; color:#1e293b; margin-bottom:4px;">${item.name}</div>
-                ${optText ? `<div style="font-size:0.8rem; color:#64748b;">${optText}</div>` : ''}
-              </div>
-            </div>
-            <div style="text-align:left;">
-              <div style="font-weight:800; font-size:1.1rem; color:#1e293b;">${formatPrice(item.finalPrice)}</div>
-              <div style="font-size:0.8rem; color:#94a3b8; font-weight:500; margin-top:2px;" dir="ltr">${formatPrice(item.basePrice)}x${item.quantity}</div>
+        <div style="padding: 20px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+          <div style="display: flex; gap: 16px; align-items: center; flex: 1;">
+            ${imgHtml}
+            <div style="text-align: right;">
+              <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem;">${item.name}</div>
+              ${optText ? `<div style="color: #64748b; font-size: 0.85rem; margin-top: 2px;">${optText}</div>` : ''}
             </div>
           </div>
           
-          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f8fafc; padding-top:12px;">
-            <div style="display:flex; gap:8px;">
-               <button class="btn btn-sm" onclick="openItemDiscountModal(${idx})" style="background:#f8fafc; border:none; color:#475569; padding:6px 12px; border-radius:10px; font-size:0.75rem; font-weight:700; display:flex; align-items:center; gap:4px;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="16" r="3"/><line x1="16" y1="8" x2="8" y2="16"/></svg>
-                خصم
-              </button>
-              <div style="display:flex; align-items:center; background:#f8fafc; border-radius:10px; height:32px; overflow:hidden;">
-                <button onclick="updateItemQtyInModal(${idx}, ${item.quantity + 1})" style="width:30px; border:none; background:transparent; font-weight:700;">+</button>
-                <div style="width:24px; text-align:center; font-size:0.85rem; font-weight:700;">${item.quantity}</div>
-                <button onclick="${item.quantity > 1 ? `updateItemQtyInModal(${idx}, ${item.quantity - 1})` : ''}" style="width:30px; border:none; background:transparent; font-weight:700;" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
-              </div>
+          <div style="display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 6px; border-radius: 16px; border: 1px solid #f1f5f9;">
+            <button onclick="updateFulfillment(${idx}, 1)" style="width: 36px; height: 36px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">+</button>
+            <div style="display: flex; align-items: center; gap: 6px; padding: 0 4px; min-width: 80px; justify-content: center;">
+               <span style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">${item.current}</span>
+               <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">من ${item.quantity}</span>
             </div>
-            <button onclick="removeItemInModal(${idx})" style="background:transparent; border:none; color:#ef4444; font-size:0.75rem; font-weight:700;">إزالة</button>
+            <button onclick="updateFulfillment(${idx}, -1)" style="width: 36px; height: 36px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" ${item.current === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>-</button>
           </div>
         </div>
       `;
     }).join('');
-  }
-  
-  if (modalTotal) {
-    modalTotal.textContent = formatPrice(currentOrder.totalPrice);
-  }
-  
+
+    // Check if all items are fulfilled
+    const allDone = window.fulfillmentState.every(i => i.current >= i.quantity);
+    const updateBtn = document.getElementById('ready-update-btn');
+    if (updateBtn) {
+      updateBtn.disabled = !allDone;
+      updateBtn.style.background = allDone ? '#0f766e' : '#f1f5f9';
+      updateBtn.style.color = allDone ? '#fff' : '#94a3b8';
+      updateBtn.style.cursor = allDone ? 'pointer' : 'not-allowed';
+      updateBtn.onclick = allDone ? confirmMarkAsReady : null;
+    }
+  };
+
+  window.updateFulfillment = (idx, delta) => {
+    const item = window.fulfillmentState[idx];
+    const newVal = item.current + delta;
+    if (newVal >= 0 && newVal <= item.quantity) {
+      item.current = newVal;
+      renderFulfillmentList();
+    }
+  };
+
+  renderFulfillmentList();
   openModal('ready-confirm-modal');
-};
-
-window.updateItemQtyInModal = function(idx, val) {
-  updateItemQty(idx, val);
-  markAsReady(); // Refresh modal
-};
-
-window.removeItemInModal = function(idx) {
-  // Use current removeItem logic but handle confirmation or just do it
-  currentOrder.items.splice(idx, 1);
-  updateTotals();
-  renderItems();
-  markAsReady(); // Refresh modal
-  if (window.markAsModified) window.markAsModified();
 };
 
 window.confirmMarkAsReady = async function () {

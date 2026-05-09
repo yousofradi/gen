@@ -3,6 +3,7 @@ let collectionProducts = [];
 let allProducts = [];
 let sortableList = null;
 let originalCollection = null;
+let selectedCollectionProductIds = new Set(); // Persistent selection for bulk actions
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAdmin()) return;
@@ -188,7 +189,9 @@ function renderProductsList(productsToRender = collectionProducts) {
   list.innerHTML = productsToRender.map(p => `
     <div class="product-row" data-id="${p._id}">
       <div style="display:flex; align-items:center; gap:12px;">
-        <input type="checkbox" class="product-select-cb" data-id="${p._id}" onchange="updateProductSelectionUI()">
+        <input type="checkbox" class="product-select-cb" data-id="${p._id}" 
+          ${selectedCollectionProductIds.has(p._id) ? 'checked' : ''}
+          onchange="handleProductSelect('${p._id}', this.checked)">
         <div class="btn-reorder">☰</div>
       </div>
       <img src="${p.imageUrl || p.images?.[0] || ''}" onerror="this.style.display='none'">
@@ -209,7 +212,7 @@ function renderProductsList(productsToRender = collectionProducts) {
       
       // If the moved item was selected, move all other selected items with it
       const movedId = evt.item.getAttribute('data-id');
-      const selectedIds = Array.from(document.querySelectorAll('.product-select-cb:checked')).map(cb => cb.getAttribute('data-id'));
+      const selectedIds = Array.from(selectedCollectionProductIds);
       
       if (selectedIds.includes(movedId)) {
         // Move all selected items together
@@ -307,18 +310,28 @@ window.saveSelectedProducts = function () {
 };
 
 window.updateProductSelectionUI = function() {
-  const selected = document.querySelectorAll('.product-select-cb:checked');
   const bar = document.getElementById('collection-bulk-bar');
   if (bar) {
-    bar.style.display = selected.length > 0 ? 'flex' : 'none';
+    bar.style.display = selectedCollectionProductIds.size > 0 ? 'flex' : 'none';
     const countEl = document.getElementById('selected-products-count');
-    if (countEl) countEl.textContent = selected.length;
+    if (countEl) countEl.textContent = selectedCollectionProductIds.size;
   }
+};
+
+window.handleProductSelect = function (pid, checked) {
+  if (checked) selectedCollectionProductIds.add(pid);
+  else selectedCollectionProductIds.delete(pid);
+  updateProductSelectionUI();
 };
 
 window.toggleSelectAllProducts = function(masterCb) {
   const cbs = document.querySelectorAll('.product-select-cb');
-  cbs.forEach(cb => cb.checked = masterCb.checked);
+  cbs.forEach(cb => {
+    cb.checked = masterCb.checked;
+    const pid = cb.getAttribute('data-id');
+    if (masterCb.checked) selectedCollectionProductIds.add(pid);
+    else selectedCollectionProductIds.delete(pid);
+  });
   updateProductSelectionUI();
 };
 
@@ -326,11 +339,12 @@ window.bulkRemoveProducts = async function() {
   const selected = document.querySelectorAll('.product-select-cb:checked');
   if (selected.length === 0) return;
 
-  const confirmed = await window.showConfirmModal('إزالة المنتجات', `هل أنت متأكد من إزالة ${selected.length} منتجات من هذه المجموعة؟`);
+  const confirmed = await window.showConfirmModal('إزالة المنتجات', `هل أنت متأكد من إزالة ${selectedCollectionProductIds.size} منتجات من هذه المجموعة؟`);
   if (!confirmed) return;
 
-  const idsToRemove = Array.from(selected).map(cb => cb.getAttribute('data-id'));
+  const idsToRemove = Array.from(selectedCollectionProductIds);
   collectionProducts = collectionProducts.filter(p => !idsToRemove.includes(p._id));
+  selectedCollectionProductIds.clear();
   
   renderProductsList();
   updateProductSelectionUI();
@@ -338,10 +352,9 @@ window.bulkRemoveProducts = async function() {
 };
 
 window.bulkUpdateStatus = async function(active) {
-  const selected = document.querySelectorAll('.product-select-cb:checked');
-  if (selected.length === 0) return;
+  if (selectedCollectionProductIds.size === 0) return;
 
-  const ids = Array.from(selected).map(cb => cb.getAttribute('data-id'));
+  const ids = Array.from(selectedCollectionProductIds);
   
   // Update local state
   collectionProducts.forEach(p => {
@@ -355,8 +368,7 @@ window.bulkUpdateStatus = async function(active) {
 };
 
 window.toggleProductRowStatus = function(id, newStatus) {
-  const selectedCbs = Array.from(document.querySelectorAll('.product-select-cb:checked'));
-  const selectedIds = selectedCbs.map(cb => cb.getAttribute('data-id'));
+  const selectedIds = Array.from(selectedCollectionProductIds);
   
   if (selectedIds.includes(id)) {
     // If the clicked row is selected, apply to all selected

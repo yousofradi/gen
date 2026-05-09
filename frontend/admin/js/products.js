@@ -10,6 +10,7 @@ let totalPages = 1;
 let currentLimit = 30;
 let searchQuery = '';
 let currentFilter = 'all';
+let selectedProductIds = new Set(); // Persistent selection across search/pagination
 
 async function loadProducts() {
   const tbody = document.getElementById('products-tbody');
@@ -124,7 +125,11 @@ function renderProducts(collections) {
 
     return `
       <tr style="cursor:pointer" onclick="onRowClick(event, '${p._id}')">
-        <td style="width:40px;text-align:center" onclick="event.stopPropagation()"><input type="checkbox" class="product-checkbox" value="${p._id}" onchange="updateBulkActions()"></td>
+        <td style="width:40px;text-align:center" onclick="event.stopPropagation()">
+          <input type="checkbox" class="product-checkbox" value="${p._id}" 
+            ${selectedProductIds.has(p._id) ? 'checked' : ''} 
+            onchange="handleProductSelect('${p._id}', this.checked)">
+        </td>
         <td>
           ${mainImg
         ? `<img src="${mainImg}" alt="${p.name}" style="width:54px;height:54px;border-radius:8px;object-fit:cover;border:1px solid var(--border-color)">`
@@ -161,11 +166,16 @@ window.toggleProductActive = async function (id, active) {
 window.toggleSelectAll = function () {
   const selectAll = document.getElementById('select-all');
   const checkboxes = document.querySelectorAll('.product-checkbox');
-  checkboxes.forEach(cb => cb.checked = selectAll.checked);
+  checkboxes.forEach(cb => {
+    cb.checked = selectAll.checked;
+    if (selectAll.checked) selectedProductIds.add(cb.value);
+    else selectedProductIds.delete(cb.value);
+  });
   updateBulkActions();
 };
 
 window.unselectAll = function () {
+  selectedProductIds.clear();
   const selectAll = document.getElementById('select-all');
   if (selectAll) selectAll.checked = false;
   const checkboxes = document.querySelectorAll('.product-checkbox');
@@ -173,14 +183,19 @@ window.unselectAll = function () {
   updateBulkActions();
 };
 
+window.handleProductSelect = function (pid, checked) {
+  if (checked) selectedProductIds.add(pid);
+  else selectedProductIds.delete(pid);
+  updateBulkActions();
+};
+
 window.updateBulkActions = function () {
-  const checkboxes = document.querySelectorAll('.product-checkbox:checked');
   const bulkBar = document.getElementById('bulk-actions-bar');
   const badge = document.getElementById('selected-count-badge');
   if (bulkBar) {
-    if (checkboxes.length > 0) {
+    if (selectedProductIds.size > 0) {
       bulkBar.style.display = 'flex';
-      if (badge) badge.textContent = checkboxes.length;
+      if (badge) badge.textContent = selectedProductIds.size;
     } else {
       bulkBar.style.display = 'none';
       const menu = document.getElementById('bulk-menu');
