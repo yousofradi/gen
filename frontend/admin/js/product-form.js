@@ -170,6 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       selectedCollectionIds = selectedCollectionIds.filter(cid => cid !== id);
       renderTags();
       renderOptions();
+      if (window.handleGlobalSave) window.handleGlobalSave();
     };
 
     // Auto-sync variants price when base price changes
@@ -216,6 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       else selectedCollectionIds.push(id);
       renderTags();
       renderOptions(searchInput.value);
+      if (window.handleGlobalSave) window.handleGlobalSave();
     };
 
     if (trigger) trigger.addEventListener('click', () => { dropdown.style.display = 'block'; searchInput.focus(); renderOptions(searchInput.value); });
