@@ -719,15 +719,9 @@ window.openGalleryModal = function (idx) {
 }
 
 window.selectGalleryImage = function (url) {
-  document.querySelectorAll('.gallery-item').forEach(el => {
-    // Compare using the data-url attribute which is reliable
-    const itemUrl = el.dataset.url;
-    el.classList.toggle('selected', itemUrl === url);
-  });
   variants[currentPickingVariantIndex].imageUrl = url;
-
-  const confirmBtn = document.getElementById('confirm-gallery-selection');
-  if (confirmBtn) confirmBtn.disabled = false;
+  if (window.markAsModified) safeMarkAsModified();
+  closeGalleryModal();
 }
 
 window.closeGalleryModal = function () {

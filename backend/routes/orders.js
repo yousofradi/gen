@@ -42,7 +42,13 @@ async function generateInvoiceInnerHtml(order, settings) {
     return `
       <tr>
         <td style="text-align: right; padding: ${rowPadding}; padding-right: 8px; font-size: ${fontSize};">
-          ${safe(p.name)} ${optionsText ? `<span style="font-size:0.85em; color:#666;"> (${safe(optionsText)})</span>` : ''}
+          <div style="display:flex; align-items:center; gap:8px; justify-content: flex-start;">
+            ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:45px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #eee;">` : '<div style="width:45px; height:45px; background:#f5f5f5; border-radius:6px;"></div>'}
+            <div style="flex:1;">
+              <div style="font-weight:700;">${safe(p.name)}</div>
+              ${optionsText ? `<div style="font-size:0.85em; color:#666; margin-top:2px;">${safe(optionsText)}</div>` : ''}
+            </div>
+          </div>
         </td>
         <td style="padding: ${rowPadding}; font-size: ${fontSize};">${safe(p.quantity)}</td>
         <td style="padding: ${rowPadding}; font-size: ${fontSize};">${num(unitPrice)}</td>
@@ -361,8 +367,8 @@ ${pagesHtml}
   }
 });
 
-// GET /api/orders/:orderId/download-pdf — Automatic PDF download using PDFBolt
-router.get('/:orderId/download-pdf', adminAuth, async (req, res) => {
+// GET /api/orders/:orderId/download-image — Download invoice as image using SnapRender
+router.get('/:orderId/download-image', adminAuth, async (req, res) => {
   try {
     const { orderId } = req.params;
     let query = { orderId: orderId };
@@ -379,7 +385,6 @@ router.get('/:orderId/download-pdf', adminAuth, async (req, res) => {
 
     const innerHtml = await generateInvoiceInnerHtml(order, settings);
 
-    // Full HTML for PDFBolt
     const fullHtml = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -387,21 +392,11 @@ router.get('/:orderId/download-pdf', adminAuth, async (req, res) => {
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
 * { font-family: 'Cairo', sans-serif !important; box-sizing: border-box; }
-@page { size: A5; margin: 4mm; }
-body { margin: 0; padding: 0; }
-.page {
-  width: 140mm;
-  height: 202mm;
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.invoice-wrapper { width: 100%; transform-origin: center center; }
+body { margin: 0; padding: 0; background: #fff; }
+.invoice-container { width: 500px; margin: 0 auto; background: #fff; padding: 10px; }
 
 /* USER CSS START */
-.invoice { width: 500px; margin: 0 auto; direction: rtl; padding: 10px 5px; }
+.invoice { width: 100%; direction: rtl; padding: 10px 5px; }
 .customer-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 7px; }
 .customer-table td { border: 1px solid #000; font-size: 10px; font-weight: 600; text-align: center; padding: 4px; }
 .label-column { width: 25%; background: #fff; }
@@ -422,66 +417,53 @@ body { margin: 0; padding: 0; }
 .footer { background: #4a2c0a; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
 /* USER CSS END */
 </style>
-<script>
-window.onload = function() {
-  var page = document.querySelector('.page');
-  var wrapper = document.querySelector('.invoice-wrapper');
-  if (!wrapper) return;
-  var pageH = page.offsetHeight;
-  var pageW = page.offsetWidth;
-  var contentH = wrapper.scrollHeight;
-  var contentW = wrapper.scrollWidth;
-  var scaleH = pageH / contentH;
-  var scaleW = pageW / contentW;
-  var scale = Math.min(scaleH, scaleW);
-  scale = Math.min(Math.max(scale, 0.55), 2.0);
-  wrapper.style.transform = 'scale(' + scale + ')';
-  wrapper.style.width = (100 / scale) + '%';
-};
-</script>
 </head>
 <body>
-<div class="page">
-  <div class="invoice-wrapper">
-    ${innerHtml}
-  </div>
+<div class="invoice-container">
+  ${innerHtml}
 </div>
 </body>
 </html>`;
 
-    // Call PDFBolt API
-    const apiKey = process.env.PDFBOLT_API_KEY;
-    if (!apiKey) throw new Error('PDFBOLT_API_KEY is missing');
+    // Call SnapRender API
+    const apiKey = process.env.SNAPRENDER_API_KEY;
+    if (!apiKey) throw new Error('SNAPRENDER_API_KEY is missing');
 
-    const response = await fetch('https://api.pdfbolt.com/v1/direct', {
+    const response = await fetch('https://api.snap-render.com/v1/render', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'API-KEY': apiKey
+        'X-API-KEY': apiKey
       },
       body: JSON.stringify({
         html: Buffer.from(fullHtml).toString('base64'),
-        format: 'A5',
-        printBackground: true,
-        preferCssPageSize: true
+        format: 'png',
+        width: 520,
+        fullPage: true,
+        omitBackground: false
       })
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`PDFBolt Error: ${errText}`);
+      throw new Error(`SnapRender Error: ${errText}`);
     }
 
-    const pdfBuffer = await response.arrayBuffer();
+    const imageBuffer = await response.arrayBuffer();
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderId}.pdf`);
-    res.send(Buffer.from(pdfBuffer));
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderId}.png`);
+    res.send(Buffer.from(imageBuffer));
 
   } catch (err) {
-    console.error('PDF Generation Error:', err);
-    res.status(500).send('Failed to generate PDF: ' + err.message);
+    console.error('Image Generation Error:', err);
+    res.status(500).send('Failed to generate image invoice: ' + err.message);
   }
+});
+
+// Alias for compatibility or if you want to keep the old path
+router.get('/:orderId/download-pdf', adminAuth, async (req, res) => {
+  res.redirect(`/api/orders/${req.params.orderId}/download-image`);
 });
 
 // GET /api/orders/:orderId/invoice — Raw HTML for preview (Native Print)
