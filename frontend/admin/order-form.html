@@ -713,6 +713,33 @@
       font-size: 0.85rem;
     }
 
+    .selected-customer-info {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .selected-customer-info.active {
+      display: flex;
+    }
+
+    .selected-customer-details {
+      flex: 1;
+      text-align: right;
+    }
+
+    .selected-customer-name {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 0.95rem;
+    }
+
+    .selected-customer-phone {
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
     .customer-type-toggle {
       display: flex;
       gap: 24px;
@@ -922,11 +949,22 @@
 
                 <!-- Existing Customer Selection -->
                 <div id="existing-customer-section" class="customer-select-wrapper">
-                  <div class="customer-search-container" onclick="document.getElementById('customer-search').focus()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+                  <div id="customer-search-container" class="customer-search-container" onclick="handleSearchClick()">
+                    <svg id="customer-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
                       <path d="M6 9l6 6 6-6"/>
                     </svg>
                     <input type="text" id="customer-search" class="customer-search-input" placeholder="ابحث عن أو اختر عميل" autocomplete="off">
+                    
+                    <div id="selected-customer-display" class="selected-customer-info">
+                      <div id="selected-avatar" class="customer-avatar"></div>
+                      <div class="selected-customer-details">
+                        <div id="selected-name" class="selected-customer-name"></div>
+                        <div id="selected-phone" class="selected-customer-phone"></div>
+                      </div>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                      </svg>
+                    </div>
                   </div>
                   <div id="customer-dropdown" class="customer-dropdown">
                     <!-- Customers will be loaded here -->

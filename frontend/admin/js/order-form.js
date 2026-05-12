@@ -520,6 +520,22 @@ window.submitOrder = async function () {
 };
 
 
+window.handleSearchClick = function () {
+  const input = document.getElementById('customer-search');
+  const display = document.getElementById('selected-customer-display');
+  const dropdown = document.getElementById('customer-dropdown');
+  
+  if (display && display.classList.contains('active')) {
+    // If already selected, just toggle dropdown
+    dropdown.classList.toggle('active');
+    if (dropdown.classList.contains('active') && allCustomers.length > 0) {
+      renderCustomerDropdown(allCustomers);
+    }
+  } else {
+    input.focus();
+  }
+};
+
 window.setupCustomerSearch = function () {
   const input = document.getElementById('customer-search');
   const dropdown = document.getElementById('customer-dropdown');
@@ -535,17 +551,8 @@ window.setupCustomerSearch = function () {
   input.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase().trim();
     
-    // If user starts typing and we had a selected customer, clear fields to "start fresh"
-    const nameField = document.getElementById('c-name');
-    if (nameField && nameField.readOnly) {
-      nameField.value = '';
-      nameField.readOnly = false;
-      document.getElementById('c-phone').value = '';
-      document.getElementById('c-phone').readOnly = false;
-      document.getElementById('c-second-phone').value = '';
-      document.getElementById('c-address').value = '';
-      document.getElementById('c-gov').value = '';
-    }
+    // Reset selected state if user types
+    resetCustomerSelectionUI();
 
     if (!q) {
       renderCustomerDropdown(allCustomers);
@@ -560,11 +567,36 @@ window.setupCustomerSearch = function () {
   });
 
   document.addEventListener('click', (e) => {
-    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+    const container = document.getElementById('customer-search-container');
+    if (container && !container.contains(e.target) && !dropdown.contains(e.target)) {
       dropdown.classList.remove('active');
     }
   });
 };
+
+function resetCustomerSelectionUI() {
+  const input = document.getElementById('customer-search');
+  const icon = document.getElementById('customer-search-icon');
+  const display = document.getElementById('selected-customer-display');
+  const nameField = document.getElementById('c-name');
+
+  if (display && display.classList.contains('active')) {
+    display.classList.remove('active');
+    if (input) input.style.display = 'block';
+    if (icon) icon.style.display = 'block';
+    
+    // Clear fields
+    if (nameField) {
+      nameField.value = '';
+      nameField.readOnly = false;
+      document.getElementById('c-phone').value = '';
+      document.getElementById('c-phone').readOnly = false;
+      document.getElementById('c-second-phone').value = '';
+      document.getElementById('c-address').value = '';
+      document.getElementById('c-gov').value = '';
+    }
+  }
+}
 
 function renderCustomerDropdown(customers) {
   const dropdown = document.getElementById('customer-dropdown');
@@ -602,6 +634,25 @@ window.selectCustomer = function (phone) {
   document.getElementById('customer-search').value = customer.name || customer.phone;
   document.getElementById('customer-dropdown').classList.remove('active');
   
+  // Update UI to "selected" state
+  const input = document.getElementById('customer-search');
+  const icon = document.getElementById('customer-search-icon');
+  const display = document.getElementById('selected-customer-display');
+  const sAvatar = document.getElementById('selected-avatar');
+  const sName = document.getElementById('selected-name');
+  const sPhone = document.getElementById('selected-phone');
+
+  if (display) {
+    const initials = customer.name ? customer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??';
+    sAvatar.textContent = initials;
+    sName.textContent = customer.name || 'بدون اسم';
+    sPhone.textContent = '+' + customer.phone;
+    
+    display.classList.add('active');
+    if (input) input.style.display = 'none';
+    if (icon) icon.style.display = 'none';
+  }
+
   // Disable editing of primary info for selected customers
   document.getElementById('c-name').readOnly = true;
   document.getElementById('c-phone').readOnly = true;
@@ -623,8 +674,9 @@ window.toggleCustomerMode = function () {
     document.getElementById('c-address').value = '';
     document.getElementById('c-gov').value = '';
     document.getElementById('customer-search').value = '';
-    document.getElementById('c-name').readOnly = false;
-    document.getElementById('c-phone').readOnly = false;
+    
+    // Reset selected UI
+    resetCustomerSelectionUI();
   } else {
     existingSection.style.display = 'block';
   }
