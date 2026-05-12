@@ -70,3 +70,22 @@ exports.deleteCollectionsBatch = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.reorderCollectionsBatch = async (req, res) => {
+  try {
+    const { order } = req.body;
+    if (!order || !Array.isArray(order)) {
+      return res.status(400).json({ error: 'order array is required' });
+    }
+    const ops = order.map(item => ({
+      updateOne: {
+        filter: { _id: item.id },
+        update: { $set: { sortOrder: item.sortOrder } }
+      }
+    }));
+    await Collection.bulkWrite(ops);
+    res.json({ message: 'Collections reordered' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reorder collections' });
+  }
+};

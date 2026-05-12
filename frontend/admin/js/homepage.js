@@ -487,7 +487,7 @@ window.saveProductsSection = function (id) {
   s.itemsPerRow = parseInt(document.getElementById('ed-itemsPerRow').value) || 4;
   s.collectionId = document.getElementById('ed-collectionId').value;
   s.maxItems = parseInt(document.getElementById('ed-maxItems').value) || 4;
-  saveSections();
+   if (window.markAsModified) window.markAsModified();
   renderSections();
   closeModal();
   showToast('تم الحفظ');
@@ -500,7 +500,7 @@ window.saveCollectionsSection = function (id) {
   s.showTitle = document.getElementById('ed-showTitle').checked;
   s.itemsPerRow = parseInt(document.getElementById('ed-itemsPerRow').value) || 2;
   s.showNames = document.getElementById('ed-showNames').checked;
-  saveSections();
+   if (window.markAsModified) window.markAsModified();
   renderSections();
   closeModal();
   showToast('تم الحفظ');
@@ -528,7 +528,7 @@ window.saveBannerSection = function (id) {
   else if (s.link2Type === 'custom') s.link2Value = document.getElementById('ed-linkValue-url-2').value.trim();
   else s.link2Value = '';
 
-  saveSections();
+   if (window.markAsModified) window.markAsModified();
   renderSections();
   closeModal();
   showToast('تم الحفظ');
@@ -540,7 +540,7 @@ window.saveTextSection = function (id) {
   s.title = document.getElementById('ed-title').value.trim();
   s.showTitle = document.getElementById('ed-showTitle').checked;
   s.content = document.getElementById('ed-content').value.trim();
-  saveSections();
+   if (window.markAsModified) window.markAsModified();
   renderSections();
   closeModal();
   showToast('تم الحفظ');

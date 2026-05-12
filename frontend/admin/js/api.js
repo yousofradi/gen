@@ -85,7 +85,21 @@ const api = {
   deleteProduct(id) { return this._request(`/products/${id}`, { method: 'DELETE', admin: true }); },
   deleteProductsBatch(productIds) { return this._request('/products/delete/batch', { method: 'POST', body: JSON.stringify({ productIds }), admin: true }); },
   deactivateProductsBatch(productIds) { return this._request('/products/deactivate/batch', { method: 'POST', body: JSON.stringify({ productIds }), admin: true }); },
-  reorderProducts(order) { return this._request('/products/reorder/batch', { method: 'PUT', body: JSON.stringify({ order }), admin: true }); },
+  async reorderProducts(order) {
+    return this._request('/products/reorder/batch', {
+      method: 'PUT',
+      body: JSON.stringify({ order }),
+      admin: true
+    });
+  },
+
+  async reorderCollections(order) {
+    return this._request('/collections/reorder/batch', {
+      method: 'PUT',
+      body: JSON.stringify({ order }),
+      admin: true
+    });
+  },
 
   // Collections
   getCollections() { return this._request('/collections', { useCache: true }); },

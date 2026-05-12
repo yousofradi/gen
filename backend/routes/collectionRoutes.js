@@ -55,4 +55,9 @@ router.delete('/:id', adminAuth, async (req, res, next) => {
   next();
 }, collectionController.deleteCollection);
 
+router.put('/reorder/batch', adminAuth, async (req, res, next) => {
+  clearCache();
+  next();
+}, collectionController.reorderCollectionsBatch);
+
 module.exports = { router, clearCache };

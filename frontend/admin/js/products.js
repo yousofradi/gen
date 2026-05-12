@@ -1,7 +1,31 @@
+let productsSortable = null;
+
 /** Admin products list page */
 document.addEventListener('DOMContentLoaded', () => {
   if (!requireAdmin()) return;
   loadProducts();
+
+  window.handleGlobalSave = async () => {
+    const tbody = document.getElementById('products-tbody');
+    const order = Array.from(tbody.children)
+      .map((el, idx) => ({ id: el.getAttribute('data-id'), sortOrder: (currentPage - 1) * currentLimit + idx }))
+      .filter(x => x.id);
+    
+    try {
+      await api.reorderProducts(order);
+      showToast('تم حفظ الترتيب بنجاح');
+      if (window.hideBar) window.hideBar();
+      return true;
+    } catch (err) {
+      showToast('فشل حفظ الترتيب', 'error');
+      return false;
+    }
+  };
+
+  window.handleGlobalDiscard = () => {
+    loadProducts();
+    if (window.hideBar) window.hideBar();
+  };
 });
 
 let allProducts = [];
@@ -14,21 +38,19 @@ let selectedProductIds = new Set(); // Persistent selection across search/pagina
 
 async function loadProducts() {
   const tbody = document.getElementById('products-tbody');
-  tbody.innerHTML = '<tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center"><div class="spinner"></div></td></tr>';
   try {
     const hasOptions = currentFilter === 'variable' ? 'true' : '';
     const [res, collections] = await Promise.all([
       api.getProducts(currentPage, currentLimit, true, '', searchQuery, hasOptions),
       api.getCollections().catch(() => [])
     ]);
-    const colMap = {};
-    collections.forEach(c => colMap[c._id] = c.name);
-
+    
     let products = res.products || res;
     totalPages = res.totalPages || 1;
 
     if (!products.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:40px">لا توجد منتجات مطابقة للبحث</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px">لا توجد منتجات مطابقة للبحث</td></tr>';
       updatePaginationInfo(0);
       return;
     }
@@ -38,9 +60,28 @@ async function loadProducts() {
     updatePaginationInfo(res.total || products.length);
     updateBulkActions();
 
+    // Initialize Sortable
+    if (productsSortable) productsSortable.destroy();
+    
+    // Only enable reordering if not searching and on page 1 (or allow on any page but only reorder visible ones)
+    const canReorder = !searchQuery && currentFilter === 'all';
+    
+    productsSortable = new Sortable(tbody, {
+      handle: '.drag-handle',
+      animation: 150,
+      disabled: !canReorder,
+      onEnd: () => {
+        if (window.markAsModified) window.markAsModified();
+      }
+    });
+
+    if (!canReorder) {
+       document.querySelectorAll('.drag-handle').forEach(h => h.style.opacity = '0.3');
+    }
+
   } catch (err) {
     console.error('Failed to load products:', err);
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">فشل تحميل المنتجات</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">فشل تحميل المنتجات</td></tr>';
   }
 }
 
@@ -110,21 +151,15 @@ function renderProducts(collections) {
     const mainImg = getMainImage(p);
     const statusLabel = p.status === 'draft' ? 'مسودة' : 'نشط';
     const statusClass = p.status === 'draft' ? 'badge-warning' : 'badge-success';
-    const qty = (p.quantity != null && p.quantity !== 0) ? p.quantity : '∞';
-    const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
-    const priceDisplay = hasDiscount
+    const priceDisplay = p.salePrice && p.salePrice < p.basePrice
       ? `<span style="font-weight:700">${formatPrice(p.salePrice)}</span> <span style="text-decoration:line-through;color:#999;font-size:0.8rem">${formatPrice(p.basePrice)}</span>`
       : `<span style="font-weight:700">${formatPrice(p.basePrice)}</span>`;
 
-    const colNames = [];
-    if (p.collectionId && colMap[p.collectionId]) colNames.push(colMap[p.collectionId]);
-    if (p.collectionIds) p.collectionIds.forEach(id => { if (colMap[id] && !colNames.includes(colMap[id])) colNames.push(colMap[id]); });
-    const colDisplay = colNames.length > 0
-      ? colNames.map(n => `<span class="badge badge-info" style="margin:1px">${n}</span>`).join(' ')
-      : '<span class="text-muted text-sm">—</span>';
-
     return `
-      <tr style="cursor:pointer" onclick="onRowClick(event, '${p._id}')">
+      <tr data-id="${p._id}" style="cursor:pointer" onclick="onRowClick(event, '${p._id}')">
+        <td class="drag-handle" style="width:30px; cursor:grab; color:#94a3b8; text-align:center;" onclick="event.stopPropagation()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+        </td>
         <td style="width:40px;text-align:center" onclick="event.stopPropagation()">
           <input type="checkbox" class="product-checkbox" value="${p._id}" 
             ${selectedProductIds.has(p._id) ? 'checked' : ''} 
@@ -146,6 +181,14 @@ function renderProducts(collections) {
 
   const selectAll = document.getElementById('select-all');
   if (selectAll) selectAll.checked = false;
+
+  // Update header to match columns
+  const header = document.querySelector('.products-table thead tr');
+  if (header && header.children.length === 5) {
+     const th = document.createElement('th');
+     th.style.width = '30px';
+     header.insertBefore(th, header.firstChild);
+  }
 }
 
 window.onRowClick = function (event, productId) {

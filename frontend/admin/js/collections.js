@@ -1,3 +1,6 @@
+let allCollectionsData = [];
+let collectionsSortable = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAdmin()) return;
   loadCollections();
@@ -10,8 +13,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         const name = row.getAttribute('data-name');
         row.style.display = name.includes(query) ? '' : 'none';
       });
+      // Disable sortable during search
+      if (collectionsSortable) {
+        collectionsSortable.option('disabled', query.length > 0);
+      }
     });
   }
+
+  window.handleGlobalSave = async () => {
+    const list = document.getElementById('collections-list');
+    const order = Array.from(list.children)
+      .map((el, idx) => ({ id: el.getAttribute('data-id'), sortOrder: idx }))
+      .filter(x => x.id);
+    
+    try {
+      await api.reorderCollections(order);
+      showToast('تم حفظ الترتيب بنجاح');
+      if (window.hideBar) window.hideBar();
+      return true;
+    } catch (err) {
+      showToast('فشل حفظ الترتيب', 'error');
+      return false;
+    }
+  };
+
+  window.handleGlobalDiscard = () => {
+    loadCollections();
+    if (window.hideBar) window.hideBar();
+  };
 });
 
 async function loadCollections() {
@@ -22,26 +51,18 @@ async function loadCollections() {
       api.getProducts(1, 1000, true) // Fetch many products to get accurate counts
     ]);
     
-    const products = (Array.isArray(productsRes) ? productsRes : productsRes.products || []).filter(p => p.status !== 'draft');
-    const counts = {};
-    products.forEach(p => {
-      if (p.collectionId) {
-        counts[p.collectionId] = (counts[p.collectionId] || 0) + 1;
-      }
-      if (Array.isArray(p.collectionIds)) {
-        p.collectionIds.forEach(cid => {
-          counts[cid] = (counts[cid] || 0) + 1;
-        });
-      }
-    });
-
+    allCollectionsData = cols;
+    
     if (!cols.length) {
       list.innerHTML = '<div style="padding:40px;text-align:center;color:#666">لا توجد تصنيفات بعد</div>';
       return;
     }
 
     list.innerHTML = cols.map(c => `
-      <div class="collection-row" data-name="${c.name.toLowerCase()}" style="grid-template-columns: 50px 80px 1fr 80px;" onclick="if(!event.target.closest('.action-menu') && !event.target.closest('.action-dropdown') && !event.target.closest('input[type=checkbox]')) window.location.href='collection-form?id=${c._id}'">
+      <div class="collection-row" data-id="${c._id}" data-name="${c.name.toLowerCase()}" style="grid-template-columns: 40px 50px 80px 1fr 80px;" onclick="if(!event.target.closest('.action-menu') && !event.target.closest('.action-dropdown') && !event.target.closest('input[type=checkbox]') && !event.target.closest('.drag-handle')) window.location.href='collection-form?id=${c._id}'">
+        <div class="drag-handle" style="cursor:grab; color:#94a3b8; display:flex; align-items:center; justify-content:center;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+        </div>
         <div style="text-align: center;"><input type="checkbox" class="collection-checkbox" data-id="${c._id}" onchange="updateBulkBar()"></div>
         <div style="display:flex; justify-content:center;">
           ${c.imageUrl 
@@ -63,8 +84,31 @@ async function loadCollections() {
       </div>
     `).join('');
     
+    // Update header to match columns
+    const header = document.querySelector('.collection-row.header');
+    if (header) {
+      header.style.gridTemplateColumns = '40px 50px 80px 1fr 80px';
+      header.innerHTML = `
+        <div></div>
+        <div style="text-align: center;"><input type="checkbox" id="select-all-collections" onchange="toggleSelectAll()"></div>
+        <div style="text-align: center;">الصورة</div>
+        <div style="text-align: center;">الاسم</div>
+        <div style="text-align: center;">إجراءات</div>
+      `;
+    }
+
+    if (collectionsSortable) collectionsSortable.destroy();
+    collectionsSortable = new Sortable(list, {
+      handle: '.drag-handle',
+      animation: 150,
+      onEnd: () => {
+        if (window.markAsModified) window.markAsModified();
+      }
+    });
+
     unselectAll();
   } catch (e) {
+    console.error(e);
     list.innerHTML = '<div style="padding:40px;text-align:center;color:red">فشل تحميل التصنيفات</div>';
   }
 }
