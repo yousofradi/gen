@@ -534,6 +534,19 @@ window.setupCustomerSearch = function () {
 
   input.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase().trim();
+    
+    // If user starts typing and we had a selected customer, clear fields to "start fresh"
+    const nameField = document.getElementById('c-name');
+    if (nameField && nameField.readOnly) {
+      nameField.value = '';
+      nameField.readOnly = false;
+      document.getElementById('c-phone').value = '';
+      document.getElementById('c-phone').readOnly = false;
+      document.getElementById('c-second-phone').value = '';
+      document.getElementById('c-address').value = '';
+      document.getElementById('c-gov').value = '';
+    }
+
     if (!q) {
       renderCustomerDropdown(allCustomers);
       return;
@@ -589,6 +602,10 @@ window.selectCustomer = function (phone) {
   document.getElementById('customer-search').value = customer.name || customer.phone;
   document.getElementById('customer-dropdown').classList.remove('active');
   
+  // Disable editing of primary info for selected customers
+  document.getElementById('c-name').readOnly = true;
+  document.getElementById('c-phone').readOnly = true;
+  
   if (window.recalcSummary) recalcSummary();
   if (window.markAsModified) window.markAsModified();
 };
@@ -606,6 +623,8 @@ window.toggleCustomerMode = function () {
     document.getElementById('c-address').value = '';
     document.getElementById('c-gov').value = '';
     document.getElementById('customer-search').value = '';
+    document.getElementById('c-name').readOnly = false;
+    document.getElementById('c-phone').readOnly = false;
   } else {
     existingSection.style.display = 'block';
   }
