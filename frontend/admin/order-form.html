@@ -606,6 +606,138 @@
         gap: 12px;
       }
     }
+
+    /* ── Customer Search Dropdown ── */
+    .customer-select-wrapper {
+      position: relative;
+      margin-top: 12px;
+    }
+
+    .customer-search-container {
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .customer-search-container:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.05);
+    }
+
+    .customer-search-input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 0.95rem;
+      padding: 0;
+      background: transparent;
+      text-align: right;
+    }
+
+    .customer-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-height: 350px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+
+    .customer-dropdown.active {
+      display: block;
+    }
+
+    .customer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #f8fafc;
+      transition: background 0.2s;
+    }
+
+    .customer-item:last-child {
+      border-bottom: none;
+    }
+
+    .customer-item:hover {
+      background: #f0fdf4;
+    }
+
+    .customer-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .customer-item:nth-child(3n+1) .customer-avatar { background: #eff6ff; color: #3b82f6; }
+    .customer-item:nth-child(3n+2) .customer-avatar { background: #fdf2f8; color: #db2777; }
+    .customer-item:nth-child(3n+3) .customer-avatar { background: #f0fdf4; color: #16a34a; }
+
+    .customer-info-row {
+      flex: 1;
+      text-align: right;
+    }
+
+    .customer-name-row {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    .customer-phone-row {
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    .customer-type-toggle {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 20px;
+      justify-content: flex-start;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 16px;
+    }
+
+    .customer-type-toggle label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #475569;
+      font-size: 0.95rem;
+    }
+
+    .customer-type-toggle input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -777,18 +909,45 @@
               </div>
               <div class="info-card-body">
 
-                <div class="form-group">
-                  <label class="form-label">الاسم الكامل *</label>
-                  <input type="text" id="c-name" class="form-control" placeholder="اسم العميل" required>
+                <div class="customer-type-toggle">
+                  <label>
+                    <input type="radio" name="customer_type" value="existing" checked onchange="toggleCustomerMode()">
+                    بيانات العميل
+                  </label>
+                  <label>
+                    <input type="radio" name="customer_type" value="new" onchange="toggleCustomerMode()">
+                    عميل جديد
+                  </label>
                 </div>
-                <div class="grid-2" style="gap:16px; margin-bottom:16px;">
-                  <div class="form-group" style="margin-bottom:0">
-                    <label class="form-label">رقم الهاتف *</label>
-                    <input type="tel" id="c-phone" class="form-control" placeholder="01xxxxxxxxx" required>
+
+                <!-- Existing Customer Selection -->
+                <div id="existing-customer-section" class="customer-select-wrapper">
+                  <div class="customer-search-container" onclick="document.getElementById('customer-search').focus()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                    <input type="text" id="customer-search" class="customer-search-input" placeholder="ابحث عن أو اختر عميل" autocomplete="off">
                   </div>
-                  <div class="form-group" style="margin-bottom:0">
-                    <label class="form-label">رقم هاتف آخر</label>
-                    <input type="tel" id="c-second-phone" class="form-control" placeholder="اختياري">
+                  <div id="customer-dropdown" class="customer-dropdown">
+                    <!-- Customers will be loaded here -->
+                  </div>
+                </div>
+
+                <!-- Fields -->
+                <div id="customer-fields" style="margin-top: 24px;">
+                  <div class="form-group">
+                    <label class="form-label">الاسم الكامل *</label>
+                    <input type="text" id="c-name" class="form-control" placeholder="اسم العميل" required>
+                  </div>
+                  <div class="grid-2" style="gap:16px; margin-bottom:16px;">
+                    <div class="form-group" style="margin-bottom:0">
+                      <label class="form-label">رقم الهاتف *</label>
+                      <input type="tel" id="c-phone" class="form-control" placeholder="01xxxxxxxxx" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                      <label class="form-label">رقم هاتف آخر</label>
+                      <input type="tel" id="c-second-phone" class="form-control" placeholder="اختياري">
+                    </div>
                   </div>
                 </div>
                 <div class="form-group">

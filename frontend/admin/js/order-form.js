@@ -1,6 +1,7 @@
 /** Admin — Create Order form JS */
 
 let allProducts = [];
+let allCustomers = [];
 let shippingMap = {};
 let cartItems = []; // [{ product, quantity, selectedOptions, discount }]
 
@@ -11,13 +12,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.classList.add('is-loading');
 
   try {
-    const [productsRes, shippingRes, settings] = await Promise.all([
+    const [productsRes, shippingRes, settings, customersRes] = await Promise.all([
       api.getProducts(1, 1000, true).catch(() => []),
       api.getShipping().catch(() => ({})),
-      api.getSetting('sundura_global_settings').catch(() => ({}))
+      api.getSetting('sundura_global_settings').catch(() => ({})),
+      api.getCustomers().catch(() => [])
     ]);
 
     const products = (productsRes.products || productsRes).filter(p => p.status !== 'draft');
+    allCustomers = customersRes || [];
     let shipping = shippingRes;
 
     // Fallback if DB is empty
@@ -62,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   setupSearch();
+  setupCustomerSearch();
   updatePaymentUI();
 
   // Global Save Handler for the unsaved changes bar
@@ -512,6 +516,98 @@ window.submitOrder = async function () {
       btn.disabled = false;
       btn.textContent = 'حفظ الطلب';
     }
+  }
+};
+
+
+window.setupCustomerSearch = function () {
+  const input = document.getElementById('customer-search');
+  const dropdown = document.getElementById('customer-dropdown');
+  if (!input || !dropdown) return;
+
+  input.addEventListener('focus', () => {
+    if (allCustomers.length > 0) {
+      renderCustomerDropdown(allCustomers);
+      dropdown.classList.add('active');
+    }
+  });
+
+  input.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    if (!q) {
+      renderCustomerDropdown(allCustomers);
+      return;
+    }
+    const filtered = allCustomers.filter(c => 
+      (c.name && c.name.toLowerCase().includes(q)) || 
+      (c.phone && c.phone.includes(q))
+    );
+    renderCustomerDropdown(filtered);
+    dropdown.classList.add('active');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('active');
+    }
+  });
+};
+
+function renderCustomerDropdown(customers) {
+  const dropdown = document.getElementById('customer-dropdown');
+  if (!dropdown) return;
+
+  if (customers.length === 0) {
+    dropdown.innerHTML = '<div style="padding:16px; text-align:center; color:#64748b; font-size:0.9rem;">لا يوجد عملاء بهذا الاسم</div>';
+    return;
+  }
+
+  dropdown.innerHTML = customers.map(c => {
+    const initials = c.name ? c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??';
+    return `
+      <div class="customer-item" onclick="selectCustomer('${c.phone}')">
+        <div class="customer-avatar">${initials}</div>
+        <div class="customer-info-row">
+          <div class="customer-name-row">${c.name || 'بدون اسم'}</div>
+          <div class="customer-phone-row">+${c.phone}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.selectCustomer = function (phone) {
+  const customer = allCustomers.find(c => c.phone === phone);
+  if (!customer) return;
+
+  document.getElementById('c-name').value = customer.name || '';
+  document.getElementById('c-phone').value = customer.phone || '';
+  document.getElementById('c-second-phone').value = customer.secondPhone || '';
+  document.getElementById('c-gov').value = customer.government || '';
+  document.getElementById('c-address').value = customer.address || '';
+  
+  document.getElementById('customer-search').value = customer.name || customer.phone;
+  document.getElementById('customer-dropdown').classList.remove('active');
+  
+  if (window.recalcSummary) recalcSummary();
+  if (window.markAsModified) window.markAsModified();
+};
+
+window.toggleCustomerMode = function () {
+  const mode = document.querySelector('input[name="customer_type"]:checked').value;
+  const existingSection = document.getElementById('existing-customer-section');
+  
+  if (mode === 'new') {
+    existingSection.style.display = 'none';
+    // Clear fields
+    document.getElementById('c-name').value = '';
+    document.getElementById('c-phone').value = '';
+    document.getElementById('c-second-phone').value = '';
+    document.getElementById('c-address').value = '';
+    document.getElementById('c-gov').value = '';
+    document.getElementById('customer-search').value = '';
+  } else {
+    existingSection.style.display = 'block';
   }
 };
 
