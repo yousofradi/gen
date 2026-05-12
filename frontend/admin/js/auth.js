@@ -253,10 +253,9 @@ function initUnsavedChangesBar() {
   let hasChanges = false;
 
   window.markAsModified = () => {
-    if (!hasChanges) {
-      hasChanges = true;
-      bar.classList.add('visible');
-    }
+    hasChanges = true;
+    const b = document.getElementById('unsaved-changes-bar');
+    if (b) b.classList.add('visible');
   };
 
   window.hideBar = () => {

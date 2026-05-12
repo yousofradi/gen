@@ -92,7 +92,7 @@ function populateCollectionForm(col) {
   updateImagePreview(col.imageUrl || '');
 
   // Get products for this collection
-  const associatedProducts = allProducts.filter(p => p.collectionId === col._id || (p.collectionIds && p.collectionIds.includes(col._id)));
+  const associatedProducts = allProducts.filter(p => (p.collectionId === col._id || (p.collectionIds && p.collectionIds.includes(col._id))));
   
   if (col.productOrder && col.productOrder.length > 0) {
     // Sort based on saved productOrder
@@ -186,7 +186,7 @@ function renderProductsList(productsToRender = collectionProducts) {
     return;
   }
 
-  list.innerHTML = productsToRender.map(p => `
+  list.innerHTML = productsToRender.filter(p => p.status !== 'draft').map(p => `
     <div class="product-row" data-id="${p._id}">
       <div style="display:flex; align-items:center; gap:12px;">
         <input type="checkbox" class="product-select-cb" data-id="${p._id}" 
@@ -205,7 +205,7 @@ function renderProductsList(productsToRender = collectionProducts) {
   sortableList = new Sortable(list, {
     handle: '.btn-reorder',
     animation: 150,
-    onEnd: async function () {
+    onEnd: async function (evt) {
       // Re-sync array based on DOM
       const rows = Array.from(list.children);
       const newOrderIds = rows.map(r => r.getAttribute('data-id'));
@@ -213,6 +213,7 @@ function renderProductsList(productsToRender = collectionProducts) {
       // If the moved item was selected, move all other selected items with it
       const movedId = evt.item.getAttribute('data-id');
       const selectedIds = Array.from(selectedCollectionProductIds);
+      const draftIds = collectionProducts.filter(p => p.status === 'draft').map(p => p._id);
       
       if (selectedIds.includes(movedId)) {
         // Move all selected items together
@@ -229,10 +230,13 @@ function renderProductsList(productsToRender = collectionProducts) {
         }
         if (!inserted) finalOrderIds.push(...selectedIds);
         
-        collectionProducts = finalOrderIds.map(id => collectionProducts.find(p => p._id === id)).filter(Boolean);
+        // Add drafts back (usually at the end or keep their original positions if possible, but appending is safest for reorder UI)
+        const combinedIds = [...finalOrderIds, ...draftIds];
+        collectionProducts = combinedIds.map(id => allProducts.find(p => p._id === id)).filter(Boolean);
         renderProductsList(); // Re-render to show new grouped order
       } else {
-        collectionProducts = newOrderIds.map(id => collectionProducts.find(p => p._id === id)).filter(Boolean);
+        const combinedIds = [...newOrderIds, ...draftIds];
+        collectionProducts = combinedIds.map(id => allProducts.find(p => p._id === id)).filter(Boolean);
       }
       
       if (window.markAsModified) window.markAsModified();
@@ -277,7 +281,7 @@ function renderSelectModalLists(query = '') {
     </div>
   `).join('');
 
-  const available = allProducts.filter(p => !collectionProducts.some(cp => cp._id === p._id));
+  const available = allProducts.filter(p => !collectionProducts.some(cp => cp._id === p._id) && p.status !== 'draft');
   const filteredAvailable = query ? available.filter(p => p.name.toLowerCase().includes(query)) : available;
 
   availableBox.innerHTML = filteredAvailable.map(p => `
