@@ -5,6 +5,8 @@ const Order = require('../models/Order');
 const adminAuth = require('../middleware/adminAuth');
 const sendWebhook = require('../utils/webhook');
 const { sendPushToAdmins } = require('../utils/push');
+const { adjustStock } = require('../utils/inventory');
+
 
 // Helper: recalculate totals from items + shipping + discount
 function calcTotals(items, shippingFee, orderDiscount = 0) {
@@ -28,7 +30,7 @@ async function generateInvoiceInnerHtml(order, settings) {
   const safe = (val) => (val === undefined || val === null) ? '' : String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const num = (val) => Number(val) || 0;
 
-  const brandName = settings.storeNameAr || settings.storeName || 'سندورا سكوب';
+  const brandName = settings.storeNameAr || settings.storeName || 'admin Store';
 
   // ================== PRODUCTS ==================
   const productsHtml = order.items.map((p) => {
@@ -224,7 +226,7 @@ router.post('/', async (req, res) => {
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
-    const generatedOrderId = `Order-${counter.seq}`;
+    const generatedOrderId = `admin-${counter.seq}`;
 
     const order = new Order({
       orderId: generatedOrderId,
@@ -239,6 +241,16 @@ router.post('/', async (req, res) => {
     });
 
     await order.save();
+    
+    // Decrease stock
+    for (const item of items) {
+      try {
+        await adjustStock(item.productId, item.selectedOptions, -item.quantity);
+      } catch (err) {
+        console.error(`[Inventory] Failed to decrease stock for ${item.productId}:`, err.message);
+      }
+    }
+
 
     // Fetch store logo for notification
     let storeLogo = '/admin/logo.png';
@@ -478,7 +490,7 @@ body { margin: 0; padding: 0; background: #fff; }
         'X-API-Key': process.env.SNAPRENDER_API_KEY
       },
       body: JSON.stringify({
-        html: generateInvoiceInnerHtml(order),
+        html: generateInvoiceInnerHtml(order, settings),
         type: 'png',
         width: 500,
         fullPage: true,
@@ -648,7 +660,19 @@ router.post('/cancel/batch', adminAuth, async (req, res) => {
   try {
     const { orderIds } = req.body;
     if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
+    
+    // Restore stock for each order before cancelling
+    for (const id of orderIds) {
+      const order = await Order.findOne({ orderId: id });
+      if (order && order.status !== 'cancelled') {
+        for (const item of order.items) {
+          await adjustStock(item.productId, item.selectedOptions, item.quantity);
+        }
+      }
+    }
+
     await Order.updateMany({ orderId: { $in: orderIds } }, { $set: { status: 'cancelled' } });
+
     res.json({ message: 'Orders cancelled' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel orders' });
@@ -660,7 +684,19 @@ router.post('/delete/batch', adminAuth, async (req, res) => {
   try {
     const { orderIds } = req.body;
     if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
+
+    // Restore stock for each order before deleting
+    for (const id of orderIds) {
+      const order = await Order.findOne({ orderId: id });
+      if (order && order.status !== 'cancelled') {
+        for (const item of order.items) {
+          await adjustStock(item.productId, item.selectedOptions, item.quantity);
+        }
+      }
+    }
+
     await Order.deleteMany({ orderId: { $in: orderIds } });
+
     res.json({ message: 'Orders deleted' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete orders' });
@@ -670,13 +706,20 @@ router.post('/delete/batch', adminAuth, async (req, res) => {
 // POST /api/orders/:orderId/cancel — cancel single order
 router.post('/:orderId/cancel', adminAuth, async (req, res) => {
   try {
-    const order = await Order.findOneAndUpdate(
-      { orderId: req.params.orderId },
-      { $set: { status: 'cancelled' } },
-      { new: true }
-    );
+    const order = await Order.findOne({ orderId: req.params.orderId });
     if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (order.status !== 'cancelled') {
+      // Restore stock
+      for (const item of order.items) {
+        await adjustStock(item.productId, item.selectedOptions, item.quantity);
+      }
+      order.status = 'cancelled';
+      await order.save();
+    }
+
     res.json({ message: 'Order cancelled', order });
+
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel order' });
   }
@@ -707,25 +750,38 @@ router.put('/:orderId', adminAuth, async (req, res) => {
     if (mongoose.Types.ObjectId.isValid(orderId)) {
       query = { $or: [{ orderId: orderId }, { _id: orderId }] };
     }
-    const oldOrder = await Order.findOne(query);
-    if (!oldOrder) return res.status(404).json({ error: 'Order not found' });
+    const order = await Order.findOne(query);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    // Handle stock adjustment if items changed and order is not cancelled
+    if (updates.items && order.status !== 'cancelled') {
+      // 1. Restore old stock
+      for (const item of order.items) {
+        await adjustStock(item.productId, item.selectedOptions, item.quantity);
+      }
+      // 2. Deduct new stock
+      for (const item of updates.items) {
+        await adjustStock(item.productId, item.selectedOptions, -item.quantity);
+      }
+    }
 
     // Recalculate totals if items, shipping, or discount changed
-    const items = updates.items || oldOrder.items;
-    const shippingFee = (updates.shippingFee !== undefined) ? updates.shippingFee : oldOrder.shippingFee;
-    const discount = (updates.discount !== undefined) ? updates.discount : oldOrder.discount;
+    const items = updates.items || order.items;
+    const shippingFee = (updates.shippingFee !== undefined) ? updates.shippingFee : order.shippingFee;
+    const discount = (updates.discount !== undefined) ? updates.discount : order.discount;
 
     const { totalPrice } = calcTotals(items, shippingFee, discount);
     updates.totalPrice = totalPrice;
-    updates.paid = (Number(updates.paidAmount || oldOrder.paidAmount) >= totalPrice);
+    updates.paid = (Number(updates.paidAmount || order.paidAmount) >= totalPrice);
 
-    const order = await Order.findOneAndUpdate(query, { $set: updates }, { new: true, runValidators: true });
+    const updatedOrder = await Order.findOneAndUpdate(query, { $set: updates }, { new: true, runValidators: true });
 
-    if (updates.forcePaymentWebhook || (!oldOrder.paid && order.paid)) {
-      await sendWebhook('order.paid', order.toObject());
+    if (updates.forcePaymentWebhook || (!order.paid && updatedOrder.paid)) {
+      await sendWebhook('order.paid', updatedOrder.toObject());
     }
 
-    res.json(order);
+    res.json(updatedOrder);
+
   } catch (err) {
     console.error('Order update error:', err);
     res.status(500).json({ error: 'Failed to update order' });
@@ -740,9 +796,19 @@ router.delete('/:orderId', adminAuth, async (req, res) => {
     if (mongoose.Types.ObjectId.isValid(orderId)) {
       query = { $or: [{ orderId: orderId }, { _id: orderId }] };
     }
-    const order = await Order.findOneAndDelete(query);
+    const order = await Order.findOne(query);
     if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (order.status !== 'cancelled') {
+      // Restore stock
+      for (const item of order.items) {
+        await adjustStock(item.productId, item.selectedOptions, item.quantity);
+      }
+    }
+
+    await Order.deleteOne(query);
     res.json({ message: 'Order deleted' });
+
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete order' });
   }

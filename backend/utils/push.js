@@ -3,7 +3,8 @@ const PushSubscription = require('../models/PushSubscription');
 const { publicKey, privateKey } = require('../config/notifications');
 
 webpush.setVapidDetails(
-  'mailto:support@sundura.com',
+  'mailto:admin@example.com',
+
   publicKey,
   privateKey
 );

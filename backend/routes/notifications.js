@@ -6,7 +6,8 @@ const { publicKey, privateKey } = require('../config/notifications');
 const adminAuth = require('../middleware/adminAuth');
 
 webpush.setVapidDetails(
-  'mailto:support@sundura.com',
+  'mailto:admin@example.com',
+
   publicKey,
   privateKey
 );
@@ -31,7 +32,8 @@ router.post('/test', adminAuth, async (req, res) => {
   try {
     const subscriptions = await PushSubscription.find();
     const payload = JSON.stringify({
-      title: 'Sundura Admin',
+      title: 'admin Dashboard',
+
       body: 'Notifications are working! 🚀',
       icon: '/admin/logo.png'
     });

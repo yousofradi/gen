@@ -5,7 +5,8 @@ const adminAuth = require('../middleware/adminAuth');
 
 router.get('/paymentMethods', async (req, res) => {
   try {
-    const setting = await Setting.findOne({ key: 'sundura_global_settings' });
+    const setting = await Setting.findOne({ key: 'admin_global_settings' });
+
     res.json(setting && setting.value ? (setting.value.paymentMethods || []) : []);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -36,14 +37,16 @@ router.post('/:key', adminAuth, async (req, res) => {
 
 router.get('/pwa/manifest.json', async (req, res) => {
   try {
-    const settings = await Setting.findOne({ key: 'sundura_global_settings' });
+    const settings = await Setting.findOne({ key: 'admin_global_settings' });
     const logoUrl = settings?.value?.storeLogo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-    const storeName = settings?.value?.storeName || 'Sundura Admin';
+    const storeName = settings?.value?.storeName || 'admin Store';
+
 
     const manifest = {
-      id: "sundura-admin-v1",
-      name: storeName + " Admin",
-      short_name: "Admin",
+      id: "admin-v1",
+      name: storeName,
+      short_name: storeName.slice(0, 10),
+
       description: "Store Management Dashboard",
       start_url: "/admin/index.html",
       scope: "/admin/",

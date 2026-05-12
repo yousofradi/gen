@@ -137,7 +137,8 @@ function renderOrders(orders) {
       statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#f1f5f9; color:#475569; font-size:0.85rem; font-weight:600;">غير مدفوع</span>`;
     }
 
-    const displayId = o.orderId.replace('Order-', '').replace('Scoop-', '');
+    const displayId = o.orderId.replace('Order-', '').replace('admin-', '');
+
 
     return `
       <tr onclick="viewOrder('${o.orderId}')" style="cursor:pointer; transition:background 0.2s;" onmouseover="if(!this.querySelector('.order-checkbox').checked) this.style.backgroundColor='#f8fafc'" onmouseout="if(!this.querySelector('.order-checkbox').checked) this.style.backgroundColor='transparent'">
@@ -317,60 +318,8 @@ window.deleteOrder = async function (orderId) {
   }
 };
 
-// ── Print Invoices (Webhook) ───────────────────────────
+// ── Print Invoices (Removed external dependency) ───────────────────────────
 window.printInvoices = async function () {
-  const btn = document.getElementById('print-invoices-btn');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><div class="spinner" style="width:16px;height:16px;border-width:2px;border-color:#fff;border-top-color:transparent;margin:0"></div> جاري التجهيز...</div>';
-  btn.disabled = true;
-
-  try {
-    const response = await fetch('https://usefradi-n8n.hf.space/webhook/inovince', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ action: "print_invoices", timestamp: new Date().toISOString() })
-    });
-
-    if (!response.ok) throw new Error('فشل الاتصال بالويب هوك');
-
-    const blob = await response.blob();
-    const fileName = `invoices-${new Date().toISOString().split('T')[0]}.pdf`;
-
-    // Check if device is mobile
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-      // Mobile browsers handle base64 Data URIs better for forced downloads
-      const reader = new FileReader();
-      reader.onloadend = function () {
-        const a = document.createElement('a');
-        a.href = reader.result;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      };
-      reader.readAsDataURL(blob);
-    } else {
-      // Download the PDF directly on desktop using Object URL
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-    }
-
-    showToast('تم تجهيز الفواتير بنجاح');
-  } catch (err) {
-    console.error(err);
-    showToast('حدث خطأ أثناء طباعة الفواتير', 'error');
-  } finally {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-  }
+  showToast('هذه الخاصية غير متوفرة حالياً', 'info');
 };
+

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'admin-cache-v3';
+const CACHE_NAME = 'admin-cache-v1';
 const assets = [
   'index.html',
   'css/style.css',

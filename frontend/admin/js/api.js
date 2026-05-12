@@ -1,9 +1,10 @@
 // ── Immediate Branding Application ──────────────────────────
 (function () {
-  const cachedName = localStorage.getItem('sundura_store_name');
-  const cachedColor = localStorage.getItem('sundura_primary_color');
-  const cachedLogo = localStorage.getItem('sundura_store_logo');
-  const cachedUrl = localStorage.getItem('sundura_store_url');
+  const cachedName = localStorage.getItem('admin_store_name');
+  const cachedColor = localStorage.getItem('admin_primary_color');
+  const cachedLogo = localStorage.getItem('admin_store_logo');
+  const cachedUrl = localStorage.getItem('admin_store_url');
+
 
   const apply = () => {
     if (cachedName) {

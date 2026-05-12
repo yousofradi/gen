@@ -41,8 +41,11 @@ Object.assign(Cart, {
         salePrice: finalSalePrice,
         selectedOptions,
         unitPrice: finalUnitPrice,
-        quantity: 1
+        quantity: 1,
+        availableQuantity: (product.quantity !== null && product.quantity !== undefined) ? product.quantity : null,
+        variants: product.variants || []
       });
+
     }
     this._save(items);
   },
@@ -165,6 +168,17 @@ Cart.renderSlideCart = function() {
   const totalEl = document.getElementById('slide-cart-total');
   
   if (totalEl) totalEl.textContent = formatPrice(this.getTotal());
+  
+  function getAvailable(item) {
+    if (item.selectedOptions && item.selectedOptions.length > 0 && item.variants && item.variants.length > 0) {
+      const v = item.variants.find(v => {
+        return item.selectedOptions.every(so => v.combination[so.groupName] === so.label);
+      });
+      return (v && v.quantity !== null && v.quantity !== undefined) ? v.quantity : Infinity;
+    }
+    return (item.availableQuantity !== null && item.availableQuantity !== undefined) ? item.availableQuantity : Infinity;
+  }
+
 
   if (items.length === 0) {
     body.innerHTML = `
@@ -189,7 +203,15 @@ Cart.renderSlideCart = function() {
             <div class="sc-item-name">${item.name}</div>
             ${opts ? `<div class="sc-item-opts">${opts}</div>` : ''}
             <div class="sc-item-price">${formatPrice(item.unitPrice)}</div>
+            ${(function() {
+              const available = getAvailable(item);
+              if (available !== Infinity && item.quantity > available) {
+                return `<div style="font-size:0.75rem; color:#ef4444; margin-top:4px; font-weight:600; background:#fee2e2; padding:2px 8px; border-radius:4px; display:inline-block;">عذراً، يتوفر ${available} قطعة فقط</div>`;
+              }
+              return '';
+            })()}
           </div>
+
           <button class="sc-delete-btn" onclick="Cart.removeItem('${item.key}'); Cart.renderSlideCart()" title="حذف">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>

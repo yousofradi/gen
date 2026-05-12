@@ -1,13 +1,13 @@
 {
-  "id": "sundura-admin-v1",
-  "name": "Sundura Admin",
-  "short_name": "Admin",
+  "id": "admin-v1",
+  "name": "admin Store",
+  "short_name": "admin",
   "description": "Store Management Dashboard",
   "start_url": "index.html",
   "scope": "/admin/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#64748b",
+  "theme_color": "#0f766e",
   "orientation": "portrait",
   "icons": [
     {

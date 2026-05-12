@@ -172,6 +172,16 @@ function renderOrder() {
   updateTotals();
 }
 
+function getAvailableQty(p, selectedOptions = []) {
+  if (selectedOptions.length > 0 && p.variants && p.variants.length > 0) {
+    const v = p.variants.find(v => {
+      return selectedOptions.every(so => v.combination[so.groupName] === so.label);
+    });
+    return (v && v.quantity !== null && v.quantity !== undefined) ? v.quantity : Infinity;
+  }
+  return (p.quantity !== null && p.quantity !== undefined) ? p.quantity : Infinity;
+}
+
 function renderItems() {
   const container = document.getElementById('order-items-container');
   if (!currentOrder.items || currentOrder.items.length === 0) {
@@ -180,7 +190,12 @@ function renderItems() {
   }
 
   container.innerHTML = currentOrder.items.map((item, idx) => {
+    const p = allProducts.find(x => x._id === item.productId) || {};
+    const available = getAvailableQty(p, item.selectedOptions);
+    const lowStock = available !== Infinity && item.quantity > available;
+
     const imgHtml = item.imageUrl
+
       ? `<img src="${item.imageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:cover; border:1px solid #f1f5f9;" alt="${item.name}">`
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
@@ -196,7 +211,9 @@ function renderItems() {
               <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b; line-height: 1.2;">${item.name}</div>
               ${optText ? `<div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${optText}</div>` : ''}
               ${item.discount ? `<div style="font-size:0.75rem; color:#dc2626; margin-top:4px; font-weight:600;">خصم: ${formatPrice(item.discount)}</div>` : ''}
+              ${lowStock ? `<div style="font-size:0.75rem; color:#ef4444; margin-top:4px; font-weight:600; background:#fee2e2; padding:2px 8px; border-radius:4px; display:inline-block;">عذراً، يتوفر ${available} قطعة فقط</div>` : ''}
             </div>
+
           </div>
           
           <!-- Left side: Unit Price Block and Total Price -->
