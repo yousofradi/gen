@@ -6,6 +6,22 @@ let allProducts = [];
 let collectionsMap = {};
 let shippingMap = {};
 
+function getProductCombinations(options) {
+  if (!options || options.length === 0) return [];
+  let results = [[]];
+  for (const group of options) {
+    const currentResults = [];
+    const values = group.values;
+    for (const res of results) {
+      for (const val of values) {
+        currentResults.push([...res, { groupName: group.name, label: val.label, price: val.price }]);
+      }
+    }
+    results = currentResults;
+  }
+  return results;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAdmin()) return;
 
