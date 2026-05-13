@@ -129,6 +129,7 @@ const api = {
   // Shipping
   getShipping() { return this._request('/shipping', { useCache: true }); },
   getPublicShipping() { return this._request('/shipping', { useCache: true }); },
+  getZones(cityId) { return this._request(`/shipping/zones/${cityId}`, { useCache: true }); },
   getShippingList() { return this._request('/shipping/list', { admin: true, useCache: true }); },
   createShipping(d) { return this._request('/shipping', { method: 'POST', body: JSON.stringify(d), admin: true }); },
   updateShipping(id, d) { return this._request(`/shipping/${id}`, { method: 'PUT', body: JSON.stringify(d), admin: true }); },

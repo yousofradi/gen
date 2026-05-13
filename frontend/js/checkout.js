@@ -109,7 +109,7 @@ async function loadCities() {
     select.innerHTML = '<option value="">اختر المدينة...</option>';
     list.forEach(s => {
       const opt = document.createElement('option');
-      opt.value = s.city;
+      opt.value = s._id;
       opt.textContent = `${s.cityOtherName || s.city} (${formatPrice(s.fee)})`;
       select.appendChild(opt);
     });
@@ -119,21 +119,25 @@ async function loadCities() {
   }
 }
 
-function handleCityChange() {
-  const city = document.getElementById('government').value;
+async function handleCityChange() {
+  const cityId = document.getElementById('government').value;
   const zoneSelect = document.getElementById('zone');
-  const data = (window._fullShippingData || []).find(s => s.city === city);
+  if (!zoneSelect) return;
   
-  if (zoneSelect) {
-    zoneSelect.innerHTML = '<option value="">اختر المنطقة...</option>';
-    if (data && data.zones) {
-      data.zones.forEach(z => {
+  zoneSelect.innerHTML = '<option value="">اختر المنطقة...</option>';
+  if (cityId) {
+    try {
+      zoneSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+      const zones = await api.getZones(cityId);
+      zoneSelect.innerHTML = '<option value="">اختر المنطقة...</option>';
+      zones.forEach(z => {
         const opt = document.createElement('option');
-        // Use otherName if available for both value and text to match user preference
         opt.value = z.otherName || z.name;
         opt.textContent = z.otherName || z.name;
         zoneSelect.appendChild(opt);
       });
+    } catch (e) {
+      zoneSelect.innerHTML = '<option value="">فشل تحميل المناطق</option>';
     }
   }
   updatePriceSummary();
@@ -141,13 +145,13 @@ function handleCityChange() {
 
 function updatePriceSummary() {
   const subtotal = Cart.getTotal();
-  const city = document.getElementById('government').value;
-  const data = (window._fullShippingData || []).find(s => s.city === city);
+  const cityId = document.getElementById('government').value;
+  const data = (window._fullShippingData || []).find(s => s._id === cityId);
   const shippingFee = data ? (data.fee || 0) : 0;
   const total = subtotal + shippingFee;
 
   document.getElementById('subtotal').textContent = formatPrice(subtotal);
-  document.getElementById('shipping-fee').textContent = city ? formatPrice(shippingFee) : '—';
+  document.getElementById('shipping-fee').textContent = cityId ? formatPrice(shippingFee) : '—';
   document.getElementById('total-price').textContent = formatPrice(total);
 }
 
@@ -157,9 +161,12 @@ function setupForm() {
     const btn = e.target.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Placing Order...';
 
-    const city = document.getElementById('government').value;
+    const cityId = document.getElementById('government').value;
     const zone = document.getElementById('zone').value;
-    if (!city || !zone) { showToast('الرجاء اختيار المدينة والمنطقة', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
+    const govData = (window._fullShippingData || []).find(s => s._id === cityId);
+    const cityName = govData ? (govData.cityOtherName || govData.city) : '';
+
+    if (!cityName || !zone) { showToast('الرجاء اختيار المدينة والمنطقة', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
 
     const name = document.getElementById('cust-name').value.trim();
     if (name.split(/\s+/).filter(Boolean).length < 2) { showToast('الرجاء إدخال الاسم الثنائي (الاسم الأول والأخير)', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
@@ -192,7 +199,7 @@ function setupForm() {
         phone: document.getElementById('cust-phone').value.trim(),
         secondPhone: document.getElementById('cust-phone2').value.trim(),
         address: document.getElementById('cust-address').value.trim(),
-        government: city,
+        government: cityName,
         zone: zone,
         notes: document.getElementById('cust-notes').value.trim()
       },

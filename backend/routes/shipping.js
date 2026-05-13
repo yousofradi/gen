@@ -3,14 +3,22 @@ const router = express.Router();
 const Shipping = require('../models/Shipping');
 const adminAuth = require('../middleware/adminAuth');
 
-// GET /api/shipping — return all shipping fees
+// GET /api/shipping — return all governorates (minimal data)
 router.get('/', async (req, res) => {
   try {
-    const fees = await Shipping.find();
-    // Return map format for frontend compatibility (City -> Fee)
-    const map = {};
-    fees.forEach(f => { map[f.city] = f.fee; });
-    res.json(map);
+    const fees = await Shipping.find({}, 'city cityOtherName fee');
+    res.json(fees);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/shipping/zones/:cityId — return zones for a gov
+router.get('/zones/:cityId', async (req, res) => {
+  try {
+    const gov = await Shipping.findById(req.params.cityId, 'zones');
+    if (!gov) return res.status(404).json({ error: 'Governorate not found' });
+    res.json(gov.zones || []);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
