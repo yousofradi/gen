@@ -103,7 +103,7 @@ function renderOrderSummary(items) {
 
 async function loadCities() {
   try {
-    const list = await api.getShippingList();
+    const list = await api.getPublicShipping();
     window._fullShippingData = list;
     const select = document.getElementById('government');
     select.innerHTML = '<option value="">اختر المدينة...</option>';
