@@ -635,10 +635,12 @@ window.applyItemDiscount = async function () {
 window.markFullyPaid = async function () {
   currentOrder.paidAmount = currentOrder.totalPrice;
   currentOrder.forcePaymentWebhook = true;
-  renderOrder();
-
-  // Trigger unsaved changes bar
-  if (window.markAsModified) window.markAsModified();
+  
+  // Save immediately
+  const success = await saveOrderChanges(true);
+  if (success) {
+    showToast('تم تحديث حالة الدفع وحفظ الطلب بنجاح', 'success');
+  }
 };
 
 // ── Save ───────────────────────────────────────────────
