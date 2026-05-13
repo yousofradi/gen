@@ -17,16 +17,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const [data, shipping] = await Promise.all([
       api.getCustomer(phone),
-      api.getShipping().catch(() => ({}))
+      api.getShippingList().catch(() => [])
     ]);
     currentCustomer = data.customer;
     currentOrders = data.orders;
-    shippingMap = shipping;
+    window._fullShippingData = shipping;
 
     // Populate gov dropdown
     const govSelect = document.getElementById('modal-c-gov');
-    Object.keys(shippingMap).forEach(gov => {
-      govSelect.add(new Option(gov, gov));
+    window._fullShippingData.forEach(s => {
+      govSelect.add(new Option(`${s.cityOtherName || s.city} (${formatPrice(s.fee)})`, s._id));
     });
 
     renderCustomer();
@@ -43,6 +43,7 @@ function renderCustomer() {
   document.getElementById('view-c-phone2').textContent = c.secondPhone || 'لا يوجد هاتف آخر';
   document.getElementById('view-c-address').textContent = c.address || 'لا يوجد عنوان';
   document.getElementById('view-c-gov').textContent = c.government || 'لا يوجد محافظة';
+  document.getElementById('view-c-zone').textContent = c.zone || 'لا يوجد منطقة';
 
   const initials = c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const avatar = document.getElementById('view-c-avatar');
@@ -83,10 +84,37 @@ function openEditModal() {
   document.getElementById('modal-c-name').value = c.name;
   document.getElementById('modal-c-phone').value = c.phone;
   document.getElementById('modal-c-phone2').value = c.secondPhone || '';
-  document.getElementById('modal-c-gov').value = c.government || '';
+  
+  const govName = c.government || '';
+  const govData = (window._fullShippingData || []).find(s => s.city === govName || s.cityOtherName === govName);
+  document.getElementById('modal-c-gov').value = govData ? govData._id : '';
+  
+  handleModalCityChange();
+  document.getElementById('modal-c-zone').value = c.zone || '';
   document.getElementById('modal-c-address').value = c.address || '';
   document.getElementById('edit-modal').classList.add('open');
 }
+
+window.handleModalCityChange = async function () {
+  const cityId = document.getElementById('modal-c-gov').value;
+  const zoneSelect = document.getElementById('modal-c-zone');
+  if (!zoneSelect) return;
+
+  zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+  if (cityId) {
+    try {
+      zoneSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+      const zones = await api.getZones(cityId);
+      zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+      zones.forEach(z => {
+        const val = z.otherName || z.name;
+        zoneSelect.add(new Option(val, val));
+      });
+    } catch (e) {
+      zoneSelect.innerHTML = '<option value="">فشل التحميل</option>';
+    }
+  }
+};
 
 function closeEditModal() {
   document.getElementById('edit-modal').classList.remove('open');
@@ -96,11 +124,15 @@ async function applyChanges() {
   const name = document.getElementById('modal-c-name').value.trim();
   const phone = document.getElementById('modal-c-phone').value.trim();
   const phone2 = document.getElementById('modal-c-phone2').value.trim();
-  const gov = document.getElementById('modal-c-gov').value;
+  const cityId = document.getElementById('modal-c-gov').value;
+  const zone = document.getElementById('modal-c-zone').value;
   const address = document.getElementById('modal-c-address').value.trim();
 
-  if (!name || !phone) {
-    showToast('الاسم ورقم الهاتف مطلوبان', 'error');
+  const govData = (window._fullShippingData || []).find(s => s._id === cityId);
+  const cityName = govData ? (govData.cityOtherName || govData.city) : '';
+
+  if (!name || !phone || !cityName || !zone) {
+    showToast('الاسم ورقم الهاتف والمحافظة والمنطقة مطلوبة', 'error');
     return;
   }
 
@@ -113,7 +145,8 @@ async function applyChanges() {
   currentCustomer.name = name;
   currentCustomer.phone = phone;
   currentCustomer.secondPhone = phone2;
-  currentCustomer.government = gov;
+  currentCustomer.government = cityName;
+  currentCustomer.zone = zone;
   currentCustomer.address = address;
 
   renderCustomer();

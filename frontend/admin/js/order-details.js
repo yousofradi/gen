@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (govSelect) {
       govSelect.innerHTML = '<option value="">اختر المدينة</option>';
       window._fullShippingData.forEach(s => {
-        govSelect.add(new Option(s.city, s.city));
+        govSelect.add(new Option(`${s.cityOtherName || s.city} (${formatPrice(s.fee)})`, s._id));
       });
     }
 
@@ -322,7 +322,10 @@ window.openCustomerModal = function () {
   document.getElementById('modal-c-name').value = currentOrder.customer.name || '';
   document.getElementById('modal-c-phone').value = currentOrder.customer.phone || '';
   document.getElementById('modal-c-phone2').value = currentOrder.customer.secondPhone || '';
-  document.getElementById('modal-c-gov').value = currentOrder.customer.government || '';
+  const govName = currentOrder.customer.government || '';
+  const govData = (window._fullShippingData || []).find(s => s.city === govName || s.cityOtherName === govName);
+  document.getElementById('modal-c-gov').value = govData ? govData._id : '';
+  
   handleModalCityChange(); // Populates zones
   document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
   document.getElementById('modal-c-address').value = currentOrder.customer.address || '';
@@ -330,16 +333,23 @@ window.openCustomerModal = function () {
   openModal('customer-modal');
 };
 
-window.handleModalCityChange = function () {
-  const city = document.getElementById('modal-c-gov').value;
+window.handleModalCityChange = async function () {
+  const cityId = document.getElementById('modal-c-gov').value;
   const zoneSelect = document.getElementById('modal-c-zone');
-  const data = (window._fullShippingData || []).find(s => s.city === city);
-  if (zoneSelect) {
-    zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
-    if (data && data.zones) {
-      data.zones.forEach(z => {
-        zoneSelect.add(new Option(z, z));
+  if (!zoneSelect) return;
+
+  zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+  if (cityId) {
+    try {
+      zoneSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+      const zones = await api.getZones(cityId);
+      zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+      zones.forEach(z => {
+        const val = z.otherName || z.name;
+        zoneSelect.add(new Option(val, val));
       });
+    } catch (e) {
+      zoneSelect.innerHTML = '<option value="">فشل التحميل</option>';
     }
   }
 };
@@ -347,10 +357,13 @@ window.handleModalCityChange = function () {
 window.applyCustomerChanges = async function () {
   const name = document.getElementById('modal-c-name').value.trim();
   const phone = document.getElementById('modal-c-phone').value.trim();
-  const city = document.getElementById('modal-c-gov').value;
+  const cityId = document.getElementById('modal-c-gov').value;
   const zone = document.getElementById('modal-c-zone').value;
 
-  if (!name || !phone || !city || !zone) {
+  const govData = (window._fullShippingData || []).find(s => s._id === cityId);
+  const cityName = govData ? (govData.cityOtherName || govData.city) : '';
+
+  if (!name || !phone || !cityName || !zone) {
     showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');
     return;
   }
@@ -358,12 +371,11 @@ window.applyCustomerChanges = async function () {
   currentOrder.customer.name = name;
   currentOrder.customer.phone = phone;
   currentOrder.customer.secondPhone = document.getElementById('modal-c-phone2').value.trim();
-  currentOrder.customer.government = city;
+  currentOrder.customer.government = cityName;
   currentOrder.customer.zone = zone;
   
   // Update shipping fee based on city
-  const data = (window._fullShippingData || []).find(s => s.city === city);
-  currentOrder.shippingFee = data ? (data.fee || 0) : 0;
+  currentOrder.shippingFee = govData ? (govData.fee || 0) : 0;
 
   currentOrder.customer.address = document.getElementById('modal-c-address').value.trim();
   currentOrder.customer.notes = document.getElementById('modal-c-notes').value.trim();
