@@ -37,6 +37,7 @@
 
 const API_BASE = 'API_URL_PLACEHOLDER';
 
+// v1.1.0 - Added seedShipping
 const api = {
   _adminKey() { return localStorage.getItem('adminKey') || ''; },
 
