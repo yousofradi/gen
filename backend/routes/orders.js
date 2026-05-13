@@ -6,6 +6,7 @@ const adminAuth = require('../middleware/adminAuth');
 const sendWebhook = require('../utils/webhook');
 const { sendPushToAdmins } = require('../utils/push');
 const { adjustStock } = require('../utils/inventory');
+const { createBostaDelivery } = require('../utils/bosta');
 
 
 // Helper: recalculate totals from items + shipping + discount
@@ -241,6 +242,16 @@ router.post('/', async (req, res) => {
     });
 
     await order.save();
+
+    // Trigger Bosta if paid
+    if (order.paid) {
+      const bosta = await createBostaDelivery(order);
+      if (bosta && bosta.deliveryId) {
+        order.bostaDeliveryId = bosta.deliveryId;
+        order.bostaTrackingNumber = bosta.trackingNumber;
+        await order.save();
+      }
+    }
     
     // Decrease stock
     for (const item of items) {
@@ -778,6 +789,19 @@ router.put('/:orderId', adminAuth, async (req, res) => {
 
     if (updates.forcePaymentWebhook || (!order.paid && updatedOrder.paid)) {
       await sendWebhook('order.paid', updatedOrder.toObject());
+      
+      // Trigger Bosta
+      if (!updatedOrder.bostaDeliveryId) {
+        const bosta = await createBostaDelivery(updatedOrder);
+        if (bosta && bosta.deliveryId) {
+          await Order.updateOne({ _id: updatedOrder._id }, { 
+            $set: { 
+              bostaDeliveryId: bosta.deliveryId, 
+              bostaTrackingNumber: bosta.trackingNumber 
+            } 
+          });
+        }
+      }
     }
 
     res.json(updatedOrder);
