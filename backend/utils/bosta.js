@@ -51,7 +51,7 @@ async function generateBostaPayload(order, bostaConfig) {
       phone: order.customer.phone
     },
     isConsigneeReschedule: true,
-    notes: 'برجاء الاتصال قبل الوصول',
+    notes: 'يرجى التواصل مع العميل قبل التحرك - قابل للكسر',
     cod: (function () {
       const remaining = order.totalPrice - (order.paidAmount || 0);
       return remaining > 0 ? remaining + 10 : 0;

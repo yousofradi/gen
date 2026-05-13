@@ -100,7 +100,13 @@ window.closeModal = function (modalId) {
   }
 };
 
+// ── Modal Products (Persistent Selection) ───────────────
+let modalSelectedProducts = new Set(); // Stores product IDs
+let modalSelectedVariants = new Map(); // Key: pid-comboStr, Value: {pid, combo, price}
+
 window.openProductsModal = async function () {
+  modalSelectedProducts.clear();
+  modalSelectedVariants.clear();
   openModal('products-modal');
 
   if (allProducts.length === 0) {
@@ -144,6 +150,20 @@ window.toggleProductVariants = function (pid) {
   }
 };
 
+window.handleModalSelect = function(pid, checked) {
+  if (checked) modalSelectedProducts.add(pid);
+  else modalSelectedProducts.delete(pid);
+};
+
+window.handleModalVariantSelect = function(pid, comboStr, price, checked) {
+  const key = `${pid}-${comboStr}`;
+  if (checked) {
+    modalSelectedVariants.set(key, { pid, combo: JSON.parse(decodeURIComponent(comboStr)), price });
+  } else {
+    modalSelectedVariants.delete(key);
+  }
+};
+
 function getProductCombinations(options) {
   if (!options || options.length === 0) return [];
   let results = [[]];
@@ -179,6 +199,7 @@ window.renderModalProducts = function () {
   }
 
   listEl.innerHTML = filtered.map(p => {
+    const isChecked = modalSelectedProducts.has(p._id);
     const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" class="pli-img">` : `<div class="pli-img"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
     const hasOptions = p.options && p.options.length > 0;
     const effectiveBase = (p.salePrice && p.salePrice < p.basePrice) ? p.salePrice : p.basePrice;
@@ -194,7 +215,10 @@ window.renderModalProducts = function () {
                 <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(effectiveBase)}</div>
               </div>
             </div>
-            <input type="checkbox" class="pli-checkbox product-select-cb" value="${p._id}" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
+            <input type="checkbox" class="pli-checkbox product-select-cb" value="${p._id}" 
+              ${isChecked ? 'checked' : ''}
+              onchange="handleModalSelect('${p._id}', this.checked)"
+              style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
           </label>
         </div>
       `;
@@ -207,13 +231,17 @@ window.renderModalProducts = function () {
         const title = comboList.map(c => c.label).join(' / ');
         const finalPrice = (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price;
         const comboStr = encodeURIComponent(JSON.stringify(comboList));
+        const vKey = `${p._id}-${comboStr}`;
         return `
           <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
             <div style="display:flex; align-items:center; gap:12px;">
               <div style="font-size:0.9rem;font-weight:500;">${title}</div>
               <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
             </div>
-            <input type="checkbox" class="pli-checkbox product-variant-cb" data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}">
+            <input type="checkbox" class="pli-checkbox product-variant-cb" 
+              data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
+              ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
+              onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
           </label>
         `;
       }).join('');
@@ -221,16 +249,21 @@ window.renderModalProducts = function () {
       const combinations = getProductCombinations(p.options);
       variantsHtml = combinations.map((combo, idx) => {
         const title = combo.map(c => c.label).join(' / ');
-        const extraPrice = combo.reduce((sum, c) => sum + (c.price || 0), 0);
-        const finalPrice = effectiveBase + extraPrice;
+        const optionsPriceTotal = combo.reduce((sum, c) => sum + (c.price || 0), 0);
+        // Matching storefront logic: options prices REPLACE base price if no variants
+        const finalPrice = optionsPriceTotal > 0 ? optionsPriceTotal : effectiveBase;
         const comboStr = encodeURIComponent(JSON.stringify(combo));
+        const vKey = `${p._id}-${comboStr}`;
         return `
           <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
             <div style="display:flex; align-items:center; gap:12px;">
               <div style="font-size:0.9rem;font-weight:500;">${title}</div>
               <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
             </div>
-            <input type="checkbox" class="pli-checkbox product-variant-cb" data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}">
+            <input type="checkbox" class="pli-checkbox product-variant-cb" 
+              data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
+              ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
+              onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
           </label>
         `;
       }).join('');
@@ -256,18 +289,14 @@ window.renderModalProducts = function () {
 };
 
 window.addSelectedProducts = function () {
-  const checkedSimple = document.querySelectorAll('.product-select-cb:checked');
-  const checkedVariants = document.querySelectorAll('.product-variant-cb:checked');
-
-  if (checkedSimple.length === 0 && checkedVariants.length === 0) {
+  if (modalSelectedProducts.size === 0 && modalSelectedVariants.size === 0) {
     return showToast('اختر منتجاً واحداً على الأقل', 'error');
   }
 
   // 1. Add simple products
-  checkedSimple.forEach(cb => {
-    const p = allProducts.find(x => x._id === cb.value);
+  modalSelectedProducts.forEach(pid => {
+    const p = allProducts.find(x => x._id === pid);
     if (p) {
-      const effectiveBase = (p.salePrice && p.salePrice < p.basePrice) ? p.salePrice : p.basePrice;
       const existing = cartItems.find(c => c.product._id === p._id && (!c.selectedOptions || c.selectedOptions.length === 0));
       if (existing) {
         existing.quantity++;
@@ -278,16 +307,14 @@ window.addSelectedProducts = function () {
   });
 
   // 2. Add variants
-  checkedVariants.forEach(cb => {
-    const p = allProducts.find(x => x._id === cb.dataset.pid);
+  modalSelectedVariants.forEach(data => {
+    const p = allProducts.find(x => x._id === data.pid);
     if (p) {
-      const variantPrice = parseFloat(cb.dataset.price);
-      const combo = JSON.parse(decodeURIComponent(cb.dataset.combo));
-
+      const combo = data.combo;
+      const variantPrice = data.price;
       const existing = cartItems.find(c => {
         if (c.product._id !== p._id) return false;
         if (!c.selectedOptions || c.selectedOptions.length !== combo.length) return false;
-        // Check if options match
         return combo.every(cv => c.selectedOptions.some(so => so.groupName === cv.groupName && so.label === cv.label));
       });
 
@@ -305,8 +332,8 @@ window.addSelectedProducts = function () {
     }
   });
 
-  closeProductsModal();
   renderCart();
+  closeProductsModal();
   if (window.markAsModified) window.markAsModified();
 };
 

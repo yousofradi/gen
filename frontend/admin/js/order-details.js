@@ -841,8 +841,9 @@ window.renderModalProducts = function () {
     } else {
       variantsHtml = combinations.map((combo, idx) => {
         const title = combo.map(c => c.label).join(' / ');
-        const extraPrice = combo.reduce((sum, c) => sum + (c.price || 0), 0);
-        const finalPrice = effectiveBase + extraPrice;
+        const optionsPriceTotal = combo.reduce((sum, c) => sum + (c.price || 0), 0);
+        // Matching storefront logic: options prices REPLACE base price if no variants
+        const finalPrice = optionsPriceTotal > 0 ? optionsPriceTotal : effectiveBase;
         const comboStr = encodeURIComponent(JSON.stringify(combo));
         const vKey = `${p._id}-${comboStr}`;
         return `
@@ -932,10 +933,10 @@ window.addSelectedProducts = function () {
     }
   });
 
-  closeProductsModal();
-  updateTotals();
   renderItems();
+  updateTotals();
   if (window.markAsModified) window.markAsModified();
+  closeProductsModal();
 };
 
 window.toggleDetailsMenu = function (e) {
