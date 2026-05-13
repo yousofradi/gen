@@ -431,23 +431,15 @@ window.shipOrders = async function () {
     btn.disabled = true;
   }
 
-  let successCount = 0;
-  let failCount = 0;
-
-  for (const order of ordersToShip) {
-    try {
-      // Triggering Bosta by updating the order with a force flag
-      // The backend logic handles creating the Bosta delivery if forcePaymentWebhook is true
-      await api.updateOrder(order.orderId, { forcePaymentWebhook: true });
-      successCount++;
-    } catch (err) {
-      console.error(`Failed to ship order ${order.orderId}:`, err);
-      failCount++;
-    }
+  try {
+    const orderIds = ordersToShip.map(o => o.orderId);
+    const result = await api.shipOrdersBulk(orderIds);
+    showToast(result.message || `تم شحن ${result.count} طلبات بنجاح`, 'success');
+  } catch (err) {
+    console.error(`Failed to ship orders bulk:`, err);
+    showToast(err.message || 'فشل شحن الطلبات', 'error');
   }
 
-  showToast(`تم شحن ${successCount} طلبات بنجاح` + (failCount > 0 ? ` (${failCount} فشلوا)` : ''), successCount > 0 ? 'success' : 'error');
-  
   if (btn) {
     btn.innerHTML = originalHtml;
     btn.disabled = false;

@@ -736,6 +736,43 @@ router.post('/:orderId/cancel', adminAuth, async (req, res) => {
   }
 });
 
+// POST /api/orders/bulk/ship — ship multiple orders via Bosta Bulk API
+router.post('/bulk/ship', adminAuth, async (req, res) => {
+  try {
+    const { orderIds } = req.body;
+    if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
+
+    const orders = await Order.find({ orderId: { $in: orderIds }, bostaDeliveryId: { $exists: false } });
+    if (!orders.length) return res.json({ message: 'No eligible orders to ship', count: 0 });
+
+    const { createBulkBostaDeliveries } = require('../utils/bosta');
+    const result = await createBulkBostaDeliveries(orders);
+
+    // Bosta returns an array of results in the same order as the input deliveries
+    // Each result has _id and trackingNumber
+    let successCount = 0;
+    if (result && result.deliveries) {
+      for (let i = 0; i < orders.length; i++) {
+        const bostaRes = result.deliveries[i];
+        if (bostaRes && bostaRes._id) {
+          await Order.updateOne({ _id: orders[i]._id }, {
+            $set: {
+              bostaDeliveryId: bostaRes._id,
+              bostaTrackingNumber: bostaRes.trackingNumber
+            }
+          });
+          successCount++;
+        }
+      }
+    }
+
+    res.json({ message: `Successfully shipped ${successCount} orders`, count: successCount });
+  } catch (err) {
+    console.error('Bulk ship error:', err);
+    res.status(500).json({ error: 'Failed to ship orders bulk: ' + err.message });
+  }
+});
+
 // GET /api/orders/:orderId — single order (GREEDY ROUTE - MUST BE AT BOTTOM)
 router.get('/:orderId', adminAuth, async (req, res) => {
   try {

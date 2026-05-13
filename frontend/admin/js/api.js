@@ -121,6 +121,7 @@ const api = {
   cancelOrder(id) { return this._request(`/orders/${id}/cancel`, { method: 'POST', admin: true }); },
   cancelOrdersBatch(orderIds) { return this._request('/orders/cancel/batch', { method: 'POST', body: JSON.stringify({ orderIds }), admin: true }); },
   deleteOrdersBatch(orderIds) { return this._request('/orders/delete/batch', { method: 'POST', body: JSON.stringify({ orderIds }), admin: true }); },
+  shipOrdersBulk(orderIds) { return this._request('/orders/bulk/ship', { method: 'POST', body: JSON.stringify({ orderIds }), admin: true }); },
 
   // Customers
   getCustomers() { return this._request('/customers', { admin: true }); },
