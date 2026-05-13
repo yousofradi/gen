@@ -1,10 +1,39 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الشحن — Admin</title>
-  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .shipping-card { background:#fff; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,0.1); border:1px solid #f1f5f9; overflow:hidden; }
+    .card-header { padding:20px 24px; border-bottom:1px solid #f1f5f9; }
+    .card-title { font-size:1.25rem; font-weight:800; color:#1e293b; margin:0; }
+    .table-container { width:100%; overflow-x:auto; }
+    .shipping-table { width:100%; border-collapse:collapse; text-align:right; }
+    .shipping-table th { background:#f8fafc; padding:12px 16px; font-weight:700; color:#64748b; font-size:0.85rem; border-bottom:1px solid #f1f5f9; }
+    .shipping-table td { padding:16px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+    .city-row:hover { background:#f8fafc !important; }
+    .zone-row { background:#f8fafc; }
+    .zone-row td { border-bottom:1px solid #f1f5f9; }
+    
+    .price-box { display:inline-flex; align-items:center; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; background:#fff; font-weight:700; width:100px; justify-content:space-between; }
+    .price-box span { color:#1e293b; }
+    .price-box .currency { font-size:0.75rem; color:#94a3b8; }
+    
+    .btn-edit-rounded { border:1.5px solid #00bfa5; color:#00bfa5; background:#fff; border-radius:24px; padding:6px 24px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+    .btn-edit-rounded:hover { background:#00bfa5; color:#fff; }
+
+    .bulk-bar { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:12px 24px; border-radius:12px; display:flex; align-items:center; gap:20px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); z-index:1000; }
+    .bulk-btns { display:flex; gap:10px; }
+    
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:10000; }
+    .modal-content { background:#fff; border-radius:16px; width:90%; max-width:500px; overflow:hidden; }
+    .modal-header { padding:20px 24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
+    .modal-body { padding:24px; }
+    .modal-footer { padding:16px 24px; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; gap:12px; }
+    .close-btn { background:none; border:none; font-size:1.5rem; cursor:pointer; color:#64748b; }
+    
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; margin-bottom:6px; font-weight:600; color:#475569; font-size:0.9rem; }
+    .form-group input { width:100%; padding:10px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:1rem; }
+    
+    [dir="rtl"] .shipping-table { text-align:right; }
+    [dir="rtl"] .price-box { flex-direction:row-reverse; }
+  </style>
 </head>
 <body>
   <div class="admin-layout">
