@@ -196,7 +196,11 @@
           </style>
           <!-- Bulk Actions Bar -->
           <div id="bulk-actions-bar"
-            style="display:none; justify-content:flex-start; align-items:center; padding:12px 16px; border-bottom:1px solid #f1f5f9; background:#fff; gap:12px;">
+            style="display:none; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #f1f5f9; background:#fff; gap:12px;">
+            <div class="flex gap-8">
+              <button class="btn btn-secondary btn-sm" onclick="bulkDeleteShipping()" style="color:#ef4444; border-color:#fee2e2; background:#fef2f2;">حذف المحدد</button>
+              <button class="btn btn-secondary btn-sm" onclick="bulkEditShipping()">تعديل الاختيار</button>
+            </div>
             <button class="btn btn-primary" onclick="unselectAll()"
               style="border-radius:20px; padding:6px 12px; border:none; background:var(--primary); color:#fff; font-weight:600; display:flex; align-items:center; gap:8px; font-size: 0.8rem;">
               تم تحديد <span id="selected-count-badge">0</span>
@@ -354,33 +358,69 @@
               </td>
               <td style="color:var(--primary);font-weight:600">${formatPrice(s.fee)}</td>
               <td style="font-size:0.8rem; color:#64748b;">${(s.zones || []).map(z => z.otherName || z.name).join(', ')}</td>
-              <td style="text-align: center;">
-                <button class="btn btn-secondary btn-sm" onclick="openZonesModal('${s._id}')">تعديل</button>
-              </td>
-            </tr>`;
-          
-          if (hasZones) {
-            s.zones.forEach(z => {
-              html += `
-                <tr class="zone-row zone-row-${s._id}" style="display:none; background:#f8fafc;">
-                  <td style="text-align: center;">
-                    <input type="checkbox" style="width:14px; height:14px; accent-color:var(--primary); opacity:0.5;">
-                  </td>
-                  <td style="padding-right:40px; font-size:0.9rem;">${z.otherName || z.name}</td>
-                  <td style="color:var(--primary);font-weight:600">${formatPrice(s.fee)}</td>
-                  <td></td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-sm" onclick="editShipping('${s._id}','${s.city}','${s.cityOtherName||''}',${s.fee}, '${s.bostaCityId||''}')">تعديل</button>
-                  </td>
-                </tr>`;
-            });
-          }
-        });
-        tbody.innerHTML = html;
-      } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">فشل التحميل</td></tr>';
-      }
+              <td style="text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <button class="btn btn-secondary btn-sm" onclick="openZonesModal('${s._id}')">تعديل</button>
+              <button class="btn btn-secondary btn-sm" onclick="deleteShipping('${s._id}')" style="color:#ef4444; min-width:unset; padding:6px 8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              </button>
+            </td>
+          </tr>`;
+        
+        if (hasZones) {
+          s.zones.forEach(z => {
+            html += `
+              <tr class="zone-row zone-row-${s._id}" style="display:none; background:#f8fafc;">
+                <td style="text-align: center;">
+                  <input type="checkbox" style="width:14px; height:14px; accent-color:var(--primary); opacity:0.5;">
+                </td>
+                <td style="padding-right:40px; font-size:0.9rem;">${z.otherName || z.name}</td>
+                <td style="color:var(--primary);font-weight:600">${formatPrice(s.fee)}</td>
+                <td></td>
+                <td style="text-align: center;">
+                  <button class="btn btn-secondary btn-sm" onclick="editShipping('${s._id}','${s.city}','${s.cityOtherName||''}',${s.fee}, '${s.bostaCityId||''}')">تعديل</button>
+                </td>
+              </tr>`;
+          });
+        }
+      });
+      tbody.innerHTML = html;
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">فشل التحميل</td></tr>';
     }
+  }
+
+  async function deleteShipping(id) {
+    if (!confirm('هل أنت متأكد من حذف هذه المدينة؟')) return;
+    try {
+      await api.deleteShipping(id);
+      showToast('تم الحذف بنجاح');
+      loadShipping();
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+
+  async function bulkDeleteShipping() {
+    const ids = Array.from(selectedIds);
+    if (!ids.length) return;
+    if (!confirm(`هل أنت متأكد من حذف ${ids.length} محافظات؟`)) return;
+    try {
+      await Promise.all(ids.map(id => api.deleteShipping(id)));
+      showToast(`تم حذف ${ids.length} محافظات`);
+      unselectAll();
+      loadShipping();
+    } catch (e) { showToast('فشل الحذف الجماعي', 'error'); }
+  }
+
+  function bulkEditShipping() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (ids.length === 1) {
+      const s = shippingList.find(x => x._id === ids[0]);
+      if (s) editShipping(s._id, s.city, s.cityOtherName, s.fee, s.bostaCityId);
+      return;
+    }
+    // For multiple, we could show the bulk price modal
+    openBulkModal();
+  }
 
     function toggleZones(cityId) {
       const rows = document.querySelectorAll(`.zone-row-${cityId}`);
