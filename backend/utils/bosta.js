@@ -12,12 +12,20 @@ async function createBostaDelivery(order) {
       return null;
     }
 
-    const { apiKey, city, districtId, firstLine } = config.value;
+    const { apiKey, city, districtId, firstLine, buildingNumber, floor, apartment } = config.value;
     
+    if (!city || !districtId || !firstLine) {
+      console.warn('Bosta store address (city, districtId, firstLine) not fully configured, skipping delivery creation');
+      return { error: 'Bosta address not configured' };
+    }
+
     const storeAddress = {
-      city: city || 'EG-01', // Default to Cairo if missing
-      district: districtId || 'Unknown',
-      firstLine: firstLine || 'Store Address'
+      city: city,
+      district: districtId,
+      firstLine: firstLine,
+      buildingNumber: buildingNumber,
+      floor: floor,
+      apartment: apartment
     };
 
     // Resolve Bosta IDs for drop-off
