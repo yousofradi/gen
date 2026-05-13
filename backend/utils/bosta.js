@@ -12,9 +12,15 @@ async function createBostaDelivery(order) {
       return null;
     }
 
-    const { apiKey, pickupId } = config.value;
+    const { apiKey, city, districtId, firstLine } = config.value;
+    
+    const storeAddress = {
+      city: city || 'EG-01', // Default to Cairo if missing
+      district: districtId || 'Unknown',
+      firstLine: firstLine || 'Store Address'
+    };
 
-    // Resolve Bosta IDs
+    // Resolve Bosta IDs for drop-off
     const shippingRecord = await Shipping.findOne({ city: order.customer.government });
     const bostaCityId = shippingRecord ? shippingRecord.bostaCityId : order.customer.government;
     
@@ -34,6 +40,8 @@ async function createBostaDelivery(order) {
           description: order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')
         }
       },
+      pickupAddress: storeAddress,
+      returnAddress: storeAddress,
       dropOffAddress: {
         city: bostaCityId,
         zone: bostaZoneId,
@@ -45,7 +53,6 @@ async function createBostaDelivery(order) {
         lastName: order.customer.name.split(' ').slice(1).join(' ') || 'Customer',
         phone: order.customer.phone
       },
-      pickupAddressId: pickupId,
       isConsigneeReschedule: true,
       cod: order.paymentMethod === 'Cash on Delivery' ? order.totalPrice + order.shippingFee : 0
     };
