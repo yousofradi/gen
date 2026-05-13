@@ -404,3 +404,52 @@ window.printInvoices = async function () {
     }
   }
 };
+
+window.shipOrders = async function () {
+  const btn = document.getElementById('ship-orders-btn');
+  const originalHtml = btn ? btn.innerHTML : 'شحن الطلبات';
+
+  // Filter for "active and paid" orders that don't have a Bosta ID yet
+  const ordersToShip = allOrdersData.filter(o => 
+    o.status !== 'cancelled' && 
+    o.paid === true && 
+    !o.bostaDeliveryId
+  );
+
+  if (ordersToShip.length === 0) {
+    showToast('لا توجد طلبات مدفوعة جاهزة للشحن حالياً', 'info');
+    return;
+  }
+
+  const confirmed = await window.showConfirmModal('تأكيد الشحن', `هل تريد شحن ${ordersToShip.length} طلبات عبر Bosta؟`);
+  if (!confirmed) return;
+
+  if (btn) {
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:#fff;border-top-color:transparent;margin:0"></div>';
+    btn.disabled = true;
+  }
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const order of ordersToShip) {
+    try {
+      // Triggering Bosta by updating the order with a force flag
+      // The backend logic handles creating the Bosta delivery if forcePaymentWebhook is true
+      await api.updateOrder(order.orderId, { forcePaymentWebhook: true });
+      successCount++;
+    } catch (err) {
+      console.error(`Failed to ship order ${order.orderId}:`, err);
+      failCount++;
+    }
+  }
+
+  showToast(`تم شحن ${successCount} طلبات بنجاح` + (failCount > 0 ? ` (${failCount} فشلوا)` : ''), successCount > 0 ? 'success' : 'error');
+  
+  if (btn) {
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+  }
+
+  loadOrders();
+};

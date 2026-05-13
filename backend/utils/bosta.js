@@ -45,7 +45,7 @@ async function createBostaDelivery(order) {
       specs: {
         packageDetails: {
           itemsCount: order.items.reduce((sum, i) => sum + i.quantity, 0),
-          description: order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')
+          description: order.items.map(i => `${i.name}x ${i.quantity}`).join(' , ')
         }
       },
       pickupAddress: storeAddress,
@@ -63,7 +63,7 @@ async function createBostaDelivery(order) {
       },
       isConsigneeReschedule: true,
       notes: 'برجاء الاتصال قبل الوصول',
-      cod: (function() {
+      cod: (function () {
         const remaining = order.totalPrice - (order.paidAmount || 0);
         return remaining > 0 ? remaining + 10 : 0;
       })()
