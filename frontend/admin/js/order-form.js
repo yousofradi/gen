@@ -444,16 +444,26 @@ window.handleCityChange = async function() {
   
   zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
   if (cityId) {
-    try {
-      zoneSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-      const zones = await api.getZones(cityId);
-      zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
-      zones.forEach(z => {
+    // 1. Try local data first (highly reliable)
+    const localGov = (window._fullShippingData || []).find(s => s._id === cityId);
+    if (localGov && localGov.zones && localGov.zones.length > 0) {
+      localGov.zones.forEach(z => {
         const val = z.otherName || z.name;
         zoneSelect.add(new Option(val, val));
       });
-    } catch (e) {
-      zoneSelect.innerHTML = '<option value="">فشل التحميل</option>';
+    } else {
+      // 2. Fallback to API fetch
+      try {
+        zoneSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+        const zones = await api.getZones(cityId);
+        zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+        zones.forEach(z => {
+          const val = z.otherName || z.name;
+          zoneSelect.add(new Option(val, val));
+        });
+      } catch (e) {
+        zoneSelect.innerHTML = '<option value="">فشل التحميل</option>';
+      }
     }
   }
   recalcSummary();
@@ -659,7 +669,12 @@ window.selectCustomer = function (phone) {
   document.getElementById('c-name').value = customer.name || '';
   document.getElementById('c-phone').value = customer.phone || '';
   document.getElementById('c-second-phone').value = customer.secondPhone || '';
-  document.getElementById('c-gov').value = customer.government || '';
+  
+  // Map government name to ID
+  const govName = customer.government || '';
+  const govData = (window._fullShippingData || []).find(s => s.city === govName || s.cityOtherName === govName);
+  document.getElementById('c-gov').value = govData ? govData._id : '';
+
   handleCityChange(); // Populates zones
   document.getElementById('c-zone').value = customer.zone || '';
   document.getElementById('c-address').value = customer.address || '';

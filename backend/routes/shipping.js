@@ -20,10 +20,10 @@ router.get('/zones/:cityId', async (req, res) => {
     let gov;
     
     // Support both ID and Name lookup for robustness
-    if (cityId.match(/^[0-9a-fA-F]{24}$/)) {
+    if (mongoose.Types.ObjectId.isValid(cityId)) {
       gov = await Shipping.findById(cityId, 'zones');
     } else {
-      gov = await Shipping.findOne({ city: cityId }, 'zones');
+      gov = await Shipping.findOne({ $or: [{ city: cityId }, { cityOtherName: cityId }] }, 'zones');
     }
 
     if (!gov) return res.status(404).json({ error: 'Governorate not found' });
