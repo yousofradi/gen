@@ -231,7 +231,7 @@ router.post('/', async (req, res) => {
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
-    const generatedOrderId = `admin-${counter.seq}`;
+    const generatedOrderId = `Order-${counter.seq}`;
 
     const order = new Order({
       orderId: generatedOrderId,
@@ -246,16 +246,7 @@ router.post('/', async (req, res) => {
     });
 
     await order.save();
-
-    // Trigger Bosta if paid
-    if (order.paid) {
-      const bosta = await createBostaDelivery(order);
-      if (bosta && bosta.deliveryId) {
-        order.bostaDeliveryId = bosta.deliveryId;
-        order.bostaTrackingNumber = bosta.trackingNumber;
-        await order.save();
-      }
-    }
+    
     
     // Decrease stock
     for (const item of items) {
@@ -830,19 +821,6 @@ router.put('/:orderId', adminAuth, async (req, res) => {
 
     if (updates.forcePaymentWebhook || (!order.paid && updatedOrder.paid)) {
       await sendWebhook('order.paid', updatedOrder.toObject());
-      
-      // Trigger Bosta
-      if (!updatedOrder.bostaDeliveryId) {
-        const bosta = await createBostaDelivery(updatedOrder);
-        if (bosta && bosta.deliveryId) {
-          await Order.updateOne({ _id: updatedOrder._id }, { 
-            $set: { 
-              bostaDeliveryId: bosta.deliveryId, 
-              bostaTrackingNumber: bosta.trackingNumber 
-            } 
-          });
-        }
-      }
     }
 
     res.json(updatedOrder);
