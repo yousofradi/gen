@@ -743,16 +743,20 @@ router.post('/bulk/ship', adminAuth, async (req, res) => {
     const { createBulkBostaDeliveries } = require('../utils/bosta');
     const result = await createBulkBostaDeliveries(orders);
 
-    // Bosta returns an array of results in the same order as the input deliveries
-    // Each result has _id and trackingNumber
+    // Bosta returns results in the same order as the input deliveries
+    // Support both { deliveries: [] } and direct array [ ... ]
     let successCount = 0;
-    if (result && result.deliveries) {
+    const deliveries = Array.isArray(result) ? result : (result.deliveries || []);
+
+    if (deliveries && deliveries.length > 0) {
       for (let i = 0; i < orders.length; i++) {
-        const bostaRes = result.deliveries[i];
-        if (bostaRes && bostaRes._id) {
+        // Find matching response by businessReference (orderId) or by index
+        const bostaRes = deliveries[i];
+        if (bostaRes && (bostaRes._id || bostaRes.id)) {
+          const deliveryId = bostaRes._id || bostaRes.id;
           await Order.updateOne({ _id: orders[i]._id }, {
             $set: {
-              bostaDeliveryId: bostaRes._id,
+              bostaDeliveryId: deliveryId,
               bostaTrackingNumber: bostaRes.trackingNumber
             }
           });
@@ -761,7 +765,7 @@ router.post('/bulk/ship', adminAuth, async (req, res) => {
       }
     }
 
-    res.json({ message: `Successfully shipped ${successCount} orders`, count: successCount });
+    res.json({ message: `تم شحن ${successCount} طلبات بنجاح`, count: successCount });
   } catch (err) {
     console.error('Bulk ship error:', err);
     res.status(500).json({ error: 'Failed to ship orders bulk: ' + err.message });
