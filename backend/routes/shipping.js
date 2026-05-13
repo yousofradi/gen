@@ -16,7 +16,16 @@ router.get('/', async (req, res) => {
 // GET /api/shipping/zones/:cityId — return zones for a gov
 router.get('/zones/:cityId', async (req, res) => {
   try {
-    const gov = await Shipping.findById(req.params.cityId, 'zones');
+    const { cityId } = req.params;
+    let gov;
+    
+    // Support both ID and Name lookup for robustness
+    if (cityId.match(/^[0-9a-fA-F]{24}$/)) {
+      gov = await Shipping.findById(cityId, 'zones');
+    } else {
+      gov = await Shipping.findOne({ city: cityId }, 'zones');
+    }
+
     if (!gov) return res.status(404).json({ error: 'Governorate not found' });
     res.json(gov.zones || []);
   } catch (error) {
