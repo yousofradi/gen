@@ -399,8 +399,15 @@ window.applyCustomerChanges = async function () {
   const cityId = document.getElementById('modal-c-gov').value;
   const zone = document.getElementById('modal-c-zone').value;
 
-  const govData = (window._fullShippingData || []).find(s => s._id === cityId);
-  const cityName = govData ? (govData.cityOtherName || govData.city) : '';
+  const cityNameFromSelect = document.getElementById('modal-c-gov').options[document.getElementById('modal-c-gov').selectedIndex].text.split('(')[0].trim();
+  
+  let govData = (window._fullShippingData || []).find(s => s._id === cityId);
+  // Fallback: search by name if ID lookup fails
+  if (!govData) {
+    govData = (window._fullShippingData || []).find(s => s.city === cityNameFromSelect || s.cityOtherName === cityNameFromSelect);
+  }
+
+  const cityName = govData ? (govData.cityOtherName || govData.city) : cityNameFromSelect;
 
   if (!name || !phone || !cityName || !zone) {
     showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');
@@ -413,8 +420,9 @@ window.applyCustomerChanges = async function () {
   currentOrder.customer.government = cityName;
   currentOrder.customer.zone = zone;
   
-  // Update shipping fee based on city automatically
-  currentOrder.shippingFee = govData ? (govData.fee || 0) : 0;
+  // Update shipping fee based on city automatically (Ensure it is a number)
+  const newFee = govData ? parseFloat(govData.fee) : 0;
+  currentOrder.shippingFee = isNaN(newFee) ? 0 : newFee;
 
   currentOrder.customer.address = document.getElementById('modal-c-address').value.trim();
   currentOrder.customer.notes = document.getElementById('modal-c-notes').value.trim();
