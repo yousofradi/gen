@@ -24,6 +24,7 @@ const customerSchema = new mongoose.Schema({
   secondPhone: { type: String, default: '', trim: true },
   address: { type: String, required: true, trim: true },
   government: { type: String, required: true, trim: true },
+  zone: { type: String, trim: true },
   notes: { type: String, default: '', trim: true }
 }, { _id: false });
 

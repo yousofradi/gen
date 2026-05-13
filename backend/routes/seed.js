@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const Product = require('../models/Product');
 const Collection = require('../models/Collection');
+const Shipping = require('../models/Shipping');
 const adminAuth = require('../middleware/adminAuth');
 
 // POST /api/seed/collections — replaces existing collections with predefined list
@@ -178,6 +179,29 @@ router.post('/', adminAuth, async (req, res) => {
     }
 
     res.json({ message: `Seed complete: ${created} products, ${Object.keys(collectionMap).length} collections` });
+  } catch (err) {
+    res.status(500).json({ error: 'Seed failed: ' + err.message });
+  }
+});
+
+// POST /api/seed/shipping — replaces existing shipping with hierarchical list
+router.post('/shipping', adminAuth, async (req, res) => {
+  try {
+    const newData = [
+      {
+        city: 'Alexandria',
+        fee: 85,
+        zones: [
+          'Abu Yousef', 'Qetaa ElTarik ElSahrawi', 'Agami', 'Amreya', 'Anfoushi', 'Asafra', 'Attarin', 'Azarita', 'Bacchus', 'Bolkly', 'Burg El Arab', 'Camp Caesar', 'Cleopatra', 'Dekheila', 'Fleming', 'Gianaclis', 'Glim', 'Hadara', 'Ibrahimeya', 'Kabbary', 'Kafr Abdu', 'Karmouz', 'Kom El Dikka', 'Labban', 'Laurent', 'Maamoura', 'Mandara', 'Mansheya', 'Miami', 'Moharem Bek', 'Montaza', 'Nakhl', 'Nozha', 'Old San Stefano', 'Raml Station', 'Roshdy', 'Saba Pasha', 'San Stefano', 'Shatby', 'Siouf', 'Smouha', 'Sporting', 'Stanley', 'Victoria', 'Wardian', 'Zizinia'
+        ]
+      },
+      { city: 'Cairo', fee: 85, zones: ['Maadi', 'Nasr City', 'Heliopolis', 'Zamalek', 'Tagamoa'] },
+      { city: 'Giza', fee: 85, zones: ['Dokki', 'Mohandessin', 'Haram', 'Faisal', '6th of October'] }
+    ];
+
+    await Shipping.deleteMany({});
+    await Shipping.insertMany(newData);
+    res.json({ message: 'Hierarchical shipping data seeded successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Seed failed: ' + err.message });
   }

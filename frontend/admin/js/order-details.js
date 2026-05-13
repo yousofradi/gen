@@ -21,26 +21,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const [order, shipping, settings] = await Promise.all([
       api.getOrder(orderId),
-      api.getShipping().catch(() => ({})),
+      api.getShippingList().catch(() => []),
       api.getSetting('sundura_global_settings').catch(() => ({}))
     ]);
 
     currentOrder = order;
     originalOrder = JSON.parse(JSON.stringify(order));
-    shippingMap = shipping;
-
-    // Fallback if DB is empty
-    if (Object.keys(shippingMap).length === 0) {
-      shippingMap = {
-        'القاهرة': 85, 'الجيزة': 85, 'الإسكندرية': 85, 'البحيرة': 85, 'القليوبية': 85, 'الغربية': 85, 'المنوفية': 85, 'دمياط': 85, 'الدقهلية': 85, 'كفر الشيخ': 85, 'الشرقية': 85, 'الاسماعيلية': 95, 'السويس': 95, 'بورسعيد': 95, 'الفيوم': 110, 'بني سويف': 110, 'المنيا': 110, 'اسيوط': 110, 'سوهاج': 130, 'قنا': 130, 'أسوان': 130, 'الأقصر': 130, 'البحر الأحمر': 130, 'مرسي مطروح': 135, 'الوادي الجديد': 135, 'شمال سيناء': 135, 'جنوب سيناء': 135
-      };
-    }
+    window._fullShippingData = shipping;
 
     // Populate government dropdown
     const govSelect = document.getElementById('modal-c-gov');
     if (govSelect) {
-      Object.keys(shippingMap).forEach(gov => {
-        govSelect.add(new Option(gov, gov));
+      govSelect.innerHTML = '<option value="">اختر المدينة</option>';
+      window._fullShippingData.forEach(s => {
+        govSelect.add(new Option(s.city, s.city));
       });
     }
 
@@ -150,6 +144,7 @@ function renderOrder() {
   // Shipping Info
   document.getElementById('view-c-address').textContent = o.customer.address || 'لا يوجد عنوان';
   document.getElementById('view-c-gov').textContent = o.customer.government || 'لا يوجد محافظة';
+  document.getElementById('view-c-zone').textContent = o.customer.zone || 'لا توجد منطقة';
 
   const notesEl = document.getElementById('view-c-notes');
   const notesContainer = document.getElementById('view-c-notes-container');
@@ -328,28 +323,53 @@ window.openCustomerModal = function () {
   document.getElementById('modal-c-phone').value = currentOrder.customer.phone || '';
   document.getElementById('modal-c-phone2').value = currentOrder.customer.secondPhone || '';
   document.getElementById('modal-c-gov').value = currentOrder.customer.government || '';
+  handleModalCityChange(); // Populates zones
+  document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
   document.getElementById('modal-c-address').value = currentOrder.customer.address || '';
   document.getElementById('modal-c-notes').value = currentOrder.customer.notes || '';
   openModal('customer-modal');
 };
 
+window.handleModalCityChange = function () {
+  const city = document.getElementById('modal-c-gov').value;
+  const zoneSelect = document.getElementById('modal-c-zone');
+  const data = (window._fullShippingData || []).find(s => s.city === city);
+  if (zoneSelect) {
+    zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+    if (data && data.zones) {
+      data.zones.forEach(z => {
+        zoneSelect.add(new Option(z, z));
+      });
+    }
+  }
+};
+
 window.applyCustomerChanges = async function () {
   const name = document.getElementById('modal-c-name').value.trim();
   const phone = document.getElementById('modal-c-phone').value.trim();
+  const city = document.getElementById('modal-c-gov').value;
+  const zone = document.getElementById('modal-c-zone').value;
 
-  if (!name || !phone) {
-    showToast('الاسم ورقم الهاتف مطلوبان', 'error');
+  if (!name || !phone || !city || !zone) {
+    showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');
     return;
   }
 
   currentOrder.customer.name = name;
   currentOrder.customer.phone = phone;
   currentOrder.customer.secondPhone = document.getElementById('modal-c-phone2').value.trim();
-  currentOrder.customer.government = document.getElementById('modal-c-gov').value;
+  currentOrder.customer.government = city;
+  currentOrder.customer.zone = zone;
+  
+  // Update shipping fee based on city
+  const data = (window._fullShippingData || []).find(s => s.city === city);
+  currentOrder.shippingFee = data ? (data.fee || 0) : 0;
+
   currentOrder.customer.address = document.getElementById('modal-c-address').value.trim();
   currentOrder.customer.notes = document.getElementById('modal-c-notes').value.trim();
 
   renderOrder();
+  updateTotals();
   closeModal('customer-modal');
 
   // Trigger unsaved changes bar

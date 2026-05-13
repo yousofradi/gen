@@ -989,9 +989,15 @@
                   </div>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">المحافظة *</label>
-                  <select id="c-gov" class="form-control" required onchange="recalcSummary()">
-                    <option value="">اختر المحافظة</option>
+                  <label class="form-label">المحافظة (المدينة) *</label>
+                  <select id="c-gov" class="form-control" required onchange="handleCityChange()">
+                    <option value="">اختر المدينة</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">المنطقة *</label>
+                  <select id="c-zone" class="form-control" required>
+                    <option value="">اختر المنطقة</option>
                   </select>
                 </div>
                 <div class="form-group">

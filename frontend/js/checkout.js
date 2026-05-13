@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!items.length) { window.location.href = 'cart'; return; }
 
   renderOrderSummary(items);
-  await loadGovernorates();
+  await loadCities();
   await loadPaymentMethods();
   setupForm();
 });
@@ -101,31 +101,52 @@ function renderOrderSummary(items) {
   updatePriceSummary();
 }
 
-async function loadGovernorates() {
+async function loadCities() {
   try {
-    const fees = await api.getShipping();
-    window._shippingFees = fees;
+    const list = await api.getShippingList();
+    window._fullShippingData = list;
     const select = document.getElementById('government');
-    Object.keys(fees).forEach(gov => {
+    select.innerHTML = '<option value="">اختر المدينة...</option>';
+    list.forEach(s => {
       const opt = document.createElement('option');
-      opt.value = gov;
-      opt.textContent = `${gov} (${formatPrice(fees[gov])})`;
+      opt.value = s.city;
+      opt.textContent = `${s.city} (${formatPrice(s.fee)})`;
       select.appendChild(opt);
     });
-    select.addEventListener('change', updatePriceSummary);
+    select.addEventListener('change', handleCityChange);
   } catch (err) {
-    showToast('Failed to load shipping fees', 'error');
+    showToast('فشل في تحميل بيانات الشحن', 'error');
   }
+}
+
+function handleCityChange() {
+  const city = document.getElementById('government').value;
+  const zoneSelect = document.getElementById('zone');
+  const data = (window._fullShippingData || []).find(s => s.city === city);
+  
+  if (zoneSelect) {
+    zoneSelect.innerHTML = '<option value="">اختر المنطقة...</option>';
+    if (data && data.zones) {
+      data.zones.forEach(z => {
+        const opt = document.createElement('option');
+        opt.value = z;
+        opt.textContent = z;
+        zoneSelect.appendChild(opt);
+      });
+    }
+  }
+  updatePriceSummary();
 }
 
 function updatePriceSummary() {
   const subtotal = Cart.getTotal();
-  const gov = document.getElementById('government').value;
-  const shippingFee = gov && window._shippingFees ? (window._shippingFees[gov] || 0) : 0;
+  const city = document.getElementById('government').value;
+  const data = (window._fullShippingData || []).find(s => s.city === city);
+  const shippingFee = data ? (data.fee || 0) : 0;
   const total = subtotal + shippingFee;
 
   document.getElementById('subtotal').textContent = formatPrice(subtotal);
-  document.getElementById('shipping-fee').textContent = gov ? formatPrice(shippingFee) : '—';
+  document.getElementById('shipping-fee').textContent = city ? formatPrice(shippingFee) : '—';
   document.getElementById('total-price').textContent = formatPrice(total);
 }
 
@@ -135,8 +156,9 @@ function setupForm() {
     const btn = e.target.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Placing Order...';
 
-    const gov = document.getElementById('government').value;
-    if (!gov) { showToast('اختر المحافظة أولاً', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
+    const city = document.getElementById('government').value;
+    const zone = document.getElementById('zone').value;
+    if (!city || !zone) { showToast('الرجاء اختيار المدينة والمنطقة', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
 
     const name = document.getElementById('cust-name').value.trim();
     if (name.split(/\s+/).filter(Boolean).length < 2) { showToast('الرجاء إدخال الاسم الثنائي (الاسم الأول والأخير)', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
@@ -169,7 +191,8 @@ function setupForm() {
         phone: document.getElementById('cust-phone').value.trim(),
         secondPhone: document.getElementById('cust-phone2').value.trim(),
         address: document.getElementById('cust-address').value.trim(),
-        government: gov,
+        government: city,
+        zone: zone,
         notes: document.getElementById('cust-notes').value.trim()
       },
       items,

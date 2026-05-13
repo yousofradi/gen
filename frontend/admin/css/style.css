@@ -45,15 +45,46 @@
 }
 
 @keyframes skeletonPulse {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-.skeleton-text { height: 14px; margin-bottom: 8px; border-radius: 4px; }
-.skeleton-title { width: 60%; height: 24px; margin-bottom: 12px; border-radius: 6px; }
-.skeleton-row { height: 50px; width: 100%; margin-bottom: 8px; border-radius: 8px; }
-.skeleton-circle { width: 40px; height: 40px; border-radius: 50%; }
-.skeleton-img { width: 60px; height: 60px; border-radius: 8px; }
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 24px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+.skeleton-row {
+  height: 50px;
+  width: 100%;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.skeleton-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+}
 
 /* ── Reset ───────────────────────────────────────────── */
 *,
@@ -90,7 +121,10 @@ img {
   background: #fff;
 }
 
-.product-img, .pli-img, .item-img, .collection-img {
+.product-img,
+.pli-img,
+.item-img,
+.collection-img {
   object-fit: contain !important;
   background-color: #fff !important;
 }
@@ -955,7 +989,7 @@ tr:hover td {
 }
 
 .modal-body {
-  /* padding: 24px;*/
+  padding: 24px;
   overflow-y: auto;
   flex: 1;
 }

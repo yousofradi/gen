@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const [productsRes, shippingRes, settings, customersRes] = await Promise.all([
       api.getProducts(1, 1000, true).catch(() => []),
-      api.getShipping().catch(() => ({})),
+      api.getShippingList().catch(() => []),
       api.getSetting('sundura_global_settings').catch(() => ({})),
       api.getCustomers().catch(() => [])
     ]);
@@ -23,20 +23,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     allCustomers = customersRes || [];
     let shipping = shippingRes;
 
-    // Fallback if DB is empty
-    if (Object.keys(shipping).length === 0) {
-      shipping = {
-        'القاهرة': 85, 'الجيزة': 85, 'الإسكندرية': 85, 'البحيرة': 85, 'القليوبية': 85, 'الغربية': 85, 'المنوفية': 85, 'دمياط': 85, 'الدقهلية': 85, 'كفر الشيخ': 85, 'الشرقية': 85, 'الاسماعيلية': 95, 'السويس': 95, 'بورسعيد': 95, 'الفيوم': 110, 'بني سويف': 110, 'المنيا': 110, 'اسيوط': 110, 'سوهاج': 130, 'قنا': 130, 'أسوان': 130, 'الأقصر': 130, 'البحر الأحمر': 130, 'مرسي مطروح': 135, 'الوادي الجديد': 135, 'شمال سيناء': 135, 'جنوب سيناء': 135
-      };
-    }
-
     allProducts = products;
-    shippingMap = shipping;
+    window._fullShippingData = shipping; // Store full objects
 
     const govSelect = document.getElementById('c-gov');
     if (govSelect) {
-      Object.keys(shippingMap).forEach(gov => {
-        govSelect.add(new Option(gov, gov));
+      govSelect.innerHTML = '<option value="">اختر المدينة</option>';
+      window._fullShippingData.forEach(s => {
+        govSelect.add(new Option(s.city, s.city));
       });
     }
 
@@ -443,11 +437,28 @@ function itemTotal(c) {
   return Math.max(0, effectiveUnitPrice * c.quantity - (c.discount || 0));
 }
 
+window.handleCityChange = function() {
+  const city = document.getElementById('c-gov').value;
+  const zoneSelect = document.getElementById('c-zone');
+  const data = (window._fullShippingData || []).find(s => s.city === city);
+  
+  if (zoneSelect) {
+    zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+    if (data && data.zones) {
+      data.zones.forEach(z => {
+        zoneSelect.add(new Option(z, z));
+      });
+    }
+  }
+  recalcSummary();
+};
+
 window.recalcSummary = function () {
   let subtotal = 0;
   cartItems.forEach(c => subtotal += itemTotal(c));
-  const gov = document.getElementById('c-gov').value;
-  const shipping = shippingMap[gov] || 0;
+  const city = document.getElementById('c-gov').value;
+  const data = (window._fullShippingData || []).find(s => s.city === city);
+  const shipping = data ? (data.fee || 0) : 0;
   const orderDiscount = parseFloat(document.getElementById('order-discount').value) || 0;
   const total = Math.max(0, subtotal + shipping - orderDiscount);
   document.getElementById('sum-subtotal').textContent = formatPrice(subtotal);
@@ -466,8 +477,9 @@ window.submitOrder = async function () {
   const name = document.getElementById('c-name').value.trim();
   const phone = document.getElementById('c-phone').value.trim();
   const address = document.getElementById('c-address').value.trim();
-  const gov = document.getElementById('c-gov').value;
-  if (!name || !phone || !address || !gov) return showToast('يرجى ملء جميع الحقول المطلوبة للعميل', 'error');
+  const city = document.getElementById('c-gov').value;
+  const zone = document.getElementById('c-zone').value;
+  if (!name || !phone || !address || !city || !zone) return showToast('يرجى ملء جميع الحقول المطلوبة للعميل', 'error');
 
   const btn = document.getElementById('submit-btn');
   if (btn) {
@@ -488,7 +500,15 @@ window.submitOrder = async function () {
   }));
 
   const payload = {
-    customer: { name, phone, secondPhone: document.getElementById('c-second-phone').value.trim(), address, government: gov, notes: document.getElementById('c-notes').value.trim() },
+    customer: { 
+      name, 
+      phone, 
+      secondPhone: document.getElementById('c-second-phone').value.trim(), 
+      address, 
+      government: city, 
+      zone: zone,
+      notes: document.getElementById('c-notes').value.trim() 
+    },
     items: finalItems,
     discount: parseFloat(document.getElementById('order-discount').value) || 0,
     paymentMethod: document.querySelector('input[name="payment"]:checked').value,
@@ -594,6 +614,7 @@ function resetCustomerSelectionUI() {
       document.getElementById('c-second-phone').value = '';
       document.getElementById('c-address').value = '';
       document.getElementById('c-gov').value = '';
+      document.getElementById('c-zone').innerHTML = '<option value="">اختر المنطقة</option>';
     }
   }
 }
@@ -629,6 +650,8 @@ window.selectCustomer = function (phone) {
   document.getElementById('c-phone').value = customer.phone || '';
   document.getElementById('c-second-phone').value = customer.secondPhone || '';
   document.getElementById('c-gov').value = customer.government || '';
+  handleCityChange(); // Populates zones
+  document.getElementById('c-zone').value = customer.zone || '';
   document.getElementById('c-address').value = customer.address || '';
   
   document.getElementById('customer-search').value = customer.name || customer.phone;
@@ -673,6 +696,7 @@ window.toggleCustomerMode = function () {
     document.getElementById('c-second-phone').value = '';
     document.getElementById('c-address').value = '';
     document.getElementById('c-gov').value = '';
+    document.getElementById('c-zone').innerHTML = '<option value="">اختر المنطقة</option>';
     document.getElementById('customer-search').value = '';
     
     // Reset selected UI
