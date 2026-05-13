@@ -62,7 +62,7 @@ async function createBostaDelivery(order) {
         phone: order.customer.phone
       },
       isConsigneeReschedule: true,
-      cod: order.paymentMethod === 'Cash on Delivery' ? order.totalPrice + order.shippingFee : 0
+      cod: Math.max(0, order.totalPrice - (order.paidAmount || 0))
     };
 
     const response = await axios.post(`${BOSTA_API_URL}/deliveries`, payload, {
