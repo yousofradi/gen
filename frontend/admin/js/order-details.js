@@ -359,7 +359,6 @@ window.openCustomerModal = function () {
   document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
   document.getElementById('modal-c-address').value = currentOrder.customer.address || '';
   document.getElementById('modal-c-notes').value = currentOrder.customer.notes || '';
-  document.getElementById('modal-shipping-fee').value = currentOrder.shippingFee || 0;
   openModal('customer-modal');
 };
 
@@ -377,8 +376,6 @@ window.handleModalCityChange = async function () {
         const val = z.otherName || z.name;
         zoneSelect.add(new Option(val, val));
       });
-      // Auto-update fee input when city changes
-      document.getElementById('modal-shipping-fee').value = localGov.fee || 0;
     } else {
       // 2. Fallback to API fetch
       try {
@@ -416,8 +413,8 @@ window.applyCustomerChanges = async function () {
   currentOrder.customer.government = cityName;
   currentOrder.customer.zone = zone;
   
-  // Update shipping fee from manual input
-  currentOrder.shippingFee = parseFloat(document.getElementById('modal-shipping-fee').value) || 0;
+  // Update shipping fee based on city automatically
+  currentOrder.shippingFee = govData ? (govData.fee || 0) : 0;
 
   currentOrder.customer.address = document.getElementById('modal-c-address').value.trim();
   currentOrder.customer.notes = document.getElementById('modal-c-notes').value.trim();
