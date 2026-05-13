@@ -178,7 +178,9 @@ router.post('/', adminAuth, async (req, res) => {
         $or: [{ collectionId: colId }, { collectionIds: colId }],
         images: { $exists: true, $ne: [] }
       }).sort({ sortOrder: 1 });
-      if (fp && fp.images.length > 0) await Collection.findByIdAndUpdate(colId, { imageUrl: fp.images[0] });
+      if (fp && fp.images.length > 0) {
+        await Collection.findByIdAndUpdate(colId, { imageUrl: fp.images[0] });
+      }
     }
 
     res.json({ message: `Seed complete: ${created} products, ${Object.keys(collectionMap).length} collections` });
@@ -187,98 +189,40 @@ router.post('/', adminAuth, async (req, res) => {
   }
 });
 
-// POST /api/seed/shipping — replaces existing shipping with hierarchical list
+// POST /api/seed/shipping — replaces existing shipping with hierarchical list from Shipment.txt
 router.post('/shipping', adminAuth, async (req, res) => {
   try {
-    const newData = [
-      {
-        city: 'Alexandria',
-        cityOtherName: 'الاسكندريه',
-        fee: 85,
-        zones: [
-          { name: 'Abu Yousef', otherName: 'ابو يوسف' },
-          { name: 'Agami', otherName: 'العجمي' },
-          { name: 'Amreya', otherName: 'العامرية' },
-          { name: 'Anfoushi', otherName: 'الأنفوشي' },
-          { name: 'Asafra', otherName: 'العصافرة' },
-          { name: 'Attarin', otherName: 'العطارين' },
-          { name: 'Azarita', otherName: 'الأزاريطة' },
-          { name: 'Bacchus', otherName: 'باكوس' },
-          { name: 'Bolkly', otherName: 'بولكلي' },
-          { name: 'Burg El Arab', otherName: 'برج العرب' },
-          { name: 'Camp Caesar', otherName: 'كامب شيزار' },
-          { name: 'Cleopatra', otherName: 'كليوباترا' },
-          { name: 'Dekheila', otherName: 'الدخيلة' },
-          { name: 'Fleming', otherName: 'فليمنج' },
-          { name: 'Gianaclis', otherName: 'جناكليس' },
-          { name: 'Glim', otherName: 'جليم' },
-          { name: 'Hadara', otherName: 'الحضرة' },
-          { name: 'Ibrahimeya', otherName: 'الإبراهيمية' },
-          { name: 'Kabbary', otherName: 'القباري' },
-          { name: 'Kafr Abdu', otherName: 'كفر عبده' },
-          { name: 'Karmouz', otherName: 'كرموز' },
-          { name: 'Kom El Dikka', otherName: 'كوم الدكة' },
-          { name: 'Labban', otherName: 'اللبان' },
-          { name: 'Laurent', otherName: 'لوران' },
-          { name: 'Maamoura', otherName: 'المعمورة' },
-          { name: 'Mandara', otherName: 'المندرة' },
-          { name: 'Mansheya', otherName: 'المنشية' },
-          { name: 'Miami', otherName: 'ميامي' },
-          { name: 'Moharem Bek', otherName: 'محرم بك' },
-          { name: 'Montaza', otherName: 'المنتزه' },
-          { name: 'Nozha', otherName: 'النزهة' },
-          { name: 'San Stefano', otherName: 'سان ستيفانو' },
-          { name: 'Shatby', otherName: 'الشاطبي' },
-          { name: 'Siouf', otherName: 'السيوف' },
-          { name: 'Smouha', otherName: 'سموحة' },
-          { name: 'Sporting', otherName: 'سبورتنج' },
-          { name: 'Stanley', otherName: 'ستانلي' },
-          { name: 'Victoria', otherName: 'فيكتوريا' },
-          { name: 'Wardian', otherName: 'الورديان' },
-          { name: 'Zizinia', otherName: 'زيزينيا' }
-        ]
-      },
-      {
-        city: 'Cairo',
-        cityOtherName: 'القاهرة',
-        fee: 85,
-        zones: [
-          { name: 'Maadi', otherName: 'المعادي' },
-          { name: 'Nasr City', otherName: 'مدينة نصر' },
-          { name: 'Heliopolis', otherName: 'مصر الجديدة' },
-          { name: 'Zamalek', otherName: 'الزمالك' },
-          { name: 'New Cairo', otherName: 'القاهرة الجديدة' },
-          { name: 'Tagamoa', otherName: 'التجمع الخامس' },
-          { name: 'Shoubra', otherName: 'شبرا' },
-          { name: 'Abbaseya', otherName: 'العباسية' },
-          { name: 'Helwan', otherName: 'حلوان' }
-        ]
-      },
-      {
-        city: 'Giza',
-        cityOtherName: 'الجيزة',
-        fee: 85,
-        zones: [
-          { name: 'Dokki', otherName: 'الدقي' },
-          { name: 'Mohandessin', otherName: 'المهندسين' },
-          { name: 'Haram', otherName: 'الهرم' },
-          { name: 'Faisal', otherName: 'فيصل' },
-          { name: '6th of October', otherName: '6 أكتوبر' },
-          { name: 'Sheikh Zayed', otherName: 'الشيخ زايد' },
-          { name: 'Imbaba', otherName: 'إمبابة' }
-        ]
-      }
-    ];
+    const filePath = path.join(__dirname, '../../Shipment.txt');
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Shipment.txt not found' });
+    }
 
+    const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const sourceData = rawData[0].data;
+
+    const newData = sourceData.map(c => ({
+      city: c.cityName,
+      cityOtherName: c.cityOtherName,
+      bostaCityId: c.cityCode,
+      fee: 85,
+      zones: c.districts.map(d => ({
+        name: d.districtName,
+        otherName: d.districtOtherName,
+        bostaZoneId: d.zoneId
+      }))
+    }));
+
+    // Drop all indexes to fix stale unique field errors
     try {
-      await Shipping.collection.dropIndex('governorate_1');
+      await Shipping.collection.dropIndexes();
     } catch (e) {
-      // Ignore if index doesn't exist
+      console.warn('Could not drop indexes:', e.message);
     }
 
     await Shipping.deleteMany({});
     await Shipping.insertMany(newData);
-    res.json({ message: 'Hierarchical localized shipping data seeded successfully' });
+
+    res.json({ message: `Successfully seeded ${newData.length} cities from Shipment.txt` });
   } catch (err) {
     console.error('Shipping seed failed:', err);
     res.status(500).json({ error: 'Seed failed: ' + err.message });
