@@ -110,7 +110,7 @@ async function loadCities() {
     list.forEach(s => {
       const opt = document.createElement('option');
       opt.value = s.city;
-      opt.textContent = `${s.city} (${formatPrice(s.fee)})`;
+      opt.textContent = `${s.cityOtherName || s.city} (${formatPrice(s.fee)})`;
       select.appendChild(opt);
     });
     select.addEventListener('change', handleCityChange);
@@ -129,8 +129,9 @@ function handleCityChange() {
     if (data && data.zones) {
       data.zones.forEach(z => {
         const opt = document.createElement('option');
-        opt.value = z;
-        opt.textContent = z;
+        // Use otherName if available for both value and text to match user preference
+        opt.value = z.otherName || z.name;
+        opt.textContent = z.otherName || z.name;
         zoneSelect.appendChild(opt);
       });
     }

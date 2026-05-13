@@ -85,17 +85,17 @@
           <h3 class="mb-16" id="form-title">إضافة مدينة</h3>
           <div class="grid-2" style="gap:16px">
             <div class="form-group" style="margin-bottom:0">
-              <label class="form-label">اسم المدينة *</label>
-              <input type="text" class="form-control" id="ship-city" placeholder="مثال: الاسكندريه">
+              <label class="form-label">اسم المدينة (بالعربية) *</label>
+              <input type="text" class="form-control" id="ship-city-other" placeholder="مثال: الاسكندريه">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">اسم المدينة (بالانجليزية) *</label>
+              <input type="text" class="form-control" id="ship-city" placeholder="Example: Alexandria">
             </div>
             <div class="form-group" style="margin-bottom:0">
               <label class="form-label">رسوم الشحن (ج.م) *</label>
               <input type="number" class="form-control" id="ship-fee" min="0" placeholder="85">
             </div>
-          </div>
-          <div class="form-group mt-16">
-            <label class="form-label">المناطق (المنطقه) - مفصولة بفاصلة</label>
-            <textarea class="form-control" id="ship-zones" rows="3" placeholder="ابو يوسف, قطاع الطريق الصحراوي, ..."></textarea>
           </div>
           <div class="flex gap-8 mt-16">
             <button class="btn btn-primary" id="save-ship-btn" onclick="saveShipping()">حفظ</button>
@@ -238,11 +238,11 @@
             <td style="text-align: center;">
               <input type="checkbox" class="row-checkbox" onchange="toggleRowSelection('${s._id||''}', this)" ${selectedIds.has(s._id) ? 'checked' : ''} style="width:16px; height:16px; accent-color:var(--primary);">
             </td>
-            <td style="font-weight:600">${s.city}</td>
+            <td style="font-weight:600">${s.cityOtherName || s.city}</td>
             <td style="color:var(--primary);font-weight:600">${formatPrice(s.fee)}</td>
-            <td style="font-size:0.8rem; color:#64748b;">${(s.zones || []).join(', ')}</td>
+            <td style="font-size:0.8rem; color:#64748b;">${(s.zones || []).map(z => z.otherName || z.name).join(', ')}</td>
             <td style="text-align: center;">
-              <button class="btn btn-secondary btn-sm" onclick="editShipping('${s._id||''}','${s.city}',${s.fee}, '${(s.zones || []).join(', ')}')">تعديل</button>
+              <button class="btn btn-secondary btn-sm" onclick="editShipping('${s._id||''}','${s.city}','${s.cityOtherName||''}',${s.fee})">تعديل</button>
             </td>
           </tr>`).join('');
       } catch (e) {
@@ -292,43 +292,43 @@
       document.getElementById('add-form').style.display = 'block';
       document.getElementById('form-title').textContent = 'إضافة مدينة';
       document.getElementById('ship-city').value = '';
+      document.getElementById('ship-city-other').value = '';
       document.getElementById('ship-fee').value = '';
-      document.getElementById('ship-zones').value = '';
       document.getElementById('ship-edit-id').value = '';
       document.getElementById('ship-city').disabled = false;
+      document.getElementById('ship-city-other').disabled = false;
     }
 
     function hideAddForm() {
       document.getElementById('add-form').style.display = 'none';
     }
 
-    function editShipping(id, city, fee, zones) {
+    function editShipping(id, city, other, fee) {
       document.getElementById('add-form').style.display = 'block';
       document.getElementById('form-title').textContent = 'تعديل رسوم الشحن';
       document.getElementById('ship-city').value = city;
+      document.getElementById('ship-city-other').value = other;
       document.getElementById('ship-city').disabled = true;
+      document.getElementById('ship-city-other').disabled = true;
       document.getElementById('ship-fee').value = fee;
-      document.getElementById('ship-zones').value = zones;
       document.getElementById('ship-edit-id').value = id;
     }
 
     async function saveShipping() {
       const city = document.getElementById('ship-city').value.trim();
+      const cityOtherName = document.getElementById('ship-city-other').value.trim();
       const fee = parseFloat(document.getElementById('ship-fee').value);
-      const zonesRaw = document.getElementById('ship-zones').value.trim();
       const id = document.getElementById('ship-edit-id').value;
 
       if (!city || isNaN(fee)) return showToast('يرجى ملء جميع الحقول', 'error');
-
-      const zones = zonesRaw ? zonesRaw.split(',').map(z => z.trim()).filter(z => z) : [];
 
       const btn = document.getElementById('save-ship-btn');
       btn.disabled = true;
       try {
         if (id) {
-          await api.updateShipping(id, { fee, zones });
+          await api.updateShipping(id, { fee });
         } else {
-          await api.createShipping({ city, fee, zones });
+          await api.createShipping({ city, cityOtherName, fee, zones: [] });
         }
         hideAddForm();
         showToast('تم الحفظ بنجاح');
