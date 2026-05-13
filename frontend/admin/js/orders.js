@@ -410,8 +410,10 @@ window.shipOrders = async function () {
   const originalHtml = btn ? btn.innerHTML : 'شحن الطلبات';
 
   // Filter for "active and paid" orders (Full or Partial) that don't have a Bosta ID yet
+  // Exclude cancelled and archived orders
   const ordersToShip = allOrdersData.filter(o => 
     o.status !== 'cancelled' && 
+    o.status !== 'archived' &&
     (o.paid === true || (o.paidAmount && o.paidAmount > 0)) && 
     !o.bostaDeliveryId
   );
