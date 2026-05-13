@@ -439,30 +439,32 @@ function itemTotal(c) {
 
 window.handleCityChange = async function() {
   const cityId = document.getElementById('c-gov').value;
-  const zoneSelect = document.getElementById('c-zone');
-  if (!zoneSelect) return;
+  const zoneList = document.getElementById('c-zone-list');
+  if (!zoneList) return;
   
-  zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+  zoneList.innerHTML = '';
   if (cityId) {
     // 1. Try local data first (highly reliable)
     const localGov = (window._fullShippingData || []).find(s => s._id === cityId);
     if (localGov && localGov.zones && localGov.zones.length > 0) {
       localGov.zones.forEach(z => {
         const val = z.otherName || z.name;
-        zoneSelect.add(new Option(val, val));
+        const opt = document.createElement('option');
+        opt.value = val;
+        zoneList.appendChild(opt);
       });
     } else {
       // 2. Fallback to API fetch
       try {
-        zoneSelect.innerHTML = '<option value="">جاري التحميل...</option>';
         const zones = await api.getZones(cityId);
-        zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
         zones.forEach(z => {
           const val = z.otherName || z.name;
-          zoneSelect.add(new Option(val, val));
+          const opt = document.createElement('option');
+          opt.value = val;
+          zoneList.appendChild(opt);
         });
       } catch (e) {
-        zoneSelect.innerHTML = '<option value="">فشل التحميل</option>';
+        console.error('Failed to load zones', e);
       }
     }
   }
