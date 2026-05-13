@@ -652,6 +652,20 @@ window.saveOrderChanges = async function (silent = false) {
     btn.textContent = 'جارٍ الحفظ...';
   }
 
+  // Zone validation if list exists
+  const zoneList = document.getElementById('m-zone-list');
+  if (zoneList && zoneList.options.length > 0) {
+    const zoneOptions = Array.from(zoneList.options).map(o => o.value);
+    if (currentOrder.customer.zone && !zoneOptions.includes(currentOrder.customer.zone)) {
+      showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
+      if (!silent && btn) { 
+        btn.disabled = false; 
+        btn.textContent = 'حفظ التغييرات'; 
+      }
+      return false;
+    }
+  }
+
   try {
       const updates = {
         items: currentOrder.items.map(item => ({

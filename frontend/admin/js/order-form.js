@@ -503,6 +503,13 @@ window.submitOrder = async function () {
 
   if (!name || !phone || !address || !cityName || !zone) return showToast('يرجى ملء جميع الحقول المطلوبة للعميل', 'error');
 
+  // Zone validation
+  const zoneOptions = Array.from(document.querySelectorAll('#c-zone-list option')).map(o => o.value);
+  if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
+    showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
+    return;
+  }
+
   const btn = document.getElementById('submit-btn');
   if (btn) {
     btn.disabled = true;

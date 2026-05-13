@@ -177,6 +177,14 @@ function setupForm() {
     const cityName = govData ? (govData.cityOtherName || govData.city) : '';
 
     if (!cityName || !zone) { showToast('الرجاء اختيار المدينة والمنطقة', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
+    
+    // Zone validation: must be in datalist
+    const zoneOptions = Array.from(document.querySelectorAll('#zone-list option')).map(o => o.value);
+    if (!zoneOptions.includes(zone)) {
+      showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
+      btn.disabled = false; btn.textContent = 'تأكيد الطلب';
+      return;
+    }
 
     const name = document.getElementById('cust-name').value.trim();
     if (name.split(/\s+/).filter(Boolean).length < 2) { showToast('الرجاء إدخال الاسم الثنائي (الاسم الأول والأخير)', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
