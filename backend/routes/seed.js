@@ -7,6 +7,9 @@ const Collection = require('../models/Collection');
 const Shipping = require('../models/Shipping');
 const adminAuth = require('../middleware/adminAuth');
 
+// GET /api/seed/test — test endpoint
+router.get('/test', (req, res) => res.json({ message: 'Seed route is active' }));
+
 // POST /api/seed/collections — replaces existing collections with predefined list
 router.post('/collections', adminAuth, async (req, res) => {
   try {
