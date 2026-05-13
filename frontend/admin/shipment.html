@@ -253,14 +253,14 @@
     async function loadBostaSettings() {
       try {
         const config = await api.getSetting('bosta_config');
-        if (config && config.value) {
-          document.getElementById('bosta-api-key').value = config.value.apiKey || '';
-          document.getElementById('bosta-city').value = config.value.city || '';
-          document.getElementById('bosta-district-id').value = config.value.districtId || '';
-          document.getElementById('bosta-first-line').value = config.value.firstLine || '';
-          document.getElementById('bosta-building').value = config.value.buildingNumber || '';
-          document.getElementById('bosta-floor').value = config.value.floor || '';
-          document.getElementById('bosta-apartment').value = config.value.apartment || '';
+        if (config) {
+          document.getElementById('bosta-api-key').value = config.apiKey || '';
+          document.getElementById('bosta-city').value = config.city || '';
+          document.getElementById('bosta-district-id').value = config.districtId || '';
+          document.getElementById('bosta-first-line').value = config.firstLine || '';
+          document.getElementById('bosta-building').value = config.buildingNumber || '';
+          document.getElementById('bosta-floor').value = config.floor || '';
+          document.getElementById('bosta-apartment').value = config.apartment || '';
         }
       } catch (e) {}
     }
