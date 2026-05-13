@@ -521,15 +521,6 @@
       if (btn) btn.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 
-      ` + allZones.map(z => `
-        <div style="padding:12px 16px; display:flex; align-items:center; justify-content:space-between; background:#fff; border-bottom:1px solid #f1f5f9; padding-right:32px;">
-          <span style="font-size:0.95rem;">${z.otherName || z.name}</span>
-          <input type="checkbox" checked style="width:18px; height:18px; accent-color:#00bfa5;">
-        </div>
-      `).join('');
-
-      openModal('zones-modal');
-    }
 
     function openAddZonesModal() {
       if (!currentEditingCity) return;
