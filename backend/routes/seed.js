@@ -205,11 +205,13 @@ router.post('/shipping', adminAuth, async (req, res) => {
       cityOtherName: c.cityOtherName,
       bostaCityId: c.cityCode,
       fee: 85,
-      zones: c.districts.map(d => ({
-        name: d.districtName,
-        otherName: d.districtOtherName,
-        bostaZoneId: d.zoneId
-      }))
+      zones: c.districts
+        .filter(d => d.dropOffAvailability === true)
+        .map(d => ({
+          name: d.districtName,
+          otherName: d.districtOtherName,
+          bostaZoneId: d.zoneId
+        }))
     }));
 
     // Drop all indexes to fix stale unique field errors
