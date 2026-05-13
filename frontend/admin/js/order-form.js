@@ -114,7 +114,8 @@ window.openProductsModal = async function () {
     if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center;">جاري تحميل المنتجات...</div>';
     try {
       const [productsRes, collections] = await Promise.all([
-        api.getProducts(1, 1000, true).catch(() => []),
+        // Use caching for modal products to load faster
+        api.getProducts(1, 1000, true, '', '', '', true).catch(() => []),
         api.getCollections()
       ]);
       allProducts = (productsRes.products || productsRes).filter(p => p.status !== 'draft');
@@ -540,7 +541,7 @@ window.submitOrder = async function () {
   const btn = document.getElementById('submit-btn');
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'جارٍ الحفظ...';
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
   }
 
   const finalItems = cartItems.map(c => ({

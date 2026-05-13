@@ -634,7 +634,13 @@ window.applyItemDiscount = async function () {
 
 window.markFullyPaid = async function () {
   currentOrder.paidAmount = currentOrder.totalPrice;
+  currentOrder.paid = true;
   currentOrder.forcePaymentWebhook = true;
+  
+  // Instant UI update
+  renderOrder();
+  
+  showToast('جارٍ تحديث حالة الدفع...', 'info');
   
   // Save immediately
   const success = await saveOrderChanges(true);
@@ -647,9 +653,11 @@ window.markFullyPaid = async function () {
 
 window.saveOrderChanges = async function (silent = false) {
   const btn = document.getElementById('save-all-btn');
+  const originalText = btn ? btn.textContent : '';
+
   if (!silent && btn) {
     btn.disabled = true;
-    btn.textContent = 'جارٍ الحفظ...';
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
   }
 
   // Zone validation if list exists
@@ -703,12 +711,13 @@ window.saveOrderChanges = async function (silent = false) {
     renderOrder();
     return true;
   } catch (err) {
-    if (!silent && btn) {
-      btn.disabled = false;
-      btn.textContent = 'حفظ التغييرات';
-    }
     showToast(err.message || 'فشل الحفظ', 'error');
     return false;
+  } finally {
+    if (!silent && btn) {
+      btn.disabled = false;
+      btn.textContent = originalText || 'حفظ التغييرات';
+    }
   }
 };
 
@@ -754,7 +763,8 @@ window.openProductsModal = async function () {
     const listEl = document.getElementById('modal-products-list');
     listEl.innerHTML = '<div style="padding:20px; text-align:center;">جاري تحميل المنتجات...</div>';
     try {
-      allProducts = await api.getProducts();
+      // Use caching for modal products to load faster
+      allProducts = await api.getProducts(1, 1000, true, '', '', '', true);
     } catch (err) {
       console.error('Failed to load products for modal', err);
     }
