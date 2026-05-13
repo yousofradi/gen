@@ -13,7 +13,7 @@ async function createBostaDelivery(order) {
     }
 
     const { apiKey, city, districtId, firstLine, buildingNumber, floor, apartment } = config.value;
-    
+
     if (!city || !districtId || !firstLine) {
       console.warn('Bosta store address (city, districtId, firstLine) not fully configured, skipping delivery creation');
       return { error: 'Bosta address not configured' };
@@ -31,7 +31,7 @@ async function createBostaDelivery(order) {
     // Resolve Bosta IDs for drop-off
     const shippingRecord = await Shipping.findOne({ city: order.customer.government });
     const bostaCityId = shippingRecord ? shippingRecord.bostaCityId : order.customer.government;
-    
+
     let bostaZoneId = order.customer.zone;
     if (shippingRecord && shippingRecord.zones) {
       const zoneRecord = shippingRecord.zones.find(z => z.name === order.customer.zone || z.otherName === order.customer.zone);
@@ -62,7 +62,11 @@ async function createBostaDelivery(order) {
         phone: order.customer.phone
       },
       isConsigneeReschedule: true,
-      cod: Math.max(0, order.totalPrice - (order.paidAmount || 0))
+      notes: 'برجاء الاتصال قبل الوصول',
+      cod: (function() {
+        const remaining = order.totalPrice - (order.paidAmount || 0);
+        return remaining > 0 ? remaining + 10 : 0;
+      })()
     };
 
     const response = await axios.post(`${BOSTA_API_URL}/deliveries`, payload, {
