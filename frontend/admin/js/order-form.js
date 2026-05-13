@@ -534,7 +534,8 @@ window.submitOrder = async function () {
     items: finalItems,
     discount: parseFloat(document.getElementById('order-discount').value) || 0,
     paymentMethod: document.querySelector('input[name="payment"]:checked').value,
-    paidAmount: Math.max(0, parseFloat(document.getElementById('paid-amount').value) || 0)
+    paidAmount: Math.max(0, parseFloat(document.getElementById('paid-amount').value) || 0),
+    shippingFee: govData ? (govData.fee || 0) : 0
   };
 
   try {

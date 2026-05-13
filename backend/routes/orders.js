@@ -187,7 +187,7 @@ ${notesHtml}
 // POST /api/orders — create order (public from storefront OR admin)
 router.post('/', async (req, res) => {
   try {
-    const { customer, items, paymentMethod, discount = 0, paidAmount = 0 } = req.body;
+    const { customer, items, paymentMethod, discount = 0, paidAmount = 0, shippingFee: providedShippingFee } = req.body;
 
     if (!customer || !items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Customer info and at least one item are required' });
@@ -199,20 +199,24 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Valid payment method is required' });
     }
 
-    // Shipping fee: try DB first, fall back to static config
-    let shippingFee = 0;
-    try {
-      const Shipping = require('../models/Shipping');
-      const record = await Shipping.findOne({ governorate: customer.government });
-      if (record) {
-        shippingFee = record.fee;
-      } else {
+    // Shipping fee: try provided, then DB, then fallback to static config
+    let shippingFee = providedShippingFee !== undefined ? Number(providedShippingFee) : 0;
+    
+    if (providedShippingFee === undefined) {
+      try {
+        const Shipping = require('../models/Shipping');
+        // Search by city or cityOtherName
+        const record = await Shipping.findOne({ $or: [{ city: customer.government }, { cityOtherName: customer.government }] });
+        if (record) {
+          shippingFee = record.fee;
+        } else {
+          const defaultFees = require('../config/shipping');
+          shippingFee = defaultFees[customer.government] || 0;
+        }
+      } catch (e) {
         const defaultFees = require('../config/shipping');
         shippingFee = defaultFees[customer.government] || 0;
       }
-    } catch (e) {
-      const defaultFees = require('../config/shipping');
-      shippingFee = defaultFees[customer.government] || 0;
     }
 
     if (shippingFee === 0 && !customer.government) {
