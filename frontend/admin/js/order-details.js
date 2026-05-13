@@ -22,6 +22,19 @@ function getProductCombinations(options) {
   return results;
 }
 
+window.toggleProductVariants = function (pid) {
+  const el = document.getElementById(`variants-${pid}`);
+  const icon = document.getElementById(`icon-${pid}`);
+  if (!el) return;
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    icon.style.transform = 'rotate(180deg)';
+  } else {
+    el.style.display = 'none';
+    icon.style.transform = 'rotate(0deg)';
+  }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAdmin()) return;
 
