@@ -47,8 +47,25 @@ function isDriveUrl(url) {
   return url.includes('drive.google.com') || url.includes('googleusercontent.com');
 }
 
+/**
+ * Injects f_auto and q_auto into a Cloudinary URL for optimal compression.
+ * @param {string} url - The original Cloudinary image URL.
+ * @returns {string} - The optimized URL.
+ */
+function optimizeCloudinaryUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  
+  // Check if it's actually a Cloudinary URL and doesn't already have the flags
+  if (url.includes('res.cloudinary.com') && !url.includes('f_auto') && url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/f_auto,q_auto/');
+  }
+  
+  return url;
+}
+
 module.exports = {
   uploadToCloudinary,
   isDriveUrl,
-  isCloudinaryConfigured
+  isCloudinaryConfigured,
+  optimizeCloudinaryUrl
 };

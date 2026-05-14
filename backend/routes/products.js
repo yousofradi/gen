@@ -8,13 +8,32 @@ const fs = require('fs');
 const path = require('path');
 
 const upload = multer({ dest: 'uploads/' });
+const { uploadToCloudinary, isDriveUrl, optimizeCloudinaryUrl } = require('../utils/cloudinary');
 
-// ── Caching ──────────────────────────────────────────────
-let productCache = new Map();
-const CACHE_DURATION = 30 * 1000; // 30 seconds for better performance
+// Helper to optimize product images for delivery
+function optimizeProductData(p) {
+  if (!p) return p;
+  if (p.imageUrl) p.imageUrl = optimizeCloudinaryUrl(p.imageUrl);
+  if (Array.isArray(p.images)) {
+    p.images = p.images.map(img => optimizeCloudinaryUrl(img));
+  }
+  if (Array.isArray(p.variants)) {
+    p.variants.forEach(v => {
+      if (v.imageUrl) v.imageUrl = optimizeCloudinaryUrl(v.imageUrl);
+    });
+  }
+  return p;
+}
 
-function clearCache() {
-  productCache.clear();
+const redis = require('../utils/redis');
+
+async function clearCache() {
+  try {
+    const keys = await redis.keys('products:*');
+    if (keys.length > 0) await redis.del(keys);
+  } catch (err) {
+    console.error('Failed to clear redis cache:', err);
+  }
 }
 
 // ── Public ──────────────────────────────────────────────
@@ -24,13 +43,10 @@ router.get('/', async (req, res) => {
   try {
     const { page, limit, admin, collectionId, search, hasOptions } = req.query;
     
-    // Simple caching for public requests
-    const cacheKey = JSON.stringify({ page, limit, admin, collectionId, search, hasOptions });
-    if (admin !== 'true' && productCache.has(cacheKey)) {
-      const cached = productCache.get(cacheKey);
-      if (Date.now() - cached.time < CACHE_DURATION) {
-        return res.json(cached.data);
-      }
+    const cacheKey = `products:${JSON.stringify({ page, limit, collectionId, search, hasOptions })}`;
+    if (admin !== 'true') {
+      const cached = await redis.get(cacheKey);
+      if (cached) return res.json(JSON.parse(cached));
     }
 
     const query = {};
@@ -97,7 +113,7 @@ router.get('/', async (req, res) => {
         // Fetch all matching products then sort and paginate manually or via $in
         // But $in doesn't guarantee order. 
         // Best for small/medium collections: fetch all matching IDs, then paginate.
-        const allMatching = await Product.find(query).select(fieldsToSelect);
+        const allMatching = await Product.find(query).select(fieldsToSelect).lean();
         total = allMatching.length;
         
         // Sort
@@ -109,12 +125,13 @@ router.get('/', async (req, res) => {
           return idxA - idxB;
         });
         
-        products = allMatching.slice(skip, skip + limitNum);
+        products = allMatching.slice(skip, skip + limitNum).map(optimizeProductData);
       } else {
         [products, total] = await Promise.all([
-          Product.find(query).select(fieldsToSelect).sort(sortObj).skip(skip).limit(limitNum),
+          Product.find(query).select(fieldsToSelect).sort(sortObj).skip(skip).limit(limitNum).lean(),
           Product.countDocuments(query)
         ]);
+        products = products.map(optimizeProductData);
       }
       
       const result = {
@@ -125,22 +142,21 @@ router.get('/', async (req, res) => {
       };
 
       if (admin !== 'true') {
-        const cacheKey = JSON.stringify({ page, limit, admin, collectionId, search });
-        productCache.set(cacheKey, { data: result, time: Date.now() });
+        await redis.set(cacheKey, JSON.stringify(result), 'EX', 3600);
       }
       
       res.json(result);
     } else {
       // For non-paginated requests (like the home page), still apply a reasonable limit of 500
       // unless it's an admin request.
-      const queryExec = Product.find(query).select(fieldsToSelect).sort(sortObj);
+      const queryExec = Product.find(query).select(fieldsToSelect).sort(sortObj).lean();
       if (admin !== 'true') {
         queryExec.limit(500); 
       }
-      const products = await queryExec;
+      let products = await queryExec;
+      products = products.map(optimizeProductData);
       if (admin !== 'true') {
-        const cacheKey = JSON.stringify({ page, limit, admin, collectionId, search });
-        productCache.set(cacheKey, { data: products, time: Date.now() });
+        await redis.set(cacheKey, JSON.stringify(products), 'EX', 3600);
       }
       res.json(products);
     }
@@ -152,9 +168,9 @@ router.get('/', async (req, res) => {
 // GET /api/products/:id — single product
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).lean();
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    res.json(product);
+    res.json(optimizeProductData(product));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product' });
   }
@@ -163,15 +179,13 @@ router.get('/:id', async (req, res) => {
 // GET /api/products/handle/:handle — single product by handle
 router.get('/handle/:handle', async (req, res) => {
   try {
-    const product = await Product.findOne({ handle: req.params.handle });
+    const product = await Product.findOne({ handle: req.params.handle }).lean();
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    res.json(product);
+    res.json(optimizeProductData(product));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product by handle' });
   }
 });
-
-const { uploadToCloudinary, isDriveUrl } = require('../utils/cloudinary');
 
 // Helper to process drive images in payload
 async function processDriveImages(body) {

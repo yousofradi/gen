@@ -1,5 +1,14 @@
 /** Admin — Create Order form JS */
 
+/** Debounce function to limit API calls */
+function debounce(func, delay = 300) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
 let allProducts = [];
 let allCustomers = [];
 let shippingMap = {};
@@ -201,7 +210,7 @@ window.renderModalProducts = function () {
 
   listEl.innerHTML = filtered.map(p => {
     const isChecked = modalSelectedProducts.has(p._id);
-    const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" class="pli-img">` : `<div class="pli-img"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
+    const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" class="pli-img" loading="lazy">` : `<div class="pli-img"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
     const hasOptions = p.options && p.options.length > 0;
     const effectiveBase = (p.salePrice && p.salePrice < p.basePrice) ? p.salePrice : p.basePrice;
 
@@ -404,7 +413,7 @@ function renderCart() {
     const p = c.product;
     const imgSrc = p.imageUrl || '';
     const imgHtml = imgSrc
-      ? `<img src="${imgSrc}" style="width:52px; height:52px; border-radius:8px; object-fit:cover; border:1px solid #f1f5f9;" alt="${p.name}">`
+      ? `<img src="${imgSrc}" style="width:52px; height:52px; border-radius:8px; object-fit:cover; border:1px solid #f1f5f9;" alt="${p.name}" loading="lazy">`
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
     const optText = (c.selectedOptions || []).map(op => op.label).join(' / ');
@@ -626,9 +635,7 @@ window.setupCustomerSearch = function () {
     }
   });
 
-  input.addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase().trim();
-    
+  const debouncedCustomerSearch = debounce((q) => {
     // Reset selected state if user types
     resetCustomerSelectionUI();
 
@@ -642,6 +649,10 @@ window.setupCustomerSearch = function () {
     );
     renderCustomerDropdown(filtered);
     dropdown.classList.add('active');
+  }, 300);
+
+  input.addEventListener('input', (e) => {
+    debouncedCustomerSearch(e.target.value.toLowerCase().trim());
   });
 
   document.addEventListener('click', (e) => {
@@ -772,8 +783,7 @@ window.toggleCustomerMode = function () {
 window.setupSearch = function () {
   const input = document.getElementById('product-search-input');
   if (!input) return;
-  input.addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase().trim();
+  const debouncedProductSearch = debounce((q) => {
     const results = document.getElementById('search-results');
     if (q.length < 2) { results.innerHTML = ''; return; }
     const filtered = allProducts.filter(p => p.name.toLowerCase().includes(q));
@@ -783,6 +793,10 @@ window.setupSearch = function () {
         <div style="font-size:0.85rem;color:var(--text-muted)">${formatPrice(p.salePrice || p.basePrice)}</div>
       </div>
     `).join('');
+  }, 300);
+
+  input.addEventListener('input', (e) => {
+    debouncedProductSearch(e.target.value.toLowerCase().trim());
   });
 };
 

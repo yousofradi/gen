@@ -7,6 +7,7 @@ const sendWebhook = require('../utils/webhook');
 const { sendPushToAdmins } = require('../utils/push');
 const { adjustStock } = require('../utils/inventory');
 const { createBostaDelivery } = require('../utils/bosta');
+const { orderQueue } = require('../utils/queue');
 
 
 // Helper: recalculate totals from items + shipping + discount
@@ -258,29 +259,9 @@ router.post('/', async (req, res) => {
     }
 
 
-    // Fetch store logo for notification
-    let storeLogo = '/admin/logo.png';
-    try {
-      const Setting = require('../models/Setting');
-      const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
-      if (globalSettings && globalSettings.value.storeLogo) {
-        storeLogo = globalSettings.value.storeLogo;
-      }
-    } catch (e) { }
+    // 4. Background processing (Notifications, Webhooks, etc.)
+    await orderQueue.add('process_new_order', { order: order.toObject() });
 
-    // Send push notification to admins
-    sendPushToAdmins({
-      title: 'طلب جديد! 📦',
-      body: `طلب بقيمة ${order.totalPrice} ج.م من ${order.customer.name}`,
-      icon: storeLogo,
-      sound: 'https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3',
-      data: {
-        url: `/admin/order-details.html?id=${order.orderId}`,
-        sound: 'https://cdn.pixabay.com/audio/2022/11/04/audio_7650b73fdb.mp3'
-      }
-    });
-
-    await sendWebhook('order.created', order.toObject());
     res.status(201).json(order);
   } catch (err) {
     console.error('Order creation error:', err);

@@ -1,5 +1,8 @@
-const CACHE_NAME = 'admin-cache-v1';
-const assets = [
+const CACHE_VERSION = 'v1.0.1';
+const STATIC_CACHE = `static-cache-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `dynamic-cache-${CACHE_VERSION}`;
+
+const STATIC_ASSETS = [
   'index.html',
   'css/style.css',
   'js/api.js',
@@ -7,22 +10,73 @@ const assets = [
   'manifest.json'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(assets)));
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => {
+      console.log('[Service Worker] Pre-caching static assets');
+      return cache.addAll(STATIC_ASSETS);
+    })
+  );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(
-    keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-  )));
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            console.log('[Service Worker] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
-self.addEventListener('fetch', e => {
-  // Skip caching for API requests and cross-origin calls
-  if (e.request.url.includes('/api/')) {
-    return; // Let it fall through to the network naturally
+self.addEventListener('fetch', (event) => {
+  const requestUrl = new URL(event.request.url);
+  if (event.request.method !== 'GET') return;
+
+  // Strategy 1: Stale-While-Revalidate (SWR) for API calls
+  if (requestUrl.pathname.includes('/api/products') || requestUrl.pathname.includes('/api/collections')) {
+    event.respondWith(
+      caches.open(DYNAMIC_CACHE).then((cache) => {
+        return cache.match(event.request).then((cachedResponse) => {
+          const fetchPromise = fetch(event.request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          }).catch((err) => {
+            console.log('[Service Worker] SWR Network fetch failed:', err);
+          });
+          return cachedResponse || fetchPromise;
+        });
+      })
+    );
+    return;
   }
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+
+  // Strategy 2: Cache-First for Static Assets
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
+      return fetch(event.request).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return networkResponse;
+        }
+        const responseToCache = networkResponse.clone();
+        caches.open(DYNAMIC_CACHE).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+        return networkResponse;
+      }).catch(() => {
+        console.log('[Service Worker] Offline and asset not cached.');
+      });
+    })
+  );
 });
 
 // ── Push Notification Handler ──

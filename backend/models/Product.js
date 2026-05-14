@@ -42,6 +42,7 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
+productSchema.index({ name: 'text', description: 'text' });
 productSchema.index({ active: 1, status: 1 });
 productSchema.index({ collectionId: 1 });
 productSchema.index({ collectionIds: 1 });

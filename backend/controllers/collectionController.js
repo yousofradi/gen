@@ -2,7 +2,7 @@ const Collection = require('../models/Collection');
 
 exports.getCollections = async (req, res) => {
   try {
-    const collections = await Collection.find().sort({ sortOrder: 1, createdAt: -1 });
+    const collections = await Collection.find().sort({ sortOrder: 1, createdAt: -1 }).lean();
     res.json(collections);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -16,10 +16,10 @@ exports.getCollection = async (req, res) => {
     
     // Check if ID is a valid MongoDB ObjectId
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
-      collection = await Collection.findById(id);
+      collection = await Collection.findById(id).lean();
     } else {
       // Otherwise search by handle/urlName
-      collection = await Collection.findOne({ urlName: id });
+      collection = await Collection.findOne({ urlName: id }).lean();
     }
 
     if (!collection) return res.status(404).json({ error: 'Collection not found' });

@@ -51,4 +51,7 @@ const orderSchema = new mongoose.Schema({
   bostaTrackingNumber: { type: String }
 }, { timestamps: true });
 
+orderSchema.index({ 'customer.phone': 1 });
+orderSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Order', orderSchema);
