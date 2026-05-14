@@ -243,7 +243,8 @@ router.post('/', async (req, res) => {
       shippingFee,
       paymentMethod,
       paidAmount: Number(paidAmount) || 0,
-      paid: (Number(paidAmount) || 0) >= totalPrice
+      paid: (Number(paidAmount) || 0) >= totalPrice,
+      processingStatus: 'pending'
     });
 
     await order.save();

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1.0.1';
+const CACHE_VERSION = 'v1.0.2';
 const STATIC_CACHE = `static-cache-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-cache-${CACHE_VERSION}`;
 
@@ -39,21 +39,20 @@ self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
   if (event.request.method !== 'GET') return;
 
-  // Strategy 1: Stale-While-Revalidate (SWR) for API calls
-  if (requestUrl.pathname.includes('/api/products') || requestUrl.pathname.includes('/api/collections')) {
+  // Strategy 1: Network-First for API calls in Admin
+  if (requestUrl.pathname.includes('/api/')) {
     event.respondWith(
-      caches.open(DYNAMIC_CACHE).then((cache) => {
-        return cache.match(event.request).then((cachedResponse) => {
-          const fetchPromise = fetch(event.request).then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(event.request, networkResponse.clone());
-            }
-            return networkResponse;
-          }).catch((err) => {
-            console.log('[Service Worker] SWR Network fetch failed:', err);
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(DYNAMIC_CACHE).then((cache) => {
+            cache.put(event.request, responseToCache);
           });
-          return cachedResponse || fetchPromise;
-        });
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Fallback to cache if network fails
+        return caches.match(event.request);
       })
     );
     return;

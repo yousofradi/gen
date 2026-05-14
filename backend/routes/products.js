@@ -27,12 +27,18 @@ function optimizeProductData(p) {
 
 const redis = require('../utils/redis');
 
-async function clearCache() {
+const REDIS_TTL = 3600; // 1 hour
+
+async function updateStorefrontCache(productId, productData) {
   try {
-    const keys = await redis.keys('products:*');
-    if (keys.length > 0) await redis.del(keys);
+    const cacheKey = `storefront:product:${productId}`;
+    if (productData) {
+      await redis.set(cacheKey, JSON.stringify(productData), 'EX', REDIS_TTL);
+    } else {
+      await redis.del(cacheKey);
+    }
   } catch (err) {
-    console.error('Failed to clear redis cache:', err);
+    console.error('[Redis] Cache update failed:', err);
   }
 }
 
@@ -43,8 +49,9 @@ router.get('/', async (req, res) => {
   try {
     const { page, limit, admin, collectionId, search, hasOptions, status } = req.query;
     
-    const cacheKey = `products:${JSON.stringify({ page, limit, collectionId, search, hasOptions, status })}`;
+    // 1. ADMIN BYPASS: Skip Redis entirely for admin requests
     if (admin !== 'true') {
+      const cacheKey = `storefront:products:list:${JSON.stringify({ page, limit, collectionId, search, hasOptions, status })}`;
       try {
         const cached = await redis.get(cacheKey);
         if (cached) return res.json(JSON.parse(cached));
@@ -187,9 +194,34 @@ router.get('/', async (req, res) => {
 // GET /api/products/:id — single product
 router.get('/:id', async (req, res) => {
   try {
+    const { admin } = req.query;
+    const cacheKey = `storefront:product:${req.params.id}`;
+
+    // 1. ADMIN BYPASS
+    if (admin !== 'true') {
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) return res.json(JSON.parse(cached));
+      } catch (err) {
+        console.error('[Redis] Cache get failed:', err.message);
+      }
+    }
+
     const product = await Product.findById(req.params.id).lean();
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    res.json(optimizeProductData(product));
+    
+    const optimized = optimizeProductData(product);
+
+    // Update cache if not admin
+    if (admin !== 'true') {
+      try {
+        await redis.set(cacheKey, JSON.stringify(optimized), 'EX', REDIS_TTL);
+      } catch (err) {
+        console.error('[Redis] Cache set failed:', err.message);
+      }
+    }
+
+    res.json(optimized);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product' });
   }
@@ -253,7 +285,10 @@ router.post('/', adminAuth, async (req, res) => {
     });
     
     await product.save();
-    clearCache();
+    
+    // Write-Through: Update specific product cache
+    await updateStorefrontCache(product._id, optimizeProductData(product.toObject()));
+    
     res.status(201).json(product);
   } catch (err) {
     if (err.name === 'ValidationError') {
@@ -278,7 +313,10 @@ router.put('/:id', adminAuth, async (req, res) => {
     );
 
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    clearCache();
+    
+    // Write-Through: Update specific product cache
+    await updateStorefrontCache(product._id, optimizeProductData(product.toObject()));
+    
     res.json(product);
   } catch (err) {
     if (err.name === 'ValidationError') {
@@ -293,7 +331,10 @@ router.delete('/:id', adminAuth, async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    clearCache();
+    
+    // Write-Through: Remove from cache
+    await updateStorefrontCache(req.params.id, null);
+    
     res.json({ message: 'Product deleted' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete product' });
@@ -306,7 +347,12 @@ router.post('/delete/batch', adminAuth, async (req, res) => {
     const { productIds } = req.body;
     if (!Array.isArray(productIds)) return res.status(400).json({ error: 'productIds must be an array' });
     await Product.deleteMany({ _id: { $in: productIds } });
-    clearCache();
+    
+    // Write-Through: Remove affected products from cache
+    for (const id of productIds) {
+      await updateStorefrontCache(id, null);
+    }
+    
     res.json({ message: 'Products deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete products' });
@@ -322,7 +368,13 @@ router.post('/deactivate/batch', adminAuth, async (req, res) => {
       { _id: { $in: productIds } },
       { $set: { active: false, status: 'draft' } }
     );
-    clearCache();
+
+    // Write-Through: Update affected products
+    const updated = await Product.find({ _id: { $in: productIds } }).lean();
+    for (const p of updated) {
+      await updateStorefrontCache(p._id, optimizeProductData(p));
+    }
+    
     res.json({ message: 'Products deactivated successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to deactivate products' });
@@ -343,7 +395,14 @@ router.put('/reorder/batch', adminAuth, async (req, res) => {
       }
     }));
     await Product.bulkWrite(ops);
-    clearCache();
+    
+    // Write-Through: Update affected products
+    const ids = order.map(item => item.id);
+    const updated = await Product.find({ _id: { $in: ids } }).lean();
+    for (const p of updated) {
+      await updateStorefrontCache(p._id, optimizeProductData(p));
+    }
+    
     res.json({ message: 'Products reordered' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reorder products' });
@@ -383,7 +442,12 @@ router.put('/collection/batch', adminAuth, async (req, res) => {
       return res.status(400).json({ error: 'invalid action' });
     }
     
-    clearCache();
+    // Write-Through: Update affected products
+    const updatedProducts = await Product.find({ _id: { $in: productIds } }).lean();
+    for (const p of updatedProducts) {
+      await updateStorefrontCache(p._id, optimizeProductData(p));
+    }
+    
     res.json({ message: 'Product collections updated successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update product collections' });
@@ -540,7 +604,12 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
 
     // Cleanup file
     try { fs.unlinkSync(req.file.path); } catch(e) {}
-    clearCache();
+    // Write-Through: Update all imported products
+    for (const p of finalProducts) {
+       const saved = await Product.findOne({ name: p.name }).lean();
+       if (saved) await updateStorefrontCache(saved._id, optimizeProductData(saved));
+    }
+
     if (createCollections === 'true') {
       try {
         require('./collectionRoutes').clearCache();

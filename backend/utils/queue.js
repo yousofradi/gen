@@ -7,20 +7,31 @@ const orderQueue = new Queue('orderQueue', {
 
 const worker = new Worker('orderQueue', async (job) => {
     console.log(`[BullMQ] Processing job ${job.id}`);
+    const Order = require('../models/Order');
     
-    // Success status return
-    return { status: 'success', jobId: job.id };
+    try {
+        // 1. Mark as completed in MongoDB (Durability Fallback)
+        if (job.data.order && job.data.order._id) {
+            await Order.findByIdAndUpdate(job.data.order._id, { 
+                $set: { processingStatus: 'completed' } 
+            });
+        }
+        return { status: 'success', jobId: job.id };
+    } catch (err) {
+        console.error(`[BullMQ] Job ${job.id} failed:`, err.message);
+        throw err;
+    }
 
 }, { 
     connection: redis,
-    // Expanded memory limits for 256MB instance
+    // CRITICAL: 25MB RAM LIMITS
     removeOnComplete: {
-        count: 500,        // Keep last 500 successful jobs
-        age: 86400 * 7     // Delete after 7 days
+        count: 50,        // Drastically reduced for 25MB RAM
+        age: 3600         // Delete after 1 hour
     },
     removeOnFail: {
-        count: 1000,       // Keep last 1000 failed jobs
-        age: 86400 * 30    // Delete after 30 days
+        count: 100,       // Reduced for 25MB RAM
+        age: 86400        // Delete after 24 hours
     }
 });
 

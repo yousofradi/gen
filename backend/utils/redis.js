@@ -7,9 +7,11 @@ if (!redisUrl) {
 }
 
 const redis = new Redis(redisUrl, {
-    maxRetriesPerRequest: null, // Required for BullMQ
+    maxRetriesPerRequest: null, 
+    enableReadyCheck: false,
+    lazyConnect: true,
     tls: {
-        rejectUnauthorized: false // Avoid SSL handshake issues
+        rejectUnauthorized: false
     }
 });
 

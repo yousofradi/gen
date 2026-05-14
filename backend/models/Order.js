@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const selectedOptionSchema = new mongoose.Schema({
   groupName: { type: String, required: true },
   label: { type: String, required: true },
@@ -48,7 +47,12 @@ const orderSchema = new mongoose.Schema({
   archived: { type: Boolean, default: false },
   status: { type: String, enum: ['pending', 'cancelled', 'ready'], default: 'pending' },
   bostaDeliveryId: { type: String },
-  bostaTrackingNumber: { type: String }
+  bostaTrackingNumber: { type: String },
+  processingStatus: { 
+    type: String, 
+    enum: ['pending', 'completed', 'failed'], 
+    default: 'pending' 
+  }
 }, { timestamps: true });
 
 orderSchema.index({ 'customer.phone': 1 });
