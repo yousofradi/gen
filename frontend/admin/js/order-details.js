@@ -541,12 +541,8 @@ window.openPaymentModal = function () {
 };
 
 window.applyPaymentChanges = async function () {
-  const newPaidAmount = parseFloat(document.getElementById('modal-paid-amount').value) || 0;
   currentOrder.paymentMethod = document.getElementById('modal-payment-method').value;
-  currentOrder.paidAmount = newPaidAmount;
-
-  // Fire trigger if paidAmount > 0, even if not changed. Except if it's 0.
-  currentOrder.forcePaymentWebhook = newPaidAmount > 0;
+  currentOrder.paidAmount = parseFloat(document.getElementById('modal-paid-amount').value) || 0;
 
   renderOrder();
   closeModal('payment-modal');
@@ -556,6 +552,24 @@ window.applyPaymentChanges = async function () {
   
   if (window.hideBar) window.hideBar();
 };
+
+window.resendPaymentConfirmation = async function() {
+  const newPaidAmount = parseFloat(document.getElementById('modal-paid-amount').value) || 0;
+  if (newPaidAmount <= 0) {
+    showToast('يجب أن يكون المبلغ المدفوع أكبر من 0 لإرسال التأكيد', 'error');
+    return;
+  }
+  
+  // Update state
+  currentOrder.paymentMethod = document.getElementById('modal-payment-method').value;
+  currentOrder.paidAmount = newPaidAmount;
+  currentOrder.forcePaymentWebhook = true;
+  
+  renderOrder();
+  showToast('جاري إرسال تأكيد الدفع...', 'info');
+  await saveOrderChanges(true); // Save with trigger
+  closeModal('payment-modal');
+}
 
 // ── Actions ────────────────────────────────────────────
 
