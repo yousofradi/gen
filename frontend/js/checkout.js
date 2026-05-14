@@ -199,11 +199,6 @@ function updatePriceSummary() {
   if (listEl) {
     listEl.innerHTML = items.map(item => `
       <div class="summary-item">
-        <div class="summary-item-price">${formatPrice(item.unitPrice * item.quantity)}</div>
-        <div class="summary-item-info">
-          <div class="summary-item-name">${item.name}</div>
-          <div class="summary-item-desc">${item.selectedOptions.map(o => o.label).join(' / ')}</div>
-        </div>
         <div class="summary-item-img-wrapper">
           ${item.imageUrl ? `<img src="${item.imageUrl}" class="summary-item-img">` : `
             <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f8fafc;color:#94a3b8">
@@ -212,6 +207,11 @@ function updatePriceSummary() {
           `}
           <div class="summary-item-qty">${item.quantity}</div>
         </div>
+        <div class="summary-item-info">
+          <div class="summary-item-name">${item.name}</div>
+          <div class="summary-item-desc">${item.selectedOptions.map(o => o.label).join(' / ')}</div>
+        </div>
+        <div class="summary-item-price">${formatPrice(item.unitPrice * item.quantity)}</div>
       </div>
     `).join('');
   }
