@@ -84,7 +84,7 @@ async function sendWebhook(event, data) {
             
             if (event === 'order.created') {
               const paymentMethodsText = (settings.paymentMethods || [])
-                .map(m => `* ${m.label} : ${m.number}`)
+                .map(m => `* ${m.label}`)
                 .join('\n');
 
               customerMessage = `مرحباً ${data.customer.name}
