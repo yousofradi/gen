@@ -35,12 +35,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     allProducts = products;
     window._fullShippingData = shipping; // Store full objects
 
-    const govSelect = document.getElementById('c-gov');
-    if (govSelect) {
-      govSelect.innerHTML = '<option value="">اختر المدينة</option>';
-      window._fullShippingData.forEach(s => {
-        govSelect.add(new Option(`${s.cityOtherName || s.city} (${formatPrice(s.fee)})`, s._id));
+    const searchInput = document.getElementById('c-gov-search');
+    const dropdown = document.getElementById('gov-dropdown');
+    const hiddenInput = document.getElementById('c-gov');
+
+    if (searchInput && dropdown) {
+      searchInput.addEventListener('focus', () => renderGovDropdown());
+      searchInput.addEventListener('input', () => renderGovDropdown());
+      
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('gov-search-container').contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
       });
+
+      function renderGovDropdown() {
+        const query = searchInput.value.toLowerCase().trim();
+        const filtered = window._fullShippingData.filter(s => 
+          s.city.toLowerCase().includes(query) || (s.cityOtherName && s.cityOtherName.toLowerCase().includes(query))
+        );
+
+        if (filtered.length === 0) {
+          dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد نتائج</div>';
+        } else {
+          dropdown.innerHTML = filtered.map(s => `
+            <div class="dropdown-item" style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f1f5f9; text-align:right;" 
+                 onclick="selectGov('${s._id}', '${s.cityOtherName || s.city}')">
+              ${s.cityOtherName || s.city} (${formatPrice(s.fee)})
+            </div>
+          `).join('');
+        }
+        dropdown.style.display = 'block';
+      }
+
+      window.selectGov = (id, name) => {
+        hiddenInput.value = id;
+        searchInput.value = name;
+        dropdown.style.display = 'none';
+        handleCityChange(); // Trigger existing city change logic
+      };
     }
 
     // Populate Payment Methods
@@ -122,13 +155,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 let collectionsMap = {};
 window.openModal = function (modalId) {
   const modal = document.getElementById(modalId);
-  if (modal) modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
 };
 
 window.closeModal = function (modalId) {
   const modal = document.getElementById(modalId);
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.style.display = 'none';
+  }
   const openModals = document.querySelectorAll('.modal-overlay[style*="display: flex"]');
   if (openModals.length === 0) {
     document.body.style.overflow = '';
@@ -513,17 +550,21 @@ window.handleCityChange = async function() {
   if (cityId) {
     // 1. Try local data first (highly reliable)
     const localGov = (window._fullShippingData || []).find(s => s._id === cityId);
+    let zones = [];
     if (localGov && localGov.zones && localGov.zones.length > 0) {
-      window._currentCityZones = localGov.zones.map(z => z.otherName || z.name);
+      zones = localGov.zones;
     } else {
       // 2. Fallback to API fetch
       try {
-        const zones = await api.getZones(cityId);
-        window._currentCityZones = zones.map(z => z.otherName || z.name);
+        zones = await api.getZones(cityId);
       } catch (e) {
         console.error('Failed to load zones', e);
       }
     }
+    
+    window._currentCityZones = zones.map(z => 
+      `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`
+    );
     renderZoneDropdown(window._currentCityZones);
   }
   recalcSummary();

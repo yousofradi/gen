@@ -32,6 +32,14 @@
 
     .admin-sidebar svg { width: 24px; height: 24px; flex-shrink: 0; }
     .admin-brand-header img { max-height: 40px; }
+
+    /* Larger checkboxes */
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #00bfa5;
+    }
   </style>
 </head>
 <body>
@@ -95,39 +103,47 @@
         </div>
 
         <!-- Bosta Settings -->
-        <div class="admin-card mb-24">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h3 style="margin:0">إعدادات Bosta</h3>
-            <button class="btn btn-primary btn-sm" onclick="saveBostaSettings()">حفظ</button>
+        <div class="admin-card mb-24" style="border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid #f1f5f9;">
+            <h3 style="margin:0; color:#1e293b; font-size:1.1rem; font-weight:700;">إعدادات Bosta</h3>
+            <button class="btn btn-primary btn-sm" onclick="saveBostaSettings()" style="padding: 6px 20px; font-weight:600; border-radius:8px;">حفظ</button>
           </div>
-          <div class="grid-2" style="gap:16px">
-            <div class="form-group" style="grid-column: span 2;">
-              <label>API Key (Token)</label>
-              <input type="text" class="form-control" id="bosta-api-key" placeholder="Bosta API Token">
-            </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 16px;">
             <div class="form-group">
-              <label>City (English)</label>
-              <input type="text" class="form-control" id="bosta-city" placeholder="e.g. Cairo">
+              <label class="form-label" style="font-size:0.85rem; margin-bottom:6px; color:#64748b;">API Key (Token)</label>
+              <input type="password" class="form-control" id="bosta-api-key" placeholder="Bosta API Token" style="letter-spacing: 2px;">
             </div>
+            
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:6px; color:#64748b;">District ID</label>
+                <input type="text" class="form-control" id="bosta-district-id" placeholder="Bosta District ID">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:6px; color:#64748b;">City (English)</label>
+                <input type="text" class="form-control" id="bosta-city" placeholder="e.g. Cairo">
+              </div>
+            </div>
+
             <div class="form-group">
-              <label>District ID</label>
-              <input type="text" class="form-control" id="bosta-district-id" placeholder="Bosta District ID">
-            </div>
-            <div class="form-group" style="grid-column: span 2;">
-              <label>First Line (Address)</label>
+              <label class="form-label" style="font-size:0.85rem; margin-bottom:6px; color:#64748b;">First Line (Address)</label>
               <input type="text" class="form-control" id="bosta-first-line" placeholder="Street Name / العلامة المميزة">
             </div>
-            <div class="form-group">
-              <label>Building No.</label>
-              <input type="text" class="form-control" id="bosta-building" placeholder="e.g. 15">
-            </div>
-            <div class="form-group">
-              <label>Floor</label>
-              <input type="text" class="form-control" id="bosta-floor" placeholder="e.g. 3">
-            </div>
-            <div class="form-group">
-              <label>Apartment</label>
-              <input type="text" class="form-control" id="bosta-apartment" placeholder="e.g. 12">
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:6px; color:#64748b;">Floor</label>
+                <input type="text" class="form-control" id="bosta-floor" placeholder="e.g. 3">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:6px; color:#64748b;">Building No.</label>
+                <input type="text" class="form-control" id="bosta-building" placeholder="e.g. 15">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:6px; color:#64748b;">Apartment</label>
+                <input type="text" class="form-control" id="bosta-apartment" placeholder="e.g. 12">
+              </div>
             </div>
           </div>
         </div>
@@ -346,6 +362,7 @@
 
     function showAddForm() {
       document.getElementById('add-modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
       document.getElementById('modal-title').textContent = 'إضافة مدينة';
       document.getElementById('ship-edit-id').value = '';
       document.getElementById('ship-city').value = '';
@@ -354,7 +371,10 @@
       document.getElementById('ship-bosta-id').value = '';
     }
 
-    function hideAddForm() { document.getElementById('add-modal').style.display = 'none'; }
+    function hideAddForm() { 
+      document.getElementById('add-modal').style.display = 'none'; 
+      document.body.style.overflow = '';
+    }
 
     async function saveShipping() {
       const id = document.getElementById('ship-edit-id').value;
@@ -456,6 +476,22 @@
         showToast('تم التحديث بنجاح');
         loadShipping();
       } catch (e) { showToast('فشل التحديث', 'error'); }
+    }
+
+    async function bulkUpdateFee() {
+      if (selectedIds.size === 0) return;
+      const newFee = prompt(`تحديث رسوم الشحن لـ ${selectedIds.size} مدينة. ادخل السعر الجديد:`, "65");
+      if (newFee === null || isNaN(parseFloat(newFee))) return;
+
+      try {
+        await Promise.all([...selectedIds].map(id => api.updateShipping(id, { fee: parseFloat(newFee) })));
+        showToast('تم تحديث الرسوم بنجاح');
+        selectedIds.clear();
+        updateBulkBar();
+        loadShipping();
+      } catch (e) {
+        showToast('فشل التحديث', 'error');
+      }
     }
 
     async function bulkDeleteShipping() {

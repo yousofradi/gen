@@ -58,13 +58,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     originalOrder = JSON.parse(JSON.stringify(order));
     window._fullShippingData = shipping;
 
-    // Populate government dropdown
-    const govSelect = document.getElementById('modal-c-gov');
-    if (govSelect) {
-      govSelect.innerHTML = '<option value="">اختر المدينة</option>';
-      window._fullShippingData.forEach(s => {
-        govSelect.add(new Option(`${s.cityOtherName || s.city} (${formatPrice(s.fee)})`, s._id));
+    const searchInput = document.getElementById('modal-c-gov-search');
+    const dropdown = document.getElementById('modal-c-gov-dropdown');
+    const hiddenInput = document.getElementById('modal-c-gov');
+
+    if (searchInput && dropdown) {
+      searchInput.addEventListener('focus', () => renderModalGovDropdown());
+      searchInput.addEventListener('input', () => renderModalGovDropdown());
+      
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('modal-c-gov-search-container').contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
       });
+
+      window.renderModalGovDropdown = function() {
+        const query = searchInput.value.toLowerCase().trim();
+        const filtered = (window._fullShippingData || []).filter(s => 
+          s.city.toLowerCase().includes(query) || (s.cityOtherName && s.cityOtherName.toLowerCase().includes(query))
+        );
+
+        if (filtered.length === 0) {
+          dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد نتائج</div>';
+        } else {
+          dropdown.innerHTML = filtered.map(s => `
+            <div class="dropdown-item" style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f1f5f9; text-align:right;" 
+                 onclick="selectModalGov('${s._id}', '${s.cityOtherName || s.city}')">
+              ${s.cityOtherName || s.city} (${formatPrice(s.fee)})
+            </div>
+          `).join('');
+        }
+        dropdown.style.display = 'block';
+      }
+
+      window.selectModalGov = (id, name) => {
+        hiddenInput.value = id;
+        searchInput.value = name;
+        dropdown.style.display = 'none';
+        handleModalCityChange();
+      };
     }
 
     // Populate Payment Methods select
@@ -351,25 +383,46 @@ window.openCustomerModal = function () {
   document.getElementById('modal-c-name').value = currentOrder.customer.name || '';
   document.getElementById('modal-c-phone').value = currentOrder.customer.phone || '';
   document.getElementById('modal-c-phone2').value = currentOrder.customer.secondPhone || '';
+  
   const govName = currentOrder.customer.government || '';
   const govData = (window._fullShippingData || []).find(s => s.city === govName || s.cityOtherName === govName);
-  document.getElementById('modal-c-gov').value = govData ? govData._id : '';
   
-  handleModalCityChange(); // Populates zones
+  const hiddenGov = document.getElementById('modal-c-gov');
+  const searchGov = document.getElementById('modal-c-gov-search');
+  
+  if (govData) {
+    hiddenGov.value = govData._id;
+    searchGov.value = govData.cityOtherName || govData.city;
+  } else {
+    hiddenGov.value = '';
+    searchGov.value = govName;
+  }
+
   document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
   document.getElementById('modal-c-address').value = currentOrder.customer.address || '';
   document.getElementById('modal-c-notes').value = currentOrder.customer.notes || '';
   openModal('customer-modal');
 };
 
-window.handleModalCityChange = async function () {
+window.handleModalCityChange = async function (skipZoneClear = false) {
   const cityId = document.getElementById('modal-c-gov').value;
   const zoneInput = document.getElementById('modal-c-zone');
   if (!zoneInput) return;
 
-  zoneInput.value = ''; // Clear current selection
-  const list = (window._fullShippingData || []).find(s => s._id === cityId);
-  window._modalZones = list ? (list.zones || []) : [];
+  if (!skipZoneClear) {
+    zoneInput.value = ''; // Clear current selection
+  }
+  window._modalZones = [];
+
+  if (cityId) {
+    try {
+      const zones = await api.getZones(cityId);
+      window._modalZones = zones || [];
+    } catch (err) {
+      console.error('Failed to fetch modal zones:', err);
+      window._modalZones = [];
+    }
+  }
   
   renderModalZoneDropdown();
 };
@@ -391,13 +444,16 @@ window.renderModalZoneDropdown = function () {
   if (filtered.length === 0) {
     dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
   } else {
-    dropdown.innerHTML = filtered.map(z => `
-      <div class="dropdown-item" onclick="selectModalZone('${z.otherName || z.name}')" 
-        style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
-        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-        ${z.otherName || z.name}
-      </div>
-    `).join('');
+    dropdown.innerHTML = filtered.map(z => {
+      const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+      return `
+        <div class="dropdown-item" onclick="selectModalZone('${zoneLabel.replace(/'/g, "\\'")}')" 
+          style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
+          onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+          ${zoneLabel}
+        </div>
+      `;
+    }).join('');
   }
 }
 
@@ -413,23 +469,23 @@ document.addEventListener('click', (e) => {
   if (container && !container.contains(e.target)) {
     dropdown.style.display = 'none';
   }
+
+  const govContainer = document.getElementById('modal-c-gov-search-container');
+  const govDropdown = document.getElementById('modal-c-gov-dropdown');
+  if (govContainer && !govContainer.contains(e.target)) {
+    govDropdown.style.display = 'none';
+  }
 });
 
 window.applyCustomerChanges = async function () {
   const name = document.getElementById('modal-c-name').value.trim();
   const phone = document.getElementById('modal-c-phone').value.trim();
   const cityId = document.getElementById('modal-c-gov').value;
+  const cityNameFromSearch = document.getElementById('modal-c-gov-search').value.trim();
   const zone = document.getElementById('modal-c-zone').value;
 
-  const cityNameFromSelect = document.getElementById('modal-c-gov').options[document.getElementById('modal-c-gov').selectedIndex].text.split('(')[0].trim();
-  
   let govData = (window._fullShippingData || []).find(s => s._id === cityId);
-  // Fallback: search by name if ID lookup fails
-  if (!govData) {
-    govData = (window._fullShippingData || []).find(s => s.city === cityNameFromSelect || s.cityOtherName === cityNameFromSelect);
-  }
-
-  const cityName = govData ? (govData.cityOtherName || govData.city) : cityNameFromSelect;
+  const cityName = govData ? (govData.cityOtherName || govData.city) : cityNameFromSearch;
 
   if (!name || !phone || !cityName || !zone) {
     showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');

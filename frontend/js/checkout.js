@@ -92,15 +92,48 @@ async function loadCities() {
   try {
     const list = await api.getPublicShipping();
     window._fullShippingData = list;
-    const select = document.getElementById('government');
-    select.innerHTML = '<option value="">اختر المدينة...</option>';
-    list.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s._id;
-      opt.textContent = `${s.cityOtherName || s.city} (${formatPrice(s.fee)})`;
-      select.appendChild(opt);
+    
+    const searchInput = document.getElementById('government-search');
+    const dropdown = document.getElementById('gov-dropdown');
+    const hiddenInput = document.getElementById('government');
+
+    if (!searchInput || !dropdown) return;
+
+    searchInput.addEventListener('focus', () => renderGovDropdown());
+    searchInput.addEventListener('input', () => renderGovDropdown());
+    
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('gov-search-container').contains(e.target)) {
+        dropdown.style.display = 'none';
+      }
     });
-    select.addEventListener('change', handleGovChange);
+
+    function renderGovDropdown() {
+      const query = searchInput.value.toLowerCase().trim();
+      const filtered = list.filter(s => 
+        s.city.toLowerCase().includes(query) || (s.cityOtherName && s.cityOtherName.toLowerCase().includes(query))
+      );
+
+      if (filtered.length === 0) {
+        dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد نتائج</div>';
+      } else {
+        dropdown.innerHTML = filtered.map(s => `
+          <div class="dropdown-item" style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f1f5f9;" 
+               onclick="selectGov('${s._id}', '${s.cityOtherName || s.city}')">
+            ${s.cityOtherName || s.city} (${formatPrice(s.fee)})
+          </div>
+        `).join('');
+      }
+      dropdown.style.display = 'block';
+    }
+
+    window.selectGov = (id, name) => {
+      hiddenInput.value = id;
+      searchInput.value = name;
+      dropdown.style.display = 'none';
+      handleGovChange();
+    };
+
   } catch (err) {
     showToast('فشل في تحميل بيانات الشحن', 'error');
   }

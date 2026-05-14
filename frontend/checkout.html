@@ -140,7 +140,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .summary-item-info {
@@ -227,12 +227,14 @@
         <div class="collapsible-summary" id="collapsible-summary">
           <div class="summary-header" onclick="toggleSummary()">
             <div class="summary-header-left" style="display: flex; align-items: center; gap: 8px;">
-              <svg class="chevron-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="chevron-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
                 <path d="M6 9l6 6 6-6" />
               </svg>
               <span>ملخص الطلب</span>
             </div>
-            <div class="summary-header-right" id="header-total-price" style="font-weight: 800; font-size: 1.1rem;">0 ج.م</div>
+            <div class="summary-header-right" id="header-total-price" style="font-weight: 800; font-size: 1.1rem;">0 ج.م
+            </div>
           </div>
           <div class="summary-body">
             <div class="summary-items-container" id="summary-items-list">
@@ -284,17 +286,35 @@
                   </div>
                 </div>
               </div>
-              <div class="form-group">
-                <label class="form-label" for="government">المحافظة (المدينة) *</label>
-                <select class="form-control" id="government" required>
-                  <option value="">اختر المدينة...</option>
-                </select>
+              <div class="form-group" style="position: relative;">
+                <label class="form-label" for="government">المحافظة *</label>
+                <div class="customer-search-container" id="gov-search-container"
+                  onclick="document.getElementById('government-search').focus()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"
+                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                  <input type="text" class="form-control" id="government-search" required
+                    placeholder="اختر المحافظة أو ابحث..." autocomplete="off" style="padding-right: 40px;">
+                  <input type="hidden" id="government" required>
+                  <div class="customer-dropdown" id="gov-dropdown"
+                    style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1000; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 300px; overflow-y: auto;">
+                    <!-- Cities will be injected here -->
+                  </div>
+                </div>
               </div>
               <div class="form-group" style="position: relative;">
                 <label class="form-label" for="zone">المنطقة *</label>
-                <div class="customer-search-container" id="zone-search-container">
-                  <input type="text" class="form-control" id="zone" required placeholder="اختر المنطقة أو ابحث..." autocomplete="off">
-                  <div class="customer-dropdown" id="zone-dropdown" style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1000; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 300px; overflow-y: auto;">
+                <div class="customer-search-container" id="zone-search-container"
+                  onclick="document.getElementById('zone').focus()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"
+                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                  <input type="text" class="form-control" id="zone" required placeholder="اختر المنطقة أو ابحث..."
+                    autocomplete="off" style="padding-right: 40px;">
+                  <div class="customer-dropdown" id="zone-dropdown"
+                    style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1000; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 300px; overflow-y: auto;">
                     <!-- Zones will be injected here -->
                   </div>
                 </div>
@@ -317,12 +337,14 @@
             <div id="payment-instructions"
               style="display:none; padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:24px; font-size:0.85rem; color:var(--text-main); line-height:1.6; white-space: pre-wrap;">
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-top:1px solid #e2e8f0; margin-bottom: 16px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-top:1px solid #e2e8f0; margin-bottom: 16px;">
               <span style="font-weight:700; font-size:1.1rem; color: #1e293b;">اجمالي المطلوب</span>
               <span id="final-total-above-btn" style="font-weight:900; font-size:1.4rem; color: #1e293b;">0 ج.م</span>
             </div>
             <button type="submit" class="btn btn-primary btn-block"
-              style="padding:12px 20px;font-size:1.1rem;background:var(--primary,var(--primary));border-color:var(--primary,var(--primary)); margin-bottom: 20px; font-weight: 700;">تأكيد الطلب</button>
+              style="padding:12px 20px;font-size:1.1rem;background:var(--primary,var(--primary));border-color:var(--primary,var(--primary)); margin-bottom: 20px; font-weight: 700;">تأكيد
+              الطلب</button>
           </form>
         </div>
       </div>

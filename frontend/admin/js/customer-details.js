@@ -23,13 +23,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentOrders = data.orders;
     window._fullShippingData = shipping;
 
-    // Populate gov dropdown
-    const govSelect = document.getElementById('modal-c-gov');
-    window._fullShippingData.forEach(s => {
-      govSelect.add(new Option(`${s.cityOtherName || s.city} (${formatPrice(s.fee)})`, s._id));
-    });
-
     renderCustomer();
+
+    // ── Search Listeners ──
+    const searchInput = document.getElementById('modal-c-gov-search');
+    const dropdown = document.getElementById('modal-c-gov-dropdown');
+    const hiddenInput = document.getElementById('modal-c-gov');
+
+    if (searchInput && dropdown) {
+      searchInput.addEventListener('focus', () => renderGovDropdown());
+      searchInput.addEventListener('input', () => renderGovDropdown());
+      
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('modal-c-gov-search-container').contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+
+      function renderGovDropdown() {
+        const query = searchInput.value.toLowerCase().trim();
+        const filtered = window._fullShippingData.filter(s => 
+          s.city.toLowerCase().includes(query) || (s.cityOtherName && s.cityOtherName.toLowerCase().includes(query))
+        );
+
+        if (filtered.length === 0) {
+          dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد نتائج</div>';
+        } else {
+          dropdown.innerHTML = filtered.map(s => `
+            <div class="dropdown-item" style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f1f5f9; text-align:right;" 
+                 onclick="selectGov('${s._id}', '${s.cityOtherName || s.city}')">
+              ${s.cityOtherName || s.city} (${formatPrice(s.fee)})
+            </div>
+          `).join('');
+        }
+        dropdown.style.display = 'block';
+      }
+
+      window.selectGov = (id, name) => {
+        hiddenInput.value = id;
+        searchInput.value = name;
+        dropdown.style.display = 'none';
+        handleModalCityChange();
+      };
+    }
   } catch (err) {
     showToast('فشل تحميل بيانات العميل', 'error');
   }
@@ -87,34 +123,86 @@ function openEditModal() {
   
   const govName = c.government || '';
   const govData = (window._fullShippingData || []).find(s => s.city === govName || s.cityOtherName === govName);
-  document.getElementById('modal-c-gov').value = govData ? govData._id : '';
   
-  handleModalCityChange();
+  const searchGov = document.getElementById('modal-c-gov-search');
+  const hiddenGov = document.getElementById('modal-c-gov');
+  if (searchGov && hiddenGov) {
+    searchGov.value = govData ? (govData.cityOtherName || govData.city) : '';
+    hiddenGov.value = govData ? govData._id : '';
+  }
+  
+  handleModalCityChange(true); // skipZoneClear = true
   document.getElementById('modal-c-zone').value = c.zone || '';
   document.getElementById('modal-c-address').value = c.address || '';
   document.getElementById('edit-modal').classList.add('open');
 }
 
-window.handleModalCityChange = async function () {
+window.handleModalCityChange = async function (skipZoneClear = false) {
   const cityId = document.getElementById('modal-c-gov').value;
-  const zoneSelect = document.getElementById('modal-c-zone');
-  if (!zoneSelect) return;
+  const zoneInput = document.getElementById('modal-c-zone');
+  if (!zoneInput) return;
 
-  zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+  if (!skipZoneClear) {
+    zoneInput.value = ''; // Clear current selection
+  }
+  window._modalZones = [];
+
   if (cityId) {
     try {
-      zoneSelect.innerHTML = '<option value="">جاري التحميل...</option>';
       const zones = await api.getZones(cityId);
-      zoneSelect.innerHTML = '<option value="">اختر المنطقة</option>';
-      zones.forEach(z => {
-        const val = z.otherName || z.name;
-        zoneSelect.add(new Option(val, val));
-      });
-    } catch (e) {
-      zoneSelect.innerHTML = '<option value="">فشل التحميل</option>';
+      window._modalZones = zones || [];
+    } catch (err) {
+      console.error('Failed to fetch modal zones:', err);
+      window._modalZones = [];
     }
   }
+  
+  renderModalZoneDropdown();
 };
+
+window.renderModalZoneDropdown = function () {
+  const dropdown = document.getElementById('modal-c-zone-dropdown');
+  const query = document.getElementById('modal-c-zone').value.toLowerCase().trim();
+  
+  if (!window._modalZones || window._modalZones.length === 0) {
+    dropdown.style.display = 'none';
+    return;
+  }
+
+  const filtered = window._modalZones.filter(z => 
+    z.name.toLowerCase().includes(query) || (z.otherName && z.otherName.toLowerCase().includes(query))
+  );
+
+  dropdown.style.display = 'block';
+  if (filtered.length === 0) {
+    dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
+  } else {
+    dropdown.innerHTML = filtered.map(z => {
+      const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+      return `
+        <div class="dropdown-item" onclick="selectModalZone('${zoneLabel.replace(/'/g, "\\'")}')" 
+          style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
+          onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+          ${zoneLabel}
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+window.selectModalZone = function(val) {
+  const zoneInput = document.getElementById('modal-c-zone');
+  zoneInput.value = val;
+  document.getElementById('modal-c-zone-dropdown').style.display = 'none';
+};
+
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('modal-c-zone-search-container');
+  const dropdown = document.getElementById('modal-c-zone-dropdown');
+  if (container && !container.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
 
 function closeEditModal() {
   document.getElementById('edit-modal').classList.remove('open');
