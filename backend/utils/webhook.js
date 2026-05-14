@@ -64,7 +64,7 @@ async function sendWebhook(event, data) {
     try {
       const Setting = require('../models/Setting');
       const { generateInvoiceInnerHtml } = require('./invoice');
-      
+
       const waConfigSetting = await Setting.findOne({ key: 'whatsapp_configs' });
       const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
       const settings = globalSettings ? globalSettings.value : {};
@@ -72,16 +72,16 @@ async function sendWebhook(event, data) {
 
       if (waConfigSetting && Array.isArray(waConfigSetting.value)) {
         const configs = waConfigSetting.value;
-        
+
         for (const conf of configs) {
           const triggers = Array.isArray(conf.triggers) ? conf.triggers : (conf.trigger ? [conf.trigger] : []);
           const shouldSend = triggers.includes(event);
 
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
-            
+
             // 1. Prepare Customer Message (for the wa.me link)
             let customerMessage = '';
-            
+
             if (event === 'order.created') {
               const paymentMethodsText = (settings.paymentMethods || [])
                 .map(m => `* ${m.label}`)
@@ -104,7 +104,7 @@ ${settings.paymentNotes || ''}
             } else {
               // Default/Paid message
               const remainingAmount = data.totalPrice - (data.paidAmount || 0);
-              const remainingText = remainingAmount > 0 
+              const remainingText = remainingAmount > 0
                 ? `الدفع عند الاستلام : ${remainingAmount} EGP`
                 : `مدفوع بالكامل`;
 
@@ -119,8 +119,14 @@ ${remainingText}
             }
 
             // 2. Generate WhatsApp Link for the customer
-            const customerPhone = data.customer.phone.replace(/\D/g, '');
-            const whatsappLink = `https://wa.me/${customerPhone}?text=${encodeURIComponent(customerMessage)}`;
+            let cleanCustomerPhone = data.customer.phone.replace(/\D/g, '');
+            // Strip leading zeros
+            cleanCustomerPhone = cleanCustomerPhone.replace(/^0+/, '');
+            // Prepend 20 if needed
+            if (!cleanCustomerPhone.startsWith('20')) {
+              cleanCustomerPhone = '20' + cleanCustomerPhone;
+            }
+            const whatsappLink = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(customerMessage)}`;
 
             // 3. Shorten the Link using is.gd
             let shortLink = whatsappLink;
@@ -228,16 +234,16 @@ ${shortLink}`;
             // 6. Send to WhatsApp API
             let cleanBaseUrl = conf.baseUrl.trim().replace(/\/+$/, '');
             if (!cleanBaseUrl.startsWith('http')) cleanBaseUrl = `https://${cleanBaseUrl}`;
-            
+
             let cleanNumber = conf.number.trim().replace(/\D/g, '');
             // Strip leading zeros or 00 prefix
             cleanNumber = cleanNumber.replace(/^0+/, '');
-            
+
             // If it doesn't start with 20, and it's a 10-11 digit number (Egypt), prepend 20
             if (!cleanNumber.startsWith('20')) {
               cleanNumber = '20' + cleanNumber;
             }
-            
+
             const waPayload = {
               number: cleanNumber,
               delay: 1,
@@ -271,7 +277,7 @@ ${shortLink}`;
                 },
                 body: JSON.stringify(waPayload)
               });
-              
+
               const json = await res.json();
               if (!res.ok) {
                 console.error(`[WhatsApp] API Error (${res.status}):`, JSON.stringify(json, null, 2));
