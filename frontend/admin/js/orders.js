@@ -203,6 +203,9 @@ function renderOrders(orders) {
       </tr>
     `;
   }).join('');
+  
+  // Sync selection state UI
+  updateArchiveButton();
 }
 
 // ── Selection & Archiving ────────────────────────────────
@@ -214,13 +217,20 @@ window.toggleSelectAll = function () {
 };
 
 window.updateArchiveButton = function () {
-  const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+  const allCheckboxes = document.querySelectorAll('.order-checkbox');
+  const checkedCheckboxes = document.querySelectorAll('.order-checkbox:checked');
   const filterBar = document.getElementById('filter-bar');
   const bulkBar = document.getElementById('bulk-actions-bar');
   const countBadge = document.getElementById('selected-count-badge');
+  const selectAllCb = document.getElementById('select-all-orders');
+
+  // Update "Select All" checkbox state
+  if (selectAllCb && allCheckboxes.length > 0) {
+    selectAllCb.checked = (allCheckboxes.length === checkedCheckboxes.length);
+  }
 
   // Style rows
-  document.querySelectorAll('.order-checkbox').forEach(cb => {
+  allCheckboxes.forEach(cb => {
     const tr = cb.closest('tr');
     if (cb.checked) {
       tr.style.backgroundColor = '#f0fdf4';
@@ -229,11 +239,11 @@ window.updateArchiveButton = function () {
     }
   });
 
-  if (checkboxes.length > 0) {
+  if (checkedCheckboxes.length > 0) {
     if (filterBar) filterBar.style.display = 'none';
     if (bulkBar) {
       bulkBar.style.display = 'flex';
-      if (countBadge) countBadge.textContent = checkboxes.length;
+      if (countBadge) countBadge.textContent = checkedCheckboxes.length;
     }
   } else {
     if (filterBar) filterBar.style.display = 'flex';
