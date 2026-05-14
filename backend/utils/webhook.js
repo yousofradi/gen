@@ -68,7 +68,7 @@ async function sendWebhook(event, data) {
       const waConfigSetting = await Setting.findOne({ key: 'whatsapp_configs' });
       const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
       const settings = globalSettings ? globalSettings.value : {};
-      const brandName = settings.storeNameAr || settings.storeName || 'Store';
+      const brandName = settings.invoicePrefix || settings.storeNameAr || settings.storeName || 'Store';
 
       if (waConfigSetting && Array.isArray(waConfigSetting.value)) {
         const configs = waConfigSetting.value;
@@ -80,12 +80,35 @@ async function sendWebhook(event, data) {
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
             
             // 1. Prepare Customer Message (for the wa.me link)
-            const remainingAmount = data.totalPrice - (data.paidAmount || 0);
-            const remainingText = remainingAmount > 0 
-              ? `الدفع عند الاستلام : ${remainingAmount} EGP`
-              : `مدفوع بالكامل`;
+            let customerMessage = '';
+            
+            if (event === 'order.created') {
+              const paymentMethodsText = (settings.paymentMethods || [])
+                .map(m => `* ${m.label} : ${m.number}`)
+                .join('\n');
 
-            const customerMessage = `شكرا لشرائك من متجر (${brandName})
+              customerMessage = `مرحباً ${data.customer.name}
+شكراً لشرائك من متجر ${brandName}  ♡
+
+رقم الأوردر  : ${data.orderId}
+اجمالي الطلب : ${data.totalPrice} EGP
+
+طرق الدفع :
+
+${paymentMethodsText}
+التحويل على رقم : ${settings.socialWa || ''}
+
+${settings.paymentNotes || ''}
+
+شكراً لثقتك بنا  ♡`;
+            } else {
+              // Default/Paid message
+              const remainingAmount = data.totalPrice - (data.paidAmount || 0);
+              const remainingText = remainingAmount > 0 
+                ? `الدفع عند الاستلام : ${remainingAmount} EGP`
+                : `مدفوع بالكامل`;
+
+              customerMessage = `شكرا لشرائك من متجر (${brandName})
 
 رقم الأوردر : ${data.orderId}
 المبلغ الاجمالي : ${data.totalPrice} EGP
@@ -93,6 +116,7 @@ async function sendWebhook(event, data) {
 ${remainingText}
 
 شكراً لثقتك بنا ♡`;
+            }
 
             // 2. Generate WhatsApp Link for the customer
             const customerPhone = data.customer.phone.replace(/\D/g, '');
@@ -113,8 +137,18 @@ ${remainingText}
             }
 
             // 4. Prepare Owner Message
-            const ownerMessage = 
-`تم تأكيد الطلب 
+            let ownerMessage = '';
+            if (event === 'order.created') {
+              ownerMessage = `🔔 طلب جديد
+رقم الطلب: ${data.orderId}
+اسم العميل: ${data.customer.name}
+اجمالي الطلب: ${data.totalPrice} EGP`;
+
+              if (data.customer.notes) ownerMessage += `\nملاحظات: ${data.customer.notes}`;
+              ownerMessage += `\n\nرابط واتساب:\n${shortLink}`;
+            } else if (event === 'order.paid') {
+              const remainingAmount = data.totalPrice - (data.paidAmount || 0);
+              ownerMessage = `تم تأكيد الدفع 
 
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
@@ -124,6 +158,9 @@ ${remainingText}
 
 لينك للعميل :
 ${shortLink}`;
+            } else {
+              ownerMessage = `إشعار طلب: ${event}\nرقم الطلب: ${data.orderId}\nالعميل: ${data.customer.name}`;
+            }
 
             // 5. Attempt Invoice Image Generation
             let mediaData = null;
