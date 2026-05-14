@@ -201,6 +201,9 @@ ${shortLink}`;
             if (!cleanBaseUrl.startsWith('http')) cleanBaseUrl = `https://${cleanBaseUrl}`;
             
             let cleanNumber = conf.number.trim().replace(/\D/g, '');
+            // Strip leading zeros if present
+            cleanNumber = cleanNumber.replace(/^0+/, '');
+            // Ensure it starts with 2 (Egypt country code 20)
             if (!cleanNumber.startsWith('2')) cleanNumber = '2' + cleanNumber;
             
             const waPayload = {
