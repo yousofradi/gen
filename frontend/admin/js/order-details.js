@@ -1144,13 +1144,13 @@ window.markAsReady = function () {
             </div>
           </div>
           
-          <div style="display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 6px; border-radius: 16px; border: 1px solid #f1f5f9;">
-            <button onclick="updateFulfillment(${idx}, 1)" style="width: 36px; height: 36px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">+</button>
-            <div style="display: flex; align-items: center; gap: 6px; padding: 0 4px; min-width: 80px; justify-content: center;">
-               <span style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">${item.current}</span>
-               <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">من ${item.quantity}</span>
+          <div style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 4px; border-radius: 12px; border: 1px solid #f1f5f9;">
+            <button onclick="updateFulfillment(${idx}, 1)" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">+</button>
+            <div style="display: flex; align-items: center; gap: 4px; padding: 0 4px; min-width: 65px; justify-content: center;">
+               <span style="font-weight: 800; color: #1e293b; font-size: 0.95rem;">${item.current}</span>
+               <span style="color: #94a3b8; font-size: 0.75rem; font-weight: 600;">من ${item.quantity}</span>
             </div>
-            <button onclick="updateFulfillment(${idx}, -1)" style="width: 36px; height: 36px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" ${item.current === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>-</button>
+            <button onclick="updateFulfillment(${idx}, -1)" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" ${item.current === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>-</button>
           </div>
         </div>
       `;
