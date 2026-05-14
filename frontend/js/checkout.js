@@ -159,6 +159,20 @@ async function handleGovChange() {
   
   renderZoneDropdown();
   updatePriceSummary();
+
+  // Show/Hide Zone Group
+  const zoneGroup = document.getElementById('zone-form-group');
+  const zoneInputEl = document.getElementById('zone');
+  if (zoneGroup && zoneInputEl) {
+    if (window._currentZones.length > 0) {
+      zoneGroup.style.display = 'block';
+      zoneInputEl.required = true;
+    } else {
+      zoneGroup.style.display = 'none';
+      zoneInputEl.required = false;
+      zoneInputEl.value = '';
+    }
+  }
 }
 
 function renderZoneDropdown() {
@@ -292,14 +306,23 @@ function setupForm() {
     const govData = (window._fullShippingData || []).find(s => s._id === cityId);
     const cityName = govData ? (govData.cityOtherName || govData.city) : '';
 
-    if (!cityName || !zone) { showToast('الرجاء اختيار المدينة والمنطقة', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
+    const zoneGroup = document.getElementById('zone-form-group');
+    const isZoneVisible = zoneGroup && zoneGroup.style.display !== 'none';
+
+    if (!cityName || (isZoneVisible && !zone)) { 
+      showToast('الرجاء اختيار المدينة والمنطقة', 'error'); 
+      btn.disabled = false; btn.textContent = 'تأكيد الطلب'; 
+      return; 
+    }
     
     // Zone validation
-    const zoneOptions = (window._currentZones || []).map(z => `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`);
-    if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
-      showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
-      btn.disabled = false; btn.textContent = 'تأكيد الطلب';
-      return;
+    if (isZoneVisible) {
+      const zoneOptions = (window._currentZones || []).map(z => `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`);
+      if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
+        showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
+        btn.disabled = false; btn.textContent = 'تأكيد الطلب';
+        return;
+      }
     }
 
     const name = document.getElementById('cust-name').value.trim();
