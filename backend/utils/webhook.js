@@ -213,7 +213,7 @@ ${shortLink}`;
             let finalWaUrl = '';
             if (mediaData) {
               finalWaUrl = `${cleanBaseUrl}/message/sendMedia/${conf.instance}`;
-              waPayload.mediatype = 'Image';
+              waPayload.mediatype = 'image';
               waPayload.mimetype = 'image/png';
               waPayload.caption = ownerMessage;
               waPayload.media = mediaData.replace(/\s/g, ''); // User snippet uses 'media' field
