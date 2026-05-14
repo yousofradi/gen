@@ -277,7 +277,7 @@ function renderSelectModalLists(query = '') {
     <div class="product-item">
       <button type="button" class="btn-remove" onclick="toggleProductSelect('${p._id}', false)">×</button>
       <div style="flex:1;font-size:0.9rem">${p.name}</div>
-      <img src="${p.imageUrl || p.images?.[0] || ''}" style="width:30px;height:30px;object-fit:cover;border-radius:4px">
+      <img src="${p.imageUrl || p.images?.[0] || ''}" style="width:30px;height:30px;object-fit:contain;border-radius:4px">
     </div>
   `).join('');
 
@@ -288,7 +288,7 @@ function renderSelectModalLists(query = '') {
     <div class="product-item">
       <button type="button" style="color:green;background:none;border:none;font-size:1.2rem;cursor:pointer" onclick="toggleProductSelect('${p._id}', true)">+</button>
       <div style="flex:1;font-size:0.9rem">${p.name}</div>
-      <img src="${p.imageUrl || p.images?.[0] || ''}" style="width:30px;height:30px;object-fit:cover;border-radius:4px">
+      <img src="${p.imageUrl || p.images?.[0] || ''}" style="width:30px;height:30px;object-fit:contain;border-radius:4px">
     </div>
   `).join('');
 }

@@ -252,7 +252,7 @@ function renderItems() {
 
     const imgHtml = item.imageUrl
 
-      ? `<img src="${item.imageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:cover; border:1px solid #f1f5f9;" alt="${item.name}">`
+      ? `<img src="${item.imageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${item.name}">`
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
     const optText = (item.selectedOptions || []).map(op => op.label).join(' / ');
@@ -649,7 +649,7 @@ window.removeItem = function (idx) {
   document.getElementById('modal-delete-idx').value = idx;
   const previewEl = document.getElementById('delete-item-preview');
   const imgHtml = item.imageUrl
-    ? `<div style="position:relative"><img src="${item.imageUrl}" style="width:80px;height:80px;border-radius:8px;object-fit:cover;"><span style="position:absolute;bottom:-5px;left:-5px;background:#64748b;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;border:2px solid #fff;">${item.quantity}</span></div>`
+    ? `<div style="position:relative"><img src="${item.imageUrl}" style="width:80px;height:80px;border-radius:8px;object-fit:contain;"><span style="position:absolute;bottom:-5px;left:-5px;background:#64748b;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;border:2px solid #fff;">${item.quantity}</span></div>`
     : `<div style="width:80px;height:80px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
   previewEl.innerHTML = `
@@ -1104,7 +1104,7 @@ window.markAsReady = function () {
     modalItems.innerHTML = window.fulfillmentState.map((item, idx) => {
       const imgHtml = item.imageUrl
         ? `<div style="position:relative; width:64px; height:64px;">
-             <img src="${item.imageUrl}" style="width:64px; height:64px; border-radius:16px; object-fit:cover; border:1px solid #f1f5f9;" alt="${item.name}">
+             <img src="${item.imageUrl}" style="width:64px; height:64px; border-radius:16px; object-fit:contain; border:1px solid #f1f5f9;" alt="${item.name}">
              <div style="position:absolute; bottom:-4px; right:-4px; background:#fef3c7; color:#d97706; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                ${item.current}/${item.quantity}
              </div>

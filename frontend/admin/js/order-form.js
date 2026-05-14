@@ -476,7 +476,7 @@ function renderCart() {
     const p = c.product;
     const imgSrc = p.imageUrl || '';
     const imgHtml = imgSrc
-      ? `<img src="${imgSrc}" style="width:52px; height:52px; border-radius:8px; object-fit:cover; border:1px solid #f1f5f9;" alt="${p.name}" loading="lazy">`
+      ? `<img src="${imgSrc}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${p.name}" loading="lazy">`
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
     const optText = (c.selectedOptions || []).map(op => op.label).join(' / ');
