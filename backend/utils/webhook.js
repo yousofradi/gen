@@ -79,6 +79,16 @@ async function sendWebhook(event, data) {
 
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
 
+            const baseRemaining = data.totalPrice - (data.paidAmount || 0);
+            const displayRemaining = baseRemaining > 0 ? (baseRemaining + 10) : 0;
+            const remainingTextCustomer = baseRemaining > 0
+              ? `الدفع عند الاستلام (+10 ج رسوم) : ${displayRemaining} EGP`
+              : `مدفوع بالكامل`;
+              
+            const remainingTextOwner = baseRemaining > 0
+              ? `المتبقي عند الاستلام (+10 ج): ${displayRemaining} EGP`
+              : `المدفوع : بالكامل`;
+
             // 1. Prepare Customer Message (for the wa.me link)
             let customerMessage = '';
 
@@ -92,6 +102,8 @@ async function sendWebhook(event, data) {
 
 رقم الأوردر  : ${data.orderId}
 اجمالي الطلب : ${data.totalPrice} EGP
+تم الدفع : ${data.paidAmount || 0} EGP
+${remainingTextCustomer}
 
 طرق الدفع :
 
@@ -103,18 +115,12 @@ ${settings.paymentNotes || ''}
 شكراً لثقتك بنا  ♡`;
             } else {
               // Default/Paid message
-              const baseRemaining = data.totalPrice - (data.paidAmount || 0);
-              const displayRemaining = baseRemaining > 0 ? (baseRemaining + 10) : 0;
-              const remainingText = baseRemaining > 0
-                ? `الدفع عند الاستلام (+10 ج رسوم) : ${displayRemaining} EGP`
-                : `مدفوع بالكامل`;
-
               customerMessage = `شكرا لشرائك من متجر (${brandName})
 
 رقم الأوردر : ${data.orderId}
 المبلغ الاجمالي : ${data.totalPrice} EGP
 تم الدفع : ${data.paidAmount || 0} EGP
-${remainingText}
+${remainingTextCustomer}
 
 شكراً لثقتك بنا ♡`;
             }
@@ -149,20 +155,20 @@ ${remainingText}
               ownerMessage = `🔔 طلب جديد
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
-اجمالي الطلب: ${data.totalPrice} EGP`;
+اجمالي الطلب: ${data.totalPrice} EGP
+المدفوع: ${data.paidAmount || 0} EGP
+${remainingTextOwner}`;
 
               if (data.customer.notes) ownerMessage += `\nملاحظات: ${data.customer.notes}`;
               ownerMessage += `\n\nرابط واتساب:\n${shortLink}`;
             } else if (event === 'order.paid') {
-              const baseRemaining = data.totalPrice - (data.paidAmount || 0);
-              const displayRemaining = baseRemaining > 0 ? (baseRemaining + 10) : 0;
               ownerMessage = `تم تأكيد الدفع 
 
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
 
 المدفوع : ${data.paidAmount || 0} EGP
-المتبقي عند الاستلام (+10 ج): ${displayRemaining} EGP
+${remainingTextOwner}
 
 لينك للعميل :
 ${shortLink}`;

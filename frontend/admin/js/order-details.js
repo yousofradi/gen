@@ -6,6 +6,23 @@ let allProducts = [];
 let collectionsMap = {};
 let shippingMap = {};
 
+// Smart Search helper for Arabic
+function smartMatch(text, query) {
+  if (!text || !query) return false;
+  const normalize = (s) => s.toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/^ال/, '')
+    .replace(/\sال/g, ' ')
+    .trim();
+  
+  const nText = normalize(text);
+  const nQuery = normalize(query);
+  return nText.includes(nQuery) || nQuery.includes(nText);
+}
+
+
 function getProductCombinations(options) {
   if (!options || options.length === 0) return [];
   let results = [[]];
@@ -672,29 +689,10 @@ window.removeItem = function (idx) {
   const item = currentOrder.items[idx];
   if (!item) return;
 
-  document.getElementById('modal-delete-idx').value = idx;
-  const previewEl = document.getElementById('delete-item-preview');
-  const imgHtml = item.imageUrl
-    ? `<div style="position:relative"><img src="${item.imageUrl}" style="width:80px;height:80px;border-radius:8px;object-fit:contain;"><span style="position:absolute;bottom:-5px;left:-5px;background:#64748b;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;border:2px solid #fff;">${item.quantity}</span></div>`
-    : `<div style="width:80px;height:80px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
-
-  previewEl.innerHTML = `
-    <div style="font-weight:600; color:#1e293b; font-size:1rem; text-align:right; flex:1; margin-right:16px;">${item.name}</div>
-    ${imgHtml}
-  `;
-
-  openModal('delete-confirm-modal');
-};
-
-window.confirmRemoveItem = function () {
-  const idx = parseInt(document.getElementById('modal-delete-idx').value);
-  if (!isNaN(idx)) {
-    currentOrder.items.splice(idx, 1);
-    closeModal('delete-confirm-modal');
-    updateTotals();
-    renderItems();
-    if (window.markAsModified) window.markAsModified();
-  }
+  currentOrder.items.splice(idx, 1);
+  updateTotals();
+  renderItems();
+  if (window.markAsModified) window.markAsModified();
 };
 
 window.promptOrderDiscount = function () {
