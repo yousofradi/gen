@@ -181,6 +181,10 @@ function updatePriceSummary() {
   const headerTotal = document.getElementById('header-total-price');
   if (headerTotal) headerTotal.textContent = formatPrice(total);
 
+  // Update Final Total Above Button
+  const btnTotal = document.getElementById('final-total-above-btn');
+  if (btnTotal) btnTotal.textContent = formatPrice(total);
+
   // Update Summary Rows
   const subEl = document.getElementById('summary-subtotal');
   const shipEl = document.getElementById('summary-shipping');
