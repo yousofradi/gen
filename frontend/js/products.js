@@ -150,7 +150,7 @@ function renderBannerSection(s) {
     <section class="home-section" style="margin-bottom:24px; position:relative;">
       ${s.showTitle !== false && s.title ? `<h2 class="home-section-title" style="margin-bottom:12px">${s.title}</h2>` : ''}
       <div style="position:relative; border-radius:12px; overflow:hidden; box-shadow:0 2px 15px rgba(0,0,0,0.05);">
-        <img src="${s.imageUrl}" alt="${s.title || 'Banner'}" style="width:100%; display:block; max-height:500px; object-fit:cover; background:#f8fafc" loading="lazy">
+        <img src="${s.imageUrl}" alt="${s.title || 'Banner'}" style="width:100%; display:block; max-height:500px; object-fit:contain; background:#f8fafc" loading="lazy">
         ${btnsContainer}
       </div>
     </section>`;

@@ -108,7 +108,7 @@
           const link = c.urlName ? `collection/${c.urlName}` : `collection?id=${c._id}`;
           return `
             <a href="${link}" class="collection-card" style="margin-bottom:0">
-              <img src="${img}" alt="${c.name}" class="collection-card-img" style="height:140px; object-fit:cover; border-radius:12px;">
+              <img src="${img}" alt="${c.name}" class="collection-card-img" style="height:140px; object-fit:contain; border-radius:12px;">
               <div class="collection-card-title" style="bottom:12px; right:12px; font-weight:700;">${c.name}</div>
             </a>
           `;
