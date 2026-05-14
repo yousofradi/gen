@@ -839,11 +839,11 @@ async function saveProduct(e) {
     status: document.getElementById('p-status').value,
     quantity: qtyVal !== '' ? Number(qtyVal) : null,
     handle: document.getElementById('p-handle').value.trim() || undefined,
-    options: optionGroups.filter(g => g.name && g.values.some(v => v)).map(g => ({
+    options: document.getElementById('enable-variants').checked ? optionGroups.filter(g => g.name && g.values.some(v => v)).map(g => ({
       name: g.name,
       required: true,
       values: g.values.filter(v => v).map(v => ({ label: v, price: 0 }))
-    })),
+    })) : [],
     variants: document.getElementById('enable-variants').checked ? variants.map(v => ({
       ...v,
       combination: v.combination
