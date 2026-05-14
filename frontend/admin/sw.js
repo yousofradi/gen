@@ -39,26 +39,13 @@ self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
   if (event.request.method !== 'GET') return;
 
-  // Strategy 1: Network-First for API calls in Admin
-  if (requestUrl.pathname.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(DYNAMIC_CACHE).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch(() => {
-        // Fallback to cache if network fails
-        return caches.match(event.request);
-      })
-    );
+  // Strategy 1: Network-Only for Admin assets and API
+  if (requestUrl.pathname.includes('/admin/') || requestUrl.pathname.includes('/api/')) {
+    event.respondWith(fetch(event.request));
     return;
   }
 
-  // Strategy 2: Cache-First for Static Assets
+  // Strategy 2: Cache-First for other Static Assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;

@@ -185,15 +185,17 @@ ${shortLink}`;
                       html, body {
                         margin: 0;
                         padding: 0;
-                        width: 100%;
+                        width: 500px;
+                        height: fit-content;
                         background: #ffffff;
                         font-family: 'Tajawal', Arial, sans-serif;
                       }
                       .invoice {
                         width: 500px;
-                        margin: 0 auto;
+                        margin: 0;
                         direction: rtl;
                         padding: 10px 5px;
+                        height: fit-content;
                       }
                       .customer-table {
                         width: 100%;
@@ -296,6 +298,7 @@ ${shortLink}`;
                     type: 'png',
                     width: 500,
                     selector: '.invoice',
+                    wait: 1000,
                     deviceScaleFactor: 2
                   }),
                   signal: AbortSignal.timeout(10000)
