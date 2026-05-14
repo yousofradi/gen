@@ -228,8 +228,7 @@ document.addEventListener('click', (e) => {
 });
 
 window.bulkAction = async function (action) {
-  const checkboxes = document.querySelectorAll('.product-checkbox:checked');
-  const ids = Array.from(checkboxes).map(cb => cb.value);
+  const ids = Array.from(selectedProductIds);
   if (!ids.length) return;
 
   const menu = document.getElementById('bulk-menu');
@@ -241,6 +240,7 @@ window.bulkAction = async function (action) {
     try {
       await api.deleteProductsBatch(ids);
       showToast('تم حذف المنتجات بنجاح');
+      unselectAll();
       loadProducts();
     } catch (err) {
       showToast(err.message || 'فشل حذف المنتجات', 'error');
@@ -262,6 +262,7 @@ window.bulkAction = async function (action) {
     if (hasError) showToast('حدث خطأ أثناء تحديث بعض المنتجات', 'warning');
     else showToast('تم التحديث بنجاح');
 
+    unselectAll();
     loadProducts();
   }
 };
