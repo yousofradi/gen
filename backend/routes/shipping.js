@@ -27,8 +27,8 @@ router.get('/', async (req, res) => {
       console.error('[Redis] Shipping cache get failed:', err.message);
     }
 
-    // 2. Fetch from DB (Include zones as requested)
-    const fees = await Shipping.find({}, 'city cityOtherName fee zones');
+    // 2. Fetch from DB (Exclude zones for performance)
+    const fees = await Shipping.find({}, 'city cityOtherName fee');
     
     // 3. Set Cache (24 hour TTL for persistent feel)
     try {
@@ -51,9 +51,9 @@ router.get('/zones/:cityId', async (req, res) => {
     
     // Support both ID and Name lookup for robustness
     if (mongoose.Types.ObjectId.isValid(cityId)) {
-      gov = await Shipping.findById(cityId, 'zones');
+      gov = await Shipping.findById(cityId);
     } else {
-      gov = await Shipping.findOne({ $or: [{ city: cityId }, { cityOtherName: cityId }] }, 'zones');
+      gov = await Shipping.findOne({ $or: [{ city: cityId }, { cityOtherName: cityId }] });
     }
 
     if (!gov) return res.status(404).json({ error: 'Governorate not found' });

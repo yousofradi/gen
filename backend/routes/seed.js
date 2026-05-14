@@ -193,38 +193,68 @@ router.post('/', adminAuth, async (req, res) => {
 router.post('/shipping', adminAuth, async (req, res) => {
   try {
     const filePath = path.join(__dirname, '../../Shipment.txt');
+    console.log('Attempting to seed shipping from:', filePath);
+    
     if (!fs.existsSync(filePath)) {
+      console.error('Shipment.txt not found at:', filePath);
       return res.status(404).json({ error: 'Shipment.txt not found' });
     }
 
-    const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    const sourceData = rawData[0].data;
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const rawData = JSON.parse(fileContent);
+    
+    // Support both [ { data: [] } ] and { data: [] } formats
+    const rootData = Array.isArray(rawData) ? rawData[0] : rawData;
+    const sourceData = rootData.data;
 
-    const newData = sourceData.map(c => ({
-      city: c.cityName,
-      cityOtherName: c.cityOtherName,
-      bostaCityId: c.cityCode,
-      fee: 85,
-      zones: c.districts
-        .filter(d => d.dropOffAvailability === true)
-        .map(d => ({
-          name: d.districtName,
-          otherName: d.districtOtherName,
-          bostaZoneId: d.zoneId
-        }))
-    }));
+    if (!sourceData || !Array.isArray(sourceData)) {
+      console.error('Invalid Shipment.txt structure: data array not found');
+      return res.status(400).json({ error: 'Invalid data structure in Shipment.txt' });
+    }
+
+    console.log(`Found ${sourceData.length} cities in Shipment.txt`);
+
+    const newData = sourceData.map(c => {
+      const districts = c.districts || [];
+      return {
+        city: c.cityName,
+        cityOtherName: c.cityOtherName,
+        bostaCityId: c.cityId || c.cityCode,
+        fee: 85,
+        zones: districts
+          .filter(d => d.dropOffAvailability === true)
+          .map(d => ({
+            name: d.zoneName || d.districtName,
+            otherName: d.zoneOtherName || d.districtOtherName,
+            districtOtherName: d.districtOtherName,
+            bostaZoneId: d.zoneId
+          }))
+      };
+    });
+
+    const totalZones = newData.reduce((acc, c) => acc + c.zones.length, 0);
+    console.log(`Total zones to import: ${totalZones}`);
 
     // Drop all indexes to fix stale unique field errors
     try {
       await Shipping.collection.dropIndexes();
+      console.log('Dropped existing indexes for Shipping collection');
     } catch (e) {
       console.warn('Could not drop indexes:', e.message);
     }
 
     await Shipping.deleteMany({});
-    await Shipping.insertMany(newData);
+    console.log('Cleared existing shipping data');
 
-    res.json({ message: `Successfully seeded ${newData.length} cities from Shipment.txt` });
+    const result = await Shipping.insertMany(newData);
+    console.log(`Successfully inserted ${result.length} cities`);
+
+    // Refresh cache
+    const redis = require('../utils/redis');
+    const fees = await Shipping.find({}, 'city cityOtherName fee');
+    await redis.set('storefront:shipping:list', JSON.stringify(fees), 'EX', 86400);
+
+    res.json({ message: `Successfully seeded ${newData.length} cities and ${totalZones} zones from Shipment.txt` });
   } catch (err) {
     console.error('Shipping seed failed:', err);
     res.status(500).json({ error: 'Seed failed: ' + err.message });

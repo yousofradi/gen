@@ -100,20 +100,30 @@ async function loadCities() {
       opt.textContent = `${s.cityOtherName || s.city} (${formatPrice(s.fee)})`;
       select.appendChild(opt);
     });
-    select.addEventListener('change', handleCityChange);
+    select.addEventListener('change', handleGovChange);
   } catch (err) {
     showToast('فشل في تحميل بيانات الشحن', 'error');
   }
 }
 
-async function handleCityChange() {
+async function handleGovChange() {
   const cityId = document.getElementById('government').value;
   const zoneInput = document.getElementById('zone');
   if (!zoneInput) return;
   
   zoneInput.value = ''; // Clear current selection
-  const list = (window._fullShippingData || []).find(s => s._id === cityId);
-  window._currentZones = list ? (list.zones || []) : [];
+  window._currentZones = [];
+
+  if (cityId) {
+    try {
+      // Fetch zones from API
+      const zones = await api.getZones(cityId);
+      window._currentZones = zones || [];
+    } catch (err) {
+      console.error('Failed to fetch zones:', err);
+      window._currentZones = [];
+    }
+  }
   
   renderZoneDropdown();
   updatePriceSummary();
