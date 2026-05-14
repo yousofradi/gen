@@ -9,7 +9,8 @@ if (!redisUrl) {
 const redis = new Redis(redisUrl, {
     maxRetriesPerRequest: null, 
     enableReadyCheck: false,
-    lazyConnect: true,
+    connectTimeout: 10000, // 10 seconds
+    keepAlive: 10000,
     tls: {
         rejectUnauthorized: false
     }
