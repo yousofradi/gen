@@ -217,6 +217,7 @@ ${shortLink}`;
             if (mediaData) {
               finalWaUrl = `${cleanBaseUrl}/message/sendMedia/${conf.instance}`;
               waPayload.mediatype = 'image';
+              waPayload.mediaType = 'image'; // Fallback for some versions
               waPayload.mimetype = 'image/png';
               waPayload.caption = ownerMessage;
               waPayload.media = mediaData.replace(/\s/g, ''); // User snippet uses 'media' field
