@@ -139,18 +139,17 @@ function renderProducts(collections) {
         </td>
         <td style="width:60px; text-align:center;">
           ${mainImg
-        ? `<img src="${mainImg}" alt="${p.name}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;border:1px solid var(--border-color)">`
-        : `<div style="width:50px;height:50px;border-radius:8px;background:var(--bg-body);display:flex;align-items:center;justify-content:center;font-size:1.4rem"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`}
+        ? `<img src="${mainImg}" alt="${p.name}" style="width:50px;height:50px;border-radius:10px;object-fit:cover;border:1px solid var(--border-color)">`
+        : `<div style="width:50px;height:50px;border-radius:10px;background:var(--bg-body);display:flex;align-items:center;justify-content:center;font-size:1.2rem"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`}
         </td>
-        <td style="text-align: center; width: 70px;"><span class="badge ${statusClass}" style="font-size: 0.7rem; padding: 2px 6px;">${statusLabel}</span></td>
-        <td style="text-align: center;">
-          <div style="font-weight:600; font-size:0.85rem; margin-bottom:2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name || 'بدون اسم'}</div>
-          <div class="mobile-price-show" style="display:none; font-size:0.8rem; color:var(--primary); font-weight:700">${priceDisplay}</div>
+        <td style="text-align: right; padding-right: 12px;">
+          <div style="font-weight:700; font-size:0.95rem; margin-bottom:4px; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name || 'بدون اسم'}</div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <div style="font-size:0.85rem; color:var(--primary); font-weight:700">${priceDisplay}</div>
+            <span class="badge ${statusClass}" style="font-size: 0.65rem; padding: 1px 6px;">${statusLabel}</span>
+            <span style="font-size: 0.75rem; color: #64748b;">(Qty: ${p.quantity !== null && p.quantity !== undefined ? p.quantity : '∞'})</span>
+          </div>
         </td>
-        <td style="text-align: center; color: var(--text-muted); font-size: 0.85rem; width: 70px;">
-          ${p.quantity !== null && p.quantity !== undefined ? p.quantity : '∞'}
-        </td>
-        <td style="text-align: center; font-size: 0.85rem; width: 90px;">${priceDisplay}</td>
       </tr>
     `}).join('');
 
