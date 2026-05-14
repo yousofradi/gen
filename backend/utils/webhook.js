@@ -186,7 +186,7 @@ ${shortLink}`;
 
                 if (snapRes.ok) {
                   const buffer = await snapRes.arrayBuffer();
-                  mediaData = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
+                  mediaData = Buffer.from(buffer).toString('base64');
                 } else {
                   const errTxt = await snapRes.text();
                   console.warn('[WhatsApp] SnapRender failed:', errTxt);
