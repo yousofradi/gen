@@ -145,10 +145,12 @@ const api = {
   deleteWebhook(id) { return this._request(`/webhooks/${id}`, { method: 'DELETE', admin: true }); },
 
   // Settings
-  getSetting(key) { return this._request(`/settings/${key}`, { useCache: true }); },
+  getSetting(key, useCache = true) { 
+    return this._request(`/settings/${key}`, { useCache }); 
+  },
   async updateSetting(key, value) {
     const res = await this._request(`/settings/${key}`, { method: 'POST', body: JSON.stringify({ value }), admin: true });
-    // Invalidate cache
+    // Invalidate cache immediately
     sessionStorage.removeItem(`api_cache_/settings/${key}`);
     return res;
   },

@@ -204,7 +204,7 @@
     async function loadConfigs() {
       const tbody = document.getElementById('configs-tbody');
       try {
-        const configs = await api.getSetting(CONFIG_KEY) || [];
+        const configs = await api.getSetting(CONFIG_KEY, false) || [];
         if (!configs.length) {
           tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted" style="padding:32px">لا توجد إعدادات مضافة</td></tr>';
           return;
@@ -252,7 +252,7 @@
       }
 
       try {
-        const rawConfigs = await api.getSetting(CONFIG_KEY);
+        const rawConfigs = await api.getSetting(CONFIG_KEY, false);
         console.log('[WhatsApp] Loaded configs:', rawConfigs);
         let configs = Array.isArray(rawConfigs) ? rawConfigs : [];
         
@@ -278,7 +278,7 @@
 
     async function deleteConfig(idx) {
       try {
-        const rawConfigs = await api.getSetting(CONFIG_KEY);
+        const rawConfigs = await api.getSetting(CONFIG_KEY, false);
         let configs = Array.isArray(rawConfigs) ? rawConfigs : [];
         
         configs.splice(idx, 1);
