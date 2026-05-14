@@ -200,7 +200,9 @@ ${shortLink}`;
             let cleanBaseUrl = conf.baseUrl.trim().replace(/\/+$/, '');
             if (!cleanBaseUrl.startsWith('http')) cleanBaseUrl = `https://${cleanBaseUrl}`;
             
-            const cleanNumber = conf.number.trim().replace(/\D/g, '');
+            let cleanNumber = conf.number.trim().replace(/\D/g, '');
+            if (!cleanNumber.startsWith('2')) cleanNumber = '2' + cleanNumber;
+            
             const waPayload = {
               number: cleanNumber,
               delay: 1,
