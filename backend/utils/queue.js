@@ -8,9 +8,15 @@ const orderQueue = new Queue('orderQueue', {
 const worker = new Worker('orderQueue', async (job) => {
     console.log(`[BullMQ] Processing job ${job.id}`);
     const Order = require('../models/Order');
+    const sendWebhook = require('./webhook');
     
     try {
-        // 1. Mark as completed in MongoDB (Durability Fallback)
+        // 1. Trigger Webhooks (WhatsApp, etc.)
+        if (job.data.order) {
+            await sendWebhook('order.created', job.data.order);
+        }
+
+        // 2. Mark as completed in MongoDB (Durability Fallback)
         if (job.data.order && job.data.order._id) {
             await Order.findByIdAndUpdate(job.data.order._id, { 
                 $set: { processingStatus: 'completed' } 

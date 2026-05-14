@@ -661,6 +661,14 @@ router.post('/cancel/batch', adminAuth, async (req, res) => {
 
     await Order.updateMany({ orderId: { $in: orderIds } }, { $set: { status: 'cancelled' } });
 
+    // Trigger webhooks for each cancelled order
+    for (const id of orderIds) {
+      const order = await Order.findOne({ orderId: id });
+      if (order) {
+        await sendWebhook('order.cancelled', order.toObject());
+      }
+    }
+
     res.json({ message: 'Orders cancelled' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel orders' });
@@ -704,6 +712,7 @@ router.post('/:orderId/cancel', adminAuth, async (req, res) => {
       }
       order.status = 'cancelled';
       await order.save();
+      await sendWebhook('order.cancelled', order.toObject());
     }
 
     res.json({ message: 'Order cancelled', order });
