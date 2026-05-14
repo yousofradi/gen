@@ -227,6 +227,7 @@ ${shortLink}`;
             }
 
             console.log(`[WhatsApp] Sending to ${finalWaUrl}`);
+            console.log(`[WhatsApp] Payload:`, JSON.stringify({ ...waPayload, media: waPayload.media ? (waPayload.media.substring(0, 50) + '...') : null }, null, 2));
 
             try {
               const res = await fetch(finalWaUrl, {
