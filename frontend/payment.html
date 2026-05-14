@@ -29,7 +29,8 @@
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <h2 style="margin-bottom:8px;">تم استلام طلبك بنجاح!</h2>
-      <p class="text-muted" style="font-size:0.95rem;" id="order-id-display">رقم الطلب: #...</p>
+      <p class="text-muted" style="font-size:0.95rem; margin-bottom:4px;" id="order-id-display">رقم الطلب: #...</p>
+      <p style="font-size:1.1rem; font-weight:800; color:#1e293b; margin:0;" id="order-total-display">المبلغ الإجمالي: ...</p>
 
       <div style="margin-top:24px; text-align:right;">
         <p style="font-weight:700; color:#1e293b; margin-bottom:12px; white-space: pre-wrap;" id="global-payment-notes"></p>
@@ -70,6 +71,7 @@
         if (!currentOrder) { window.location.href = 'index'; return; }
 
         document.getElementById('order-id-display').textContent = `رقم الطلب: #${currentOrder.orderId}`;
+        document.getElementById('order-total-display').textContent = `المبلغ الإجمالي: ${formatPrice(currentOrder.totalPrice)}`;
         document.getElementById('global-payment-notes').textContent = storeSettings.paymentNotes || 'يرجى إتمام عملية التحويل لتأكيد الطلب.';
 
         renderPaymentDetails();
