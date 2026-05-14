@@ -9,6 +9,24 @@ function debounce(func, delay = 300) {
   };
 }
 
+// Smart Search helper for Arabic
+function smartMatch(text, query) {
+  if (!text || !query) return false;
+  const normalize = (s) => s.toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/^ال/, '')
+    .replace(/\sال/g, ' ')
+    .trim();
+  
+  const nText = normalize(text);
+  const nQuery = normalize(query);
+  
+  // Suggest if query matches any part of the text or vice versa
+  return nText.includes(nQuery) || nQuery.includes(nText);
+}
+
 let allProducts = [];
 let allCustomers = [];
 let shippingMap = {};
@@ -49,11 +67,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       });
 
-      function renderGovDropdown() {
-        const query = searchInput.value.toLowerCase().trim();
-        const filtered = window._fullShippingData.filter(s => 
-          s.city.toLowerCase().includes(query) || (s.cityOtherName && s.cityOtherName.toLowerCase().includes(query))
-        );
+        function renderGovDropdown() {
+          const query = searchInput.value.trim();
+          const filtered = window._fullShippingData.filter(s => 
+            smartMatch(s.city, query) || (s.cityOtherName && smartMatch(s.cityOtherName, query))
+          );
 
         if (filtered.length === 0) {
           dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد نتائج</div>';
@@ -262,8 +280,18 @@ window.renderModalProducts = function () {
   const q = qEl ? qEl.value.toLowerCase().trim() : '';
   const col = colEl ? colEl.value : '';
 
-  let filtered = allProducts;
-  if (q) filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+  let filtered = (Array.isArray(allProducts) ? allProducts : (allProducts.products || []))
+    .filter(p => p.status !== 'draft');
+
+  // Filter by stock
+  filtered = filtered.filter(p => {
+    if (p.variants && p.variants.length > 0) {
+      return p.variants.some(v => v.quantity === null || v.quantity > 0);
+    }
+    return p.quantity === null || p.quantity > 0;
+  });
+
+  if (q) filtered = filtered.filter(p => smartMatch(p.name, q));
   if (col) filtered = filtered.filter(p => p.collectionId === col || (p.collectionIds && p.collectionIds.includes(col)));
 
   if (!filtered.length) {
@@ -299,25 +327,27 @@ window.renderModalProducts = function () {
 
     let variantsHtml = '';
     if (p.variants && p.variants.length > 0) {
-      variantsHtml = p.variants.map((v, idx) => {
-        const comboList = Object.entries(v.combination).map(([g, l]) => ({ groupName: g, label: l }));
-        const title = comboList.map(c => c.label).join(' / ');
-        const finalPrice = (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price;
-        const comboStr = encodeURIComponent(JSON.stringify(comboList));
-        const vKey = `${p._id}-${comboStr}`;
-        return `
-          <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div style="font-size:0.9rem;font-weight:500;">${title}</div>
-              <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
-            </div>
-            <input type="checkbox" class="pli-checkbox product-variant-cb" 
-              data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
-              ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
-              onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
-          </label>
-        `;
-      }).join('');
+      variantsHtml = p.variants
+        .filter(v => v.quantity === null || v.quantity > 0)
+        .map((v, idx) => {
+          const comboList = Object.entries(v.combination).map(([g, l]) => ({ groupName: g, label: l }));
+          const title = comboList.map(c => c.label).join(' / ');
+          const finalPrice = (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price;
+          const comboStr = encodeURIComponent(JSON.stringify(comboList));
+          const vKey = `${p._id}-${comboStr}`;
+          return `
+            <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="font-size:0.9rem;font-weight:500;">${title}</div>
+                <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
+              </div>
+              <input type="checkbox" class="pli-checkbox product-variant-cb" 
+                data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
+                ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
+                onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
+            </label>
+          `;
+        }).join('');
     } else {
       const combinations = getProductCombinations(p.options);
       variantsHtml = combinations.map((combo, idx) => {
@@ -716,7 +746,7 @@ window.setupCustomerSearch = function () {
       return;
     }
     const filtered = allCustomers.filter(c => 
-      (c.name && c.name.toLowerCase().includes(q)) || 
+      (c.name && smartMatch(c.name, q)) || 
       (c.phone && c.phone.includes(q))
     );
     renderCustomerDropdown(filtered);
@@ -860,7 +890,8 @@ window.setupSearch = function () {
   const debouncedProductSearch = debounce((q) => {
     const results = document.getElementById('search-results');
     if (q.length < 2) { results.innerHTML = ''; return; }
-    const filtered = allProducts.filter(p => p.name.toLowerCase().includes(q));
+    const products = Array.isArray(allProducts) ? allProducts : [];
+    const filtered = products.filter(p => smartMatch(p.name, q));
     results.innerHTML = filtered.map(p => `
       <div class="search-item" onclick="addToCart('${p._id}')">
         <div style="font-weight:600">${p.name}</div>
@@ -887,7 +918,7 @@ window.setupZoneSearch = function () {
   });
 
   input.addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase().trim();
+    const q = e.target.value.trim();
     if (!q) {
       renderZoneDropdown(window._currentCityZones);
       return;

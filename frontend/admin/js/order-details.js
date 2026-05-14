@@ -431,20 +431,23 @@ window.handleModalCityChange = async function (skipZoneClear = false) {
 
 window.renderModalZoneDropdown = function () {
   const dropdown = document.getElementById('modal-c-zone-dropdown');
-  const query = document.getElementById('modal-c-zone').value.toLowerCase().trim();
+  const query = document.getElementById('modal-c-zone').value.trim();
   
   if (!window._modalZones || window._modalZones.length === 0) {
     dropdown.style.display = 'none';
     return;
   }
 
+  // Exact match logic (still useful for persistence)
   const isExactMatch = window._modalZones.some(z => {
     const label = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
-    return label.toLowerCase() === query;
+    return label.toLowerCase() === query.toLowerCase();
   });
 
   const filtered = isExactMatch ? window._modalZones : window._modalZones.filter(z => 
-    z.name.toLowerCase().includes(query) || (z.otherName && z.otherName.toLowerCase().includes(query))
+    smartMatch(z.name, query) || 
+    (z.otherName && smartMatch(z.otherName, query)) ||
+    (z.districtOtherName && smartMatch(z.districtOtherName, query))
   );
 
   dropdown.style.display = 'block';
@@ -875,7 +878,8 @@ window.openProductsModal = async function () {
     listEl.innerHTML = '<div style="padding:20px; text-align:center;">جاري تحميل المنتجات...</div>';
     try {
       // Use caching for modal products to load faster
-      allProducts = await api.getProducts(1, 1000, true, '', '', '', true);
+      const res = await api.getProducts(1, 1000, true, '', '', '', true);
+      allProducts = Array.isArray(res) ? res : (res.products || []);
     } catch (err) {
       console.error('Failed to load products for modal', err);
     }
@@ -902,13 +906,28 @@ window.handleModalVariantSelect = function(pid, comboStr, price, checked) {
 };
 
 window.renderModalProducts = function () {
-  const q = document.getElementById('modal-search').value.toLowerCase().trim();
+  const q = document.getElementById('modal-search').value.trim();
   const col = document.getElementById('modal-col-filter').value;
   const listEl = document.getElementById('modal-products-list');
 
-  let filtered = allProducts;
-  if (q) filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
-  if (col) filtered = filtered.filter(p => p.collectionId === col);
+  let filtered = (Array.isArray(allProducts) ? allProducts : (allProducts.products || []))
+    .filter(p => p.status !== 'draft');
+
+  // Filter by stock
+  filtered = filtered.filter(p => {
+    if (p.variants && p.variants.length > 0) {
+      return p.variants.some(v => v.quantity === null || v.quantity > 0);
+    }
+    return p.quantity === null || p.quantity > 0;
+  });
+
+  if (q) filtered = filtered.filter(p => smartMatch(p.name, q));
+  if (col) filtered = filtered.filter(p => p.collectionId === col || (p.collectionIds && p.collectionIds.includes(col)));
+
+  if (!filtered.length) {
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">لا توجد منتجات</div>';
+    return;
+  }
 
   listEl.innerHTML = filtered.map(p => {
     const isChecked = modalSelectedProducts.has(p._id);
@@ -940,25 +959,27 @@ window.renderModalProducts = function () {
     const combinations = p.variants && p.variants.length > 0 ? [] : getProductCombinations(p.options);
     
     if (p.variants && p.variants.length > 0) {
-      variantsHtml = p.variants.map((v, idx) => {
-        const comboList = Object.entries(v.combination).map(([g, l]) => ({ groupName: g, label: l }));
-        const title = comboList.map(c => c.label).join(' / ');
-        const finalPrice = (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price;
-        const comboStr = encodeURIComponent(JSON.stringify(comboList));
-        const vKey = `${p._id}-${comboStr}`;
-        return `
-          <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div style="font-size:0.9rem;font-weight:500;">${title}</div>
-              <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
-            </div>
-            <input type="checkbox" class="pli-checkbox product-variant-cb" 
-              data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
-              ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
-              onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
-          </label>
-        `;
-      }).join('');
+      variantsHtml = p.variants
+        .filter(v => v.quantity === null || v.quantity > 0)
+        .map((v, idx) => {
+          const comboList = Object.entries(v.combination).map(([g, l]) => ({ groupName: g, label: l }));
+          const title = comboList.map(c => c.label).join(' / ');
+          const finalPrice = (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price;
+          const comboStr = encodeURIComponent(JSON.stringify(comboList));
+          const vKey = `${p._id}-${comboStr}`;
+          return `
+            <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="font-size:0.9rem;font-weight:500;">${title}</div>
+                <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
+              </div>
+              <input type="checkbox" class="pli-checkbox product-variant-cb" 
+                data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
+                ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
+                onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
+            </label>
+          `;
+        }).join('');
     } else {
       variantsHtml = combinations.map((combo, idx) => {
         const title = combo.map(c => c.label).join(' / ');
