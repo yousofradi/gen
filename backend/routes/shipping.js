@@ -7,7 +7,7 @@ const adminAuth = require('../middleware/adminAuth');
 // GET /api/shipping — return all governorates (minimal data)
 router.get('/', async (req, res) => {
   try {
-    const fees = await Shipping.find({}, 'city cityOtherName fee');
+    const fees = await Shipping.find({}, 'city cityOtherName fee zones');
     res.json(fees);
   } catch (error) {
     res.status(500).json({ error: error.message });
