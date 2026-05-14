@@ -212,11 +212,10 @@ ${shortLink}`;
 
             let finalWaUrl = '';
             if (mediaData) {
-              finalWaUrl = `${cleanBaseUrl}/message/sendMedia/${conf.instance}`;
-              waPayload.mediatype = 'image'; // Use lowercase 'image' for Evolution API
-              waPayload.mimetype = 'image/png';
+              finalWaUrl = `${cleanBaseUrl}/message/sendImage/${conf.instance}`;
+              waPayload.image = mediaData.replace(/\s/g, ''); // Evolution API sendImage expects 'image' field
               waPayload.caption = ownerMessage;
-              waPayload.media = mediaData.replace(/\s/g, ''); // Ensure no spaces/newlines
+              // Some versions might still need these, but usually sendImage is simpler
               waPayload.fileName = `invoice-${data.orderId}.png`;
             } else {
               finalWaUrl = `${cleanBaseUrl}/message/sendText/${conf.instance}`;
