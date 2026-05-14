@@ -1,3 +1,19 @@
+// Smart Search helper for Arabic
+function smartMatch(text, query) {
+  if (!text || !query) return false;
+  const normalize = (s) => s.toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/^ال/, '')
+    .replace(/\sال/g, ' ')
+    .trim();
+  
+  const nText = normalize(text);
+  const nQuery = normalize(query);
+  return nText.includes(nQuery) || nQuery.includes(nText);
+}
+
 /** Checkout page logic */
 document.addEventListener('DOMContentLoaded', async () => {
   const items = Cart.getItems();
@@ -109,9 +125,9 @@ async function loadCities() {
     });
 
     function renderGovDropdown() {
-      const query = searchInput.value.toLowerCase().trim();
+      const query = searchInput.value.trim();
       const filtered = list.filter(s => 
-        s.city.toLowerCase().includes(query) || (s.cityOtherName && s.cityOtherName.toLowerCase().includes(query))
+        smartMatch(s.city, query) || (s.cityOtherName && smartMatch(s.cityOtherName, query))
       );
 
       if (filtered.length === 0) {
@@ -187,11 +203,13 @@ function renderZoneDropdown() {
 
   const isExactMatch = window._currentZones.some(z => {
     const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
-    return zoneLabel.toLowerCase().trim() === query;
+    return zoneLabel.toLowerCase().trim() === query.toLowerCase().trim();
   });
 
   const filtered = isExactMatch ? window._currentZones : window._currentZones.filter(z => 
-    z.name.toLowerCase().includes(query) || (z.otherName && z.otherName.toLowerCase().includes(query))
+    smartMatch(z.name, query) || 
+    (z.otherName && smartMatch(z.otherName, query)) ||
+    (z.districtOtherName && smartMatch(z.districtOtherName, query))
   );
 
   if (filtered.length === 0 && query !== '') {
