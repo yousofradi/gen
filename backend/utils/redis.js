@@ -6,14 +6,18 @@ if (!redisUrl) {
     console.error('❌ REDIS_URL is not set in environment variables.');
 }
 
+const isTls = redisUrl.startsWith('rediss://');
+
 const redis = new Redis(redisUrl, {
     maxRetriesPerRequest: null, 
     enableReadyCheck: false,
-    connectTimeout: 10000, // 10 seconds
+    connectTimeout: 10000,
     keepAlive: 10000,
-    tls: {
-        rejectUnauthorized: false
-    }
+    ...(isTls && {
+        tls: {
+            rejectUnauthorized: false
+        }
+    })
 });
 
 redis.on('connect', () => console.log('✅ Connected to Redis successfully'));
