@@ -145,7 +145,6 @@ async function handleGovChange() {
   if (!zoneInput) return;
   
   zoneInput.value = ''; // Clear current selection
-  window._currentZones = [];
 
   if (cityId) {
     try {
@@ -164,7 +163,8 @@ async function handleGovChange() {
 
 function renderZoneDropdown() {
   const dropdown = document.getElementById('zone-dropdown');
-  const query = document.getElementById('zone').value.toLowerCase().trim();
+  const zoneInput = document.getElementById('zone');
+  const query = zoneInput.value.toLowerCase().trim();
   
   if (!window._currentZones || window._currentZones.length === 0) {
     dropdown.style.display = 'none';
@@ -207,13 +207,25 @@ document.addEventListener('click', (e) => {
 });
 
 document.getElementById('zone')?.addEventListener('focus', () => {
+  renderZoneDropdown();
   if (window._currentZones && window._currentZones.length > 0) {
     document.getElementById('zone-dropdown').style.display = 'block';
-    renderZoneDropdown();
   }
 });
 
-document.getElementById('zone')?.addEventListener('input', renderZoneDropdown);
+document.getElementById('zone')?.addEventListener('click', () => {
+  renderZoneDropdown();
+  if (window._currentZones && window._currentZones.length > 0) {
+    document.getElementById('zone-dropdown').style.display = 'block';
+  }
+});
+
+document.getElementById('zone')?.addEventListener('input', () => {
+  renderZoneDropdown();
+  if (window._currentZones && window._currentZones.length > 0) {
+    document.getElementById('zone-dropdown').style.display = 'block';
+  }
+});
 
 function updatePriceSummary() {
   const items = Cart.getItems();
@@ -305,6 +317,12 @@ function setupForm() {
     }
 
     if (!/^01[0-9]{9}$/.test(phone)) { showToast('رقم الهاتف يجب أن يكون 11 رقم ويبدأ بـ 01', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
+
+    if (phone2 && phone === phone2) {
+      showToast('لا يمكن استخدام نفس رقم الهاتف مرتين', 'error');
+      btn.disabled = false; btn.textContent = 'تأكيد الطلب';
+      return;
+    }
 
     const address = document.getElementById('cust-address').value.trim();
     if (address.split(/\s+/).filter(Boolean).length < 2) { showToast('الرجاء إدخال العنوان بالتفصيل (أكثر من كلمة)', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }

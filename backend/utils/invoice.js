@@ -46,6 +46,8 @@ async function generateInvoiceInnerHtml(order, settings) {
   const total = num(order.totalPrice);
   const paid = num(order.paidAmount);
   const remaining = total - paid;
+  // Add 10 EGP extra fee if not fully paid (COD fee logic)
+  const displayRemaining = remaining > 0 ? (remaining + 10) : 0;
 
   // ================== PHONE ==================
   let phone = safe(order.customer.phone);
@@ -131,7 +133,7 @@ ${productsHtml}
 
 <div class="row red">
 <span>${remtext}</span>
-<span>${remaining} ج</span>
+<span>${displayRemaining} ج</span>
 </div>
 
 </div>

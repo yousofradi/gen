@@ -103,9 +103,10 @@ ${settings.paymentNotes || ''}
 شكراً لثقتك بنا  ♡`;
             } else {
               // Default/Paid message
-              const remainingAmount = data.totalPrice - (data.paidAmount || 0);
-              const remainingText = remainingAmount > 0
-                ? `الدفع عند الاستلام : ${remainingAmount} EGP`
+              const baseRemaining = data.totalPrice - (data.paidAmount || 0);
+              const displayRemaining = baseRemaining > 0 ? (baseRemaining + 10) : 0;
+              const remainingText = baseRemaining > 0
+                ? `الدفع عند الاستلام (+10 ج رسوم) : ${displayRemaining} EGP`
                 : `مدفوع بالكامل`;
 
               customerMessage = `شكرا لشرائك من متجر (${brandName})
@@ -153,14 +154,15 @@ ${remainingText}
               if (data.customer.notes) ownerMessage += `\nملاحظات: ${data.customer.notes}`;
               ownerMessage += `\n\nرابط واتساب:\n${shortLink}`;
             } else if (event === 'order.paid') {
-              const remainingAmount = data.totalPrice - (data.paidAmount || 0);
+              const baseRemaining = data.totalPrice - (data.paidAmount || 0);
+              const displayRemaining = baseRemaining > 0 ? (baseRemaining + 10) : 0;
               ownerMessage = `تم تأكيد الدفع 
 
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
 
 المدفوع : ${data.paidAmount || 0} EGP
-المتبقي : ${remainingAmount} EGP
+المتبقي عند الاستلام (+10 ج): ${displayRemaining} EGP
 
 لينك للعميل :
 ${shortLink}`;
