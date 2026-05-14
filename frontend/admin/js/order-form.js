@@ -892,7 +892,11 @@ window.setupZoneSearch = function () {
       renderZoneDropdown(window._currentCityZones);
       return;
     }
-    const filtered = (window._currentCityZones || []).filter(z => z.toLowerCase().includes(q));
+    
+    // If exact match, show all so user can still see list/change
+    const isExactMatch = (window._currentCityZones || []).some(z => z.toLowerCase() === q);
+    const filtered = isExactMatch ? window._currentCityZones : (window._currentCityZones || []).filter(z => z.toLowerCase().includes(q));
+    
     renderZoneDropdown(filtered);
     dropdown.classList.add('active');
   });

@@ -438,7 +438,12 @@ window.renderModalZoneDropdown = function () {
     return;
   }
 
-  const filtered = window._modalZones.filter(z => 
+  const isExactMatch = window._modalZones.some(z => {
+    const label = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+    return label.toLowerCase() === query;
+  });
+
+  const filtered = isExactMatch ? window._modalZones : window._modalZones.filter(z => 
     z.name.toLowerCase().includes(query) || (z.otherName && z.otherName.toLowerCase().includes(query))
   );
 
