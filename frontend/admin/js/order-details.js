@@ -541,10 +541,13 @@ window.openPaymentModal = function () {
 };
 
 window.applyPaymentChanges = async function () {
+  const newPaidAmount = parseFloat(document.getElementById('modal-paid-amount').value) || 0;
   currentOrder.paymentMethod = document.getElementById('modal-payment-method').value;
-  currentOrder.paidAmount = parseFloat(document.getElementById('modal-paid-amount').value) || 0;
+  currentOrder.paidAmount = newPaidAmount;
 
-  currentOrder.forcePaymentWebhook = true; // Flag to force trigger webhook
+  // Fire trigger if paidAmount > 0, even if not changed. Except if it's 0.
+  currentOrder.forcePaymentWebhook = newPaidAmount > 0;
+
   renderOrder();
   closeModal('payment-modal');
 
