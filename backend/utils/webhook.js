@@ -61,76 +61,147 @@ async function sendWebhook(event, data) {
     }
 
     // ── WhatsApp Notification ──
-
-    // ── WhatsApp Notification ──
     try {
       const Setting = require('../models/Setting');
+      const { generateInvoiceInnerHtml } = require('./invoice');
+      
       const waConfigSetting = await Setting.findOne({ key: 'whatsapp_configs' });
+      const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
+      const settings = globalSettings ? globalSettings.value : {};
+      const brandName = settings.storeNameAr || settings.storeName || 'Store';
 
       if (waConfigSetting && Array.isArray(waConfigSetting.value)) {
         const configs = waConfigSetting.value;
-        console.log(`[WhatsApp] Found ${configs.length} configurations. Event: ${event}`);
-
+        
         for (const conf of configs) {
-          // Handle both array (new) and string (legacy) triggers
           const triggers = Array.isArray(conf.triggers) ? conf.triggers : (conf.trigger ? [conf.trigger] : []);
           const shouldSend = triggers.includes(event);
 
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
-            let msg = '';
-            if (event === 'order.cancelled') {
-              msg += `⚠️ تم إلغاء الطلب\n`;
+            
+            // 1. Prepare Customer Message (for the wa.me link)
+            const remainingAmount = data.totalPrice - (data.paidAmount || 0);
+            const remainingText = remainingAmount > 0 
+              ? `الدفع عند الاستلام : ${remainingAmount} EGP`
+              : `مدفوع بالكامل`;
+
+            const customerMessage = `شكرا لشرائك من متجر (${brandName})
+
+رقم الأوردر : ${data.orderId}
+المبلغ الاجمالي : ${data.totalPrice} EGP
+تم الدفع : ${data.paidAmount || 0} EGP
+${remainingText}
+
+شكراً لثقتك بنا ♡`;
+
+            // 2. Generate WhatsApp Link for the customer
+            const customerPhone = data.customer.phone.replace(/\D/g, '');
+            const whatsappLink = `https://wa.me/${customerPhone}?text=${encodeURIComponent(customerMessage)}`;
+
+            // 3. Shorten the Link using is.gd
+            let shortLink = whatsappLink;
+            try {
+              const isgdRes = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(whatsappLink)}`, {
+                signal: AbortSignal.timeout(5000)
+              });
+              if (isgdRes.ok) {
+                const text = await isgdRes.text();
+                if (text && text.startsWith('http')) shortLink = text;
+              }
+            } catch (e) {
+              console.warn('[WhatsApp] Link shortening failed:', e.message);
             }
 
-            msg += `رقم الاوردر: ${data.orderId}\n` +
-              `اسم العميل: ${data.customer.name}\n` +
-              `رقم الهاتف: ${data.customer.phone}\n` +
-              `اجمالي المطلوب: ${data.totalPrice}`;
+            // 4. Prepare Owner Message
+            const ownerMessage = 
+`تم تأكيد الطلب 
 
-            if (event === 'order.paid') {
-              msg += `\nالمدفوع: ${data.paidAmount || 0}\n` +
-                `المتبقي: ${data.totalPrice - (data.paidAmount || 0)}`;
+رقم الطلب: ${data.orderId}
+اسم العميل: ${data.customer.name}
+
+المدفوع : ${data.paidAmount || 0} EGP
+المتبقي : ${remainingAmount} EGP
+
+لينك للعميل :
+${shortLink}`;
+
+            // 5. Attempt Invoice Image Generation
+            let mediaData = null;
+            const snapKey = process.env.SNAPRENDER_API_KEY;
+            if (snapKey) {
+              try {
+                const invoiceHtml = await generateInvoiceInnerHtml(data, settings);
+                const snapRes = await fetch('https://app.snap-render.com/v1/screenshot', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': snapKey
+                  },
+                  body: JSON.stringify({
+                    html: invoiceHtml,
+                    type: 'png',
+                    width: 500,
+                    fullPage: true,
+                    deviceScaleFactor: 2
+                  }),
+                  signal: AbortSignal.timeout(10000)
+                });
+
+                if (snapRes.ok) {
+                  const buffer = await snapRes.arrayBuffer();
+                  mediaData = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
+                } else {
+                  const errTxt = await snapRes.text();
+                  console.warn('[WhatsApp] SnapRender failed:', errTxt);
+                }
+              } catch (err) {
+                console.error('[WhatsApp] Image generation error:', err.message);
+              }
             }
 
-            // Clean up baseUrl: remove trailing slash and ensure https:// protocol
+            // 6. Send to WhatsApp API
             let cleanBaseUrl = conf.baseUrl.trim().replace(/\/+$/, '');
-            if (!cleanBaseUrl.startsWith('http')) {
-              cleanBaseUrl = `https://${cleanBaseUrl}`;
+            if (!cleanBaseUrl.startsWith('http')) cleanBaseUrl = `https://${cleanBaseUrl}`;
+            
+            const cleanNumber = conf.number.trim().replace(/\D/g, '');
+            const waPayload = {
+              number: cleanNumber,
+              delay: 1,
+              linkPreview: false,
+              mentionsEveryOne: false
+            };
+
+            let finalWaUrl = '';
+            if (mediaData) {
+              finalWaUrl = `${cleanBaseUrl}/message/sendMedia/${conf.instance}`;
+              waPayload.mediatype = 'Image';
+              waPayload.mimetype = 'image/png';
+              waPayload.caption = ownerMessage;
+              waPayload.media = mediaData;
+              waPayload.fileName = `invoice-${data.orderId}.png`;
+            } else {
+              finalWaUrl = `${cleanBaseUrl}/message/sendText/${conf.instance}`;
+              waPayload.text = ownerMessage;
             }
 
-            const waUrl = `${cleanBaseUrl}/message/sendText/${conf.instance}`;
-
-            console.log(`[WhatsApp] Sending to ${waUrl} for ${conf.number}`);
+            console.log(`[WhatsApp] Sending ${mediaData ? 'Media' : 'Text'} to ${finalWaUrl}`);
 
             try {
-              // Clean number: remove any non-digit characters
-              const cleanNumber = conf.number.trim().replace(/\D/g, '');
-
-              const res = await fetch(waUrl, {
+              const res = await fetch(finalWaUrl, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'apikey': conf.apikey
                 },
-                body: JSON.stringify({
-                  number: cleanNumber,
-                  text: msg,
-                  delay: 123,
-                  linkPreview: false,
-                  mentionsEveryOne: false
-                })
+                body: JSON.stringify(waPayload)
               });
               const json = await res.json();
               console.log(`[WhatsApp] Response from ${conf.instance}:`, json);
             } catch (err) {
-              console.error(`[WhatsApp] Failed for instance ${conf.instance}:`, err.message);
+              console.error(`[WhatsApp] Delivery failed for ${conf.instance}:`, err.message);
             }
-          } else {
-            if (!shouldSend) console.log(`[WhatsApp] Skipping ${conf.instance} - trigger mismatch`);
           }
         }
-      } else {
-        console.log('[WhatsApp] No configurations found in settings.');
       }
     } catch (waErr) {
       console.error('[WhatsApp] System error:', waErr.message);
