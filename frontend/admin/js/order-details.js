@@ -553,22 +553,19 @@ window.applyPaymentChanges = async function () {
   if (window.hideBar) window.hideBar();
 };
 
-window.resendPaymentConfirmation = async function() {
-  const newPaidAmount = parseFloat(document.getElementById('modal-paid-amount').value) || 0;
-  if (newPaidAmount <= 0) {
+window.resendPaymentConfirmationDirect = async function() {
+  if (!currentOrder || (currentOrder.paidAmount || 0) <= 0) {
     showToast('يجب أن يكون المبلغ المدفوع أكبر من 0 لإرسال التأكيد', 'error');
     return;
   }
   
-  // Update state
-  currentOrder.paymentMethod = document.getElementById('modal-payment-method').value;
-  currentOrder.paidAmount = newPaidAmount;
+  const confirmed = await window.showConfirmModal('إرسال تأكيد', 'هل تريد إرسال تأكيد الدفع والفاتورة للعميل الآن؟');
+  if (!confirmed) return;
+
   currentOrder.forcePaymentWebhook = true;
   
-  renderOrder();
-  showToast('جاري إرسال تأكيد الدفع...', 'info');
+  showToast('جاري إرسال التأكيد...', 'info');
   await saveOrderChanges(true); // Save with trigger
-  closeModal('payment-modal');
 }
 
 // ── Actions ────────────────────────────────────────────

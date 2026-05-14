@@ -434,9 +434,9 @@
                   </div>
 
                   <div class="flex gap-8 mt-16" style="justify-content:flex-start">
-                    <button class="btn btn-primary btn-sm" id="btn-mark-paid" onclick="markFullyPaid()">مدفوع
-                      بالكامل</button>
+                    <button class="btn btn-primary btn-sm" id="btn-mark-paid" onclick="markFullyPaid()">مدفوع بالكامل</button>
                     <button class="btn btn-secondary btn-sm" onclick="openPaymentModal()">تعديل الدفع</button>
+                    <button class="btn btn-sm" style="background:#0ea5e9; color:#fff; font-weight:600;" onclick="resendPaymentConfirmationDirect()">ارسال</button>
                   </div>
                 </div>
               </div>
@@ -606,10 +606,9 @@
           <input type="number" id="modal-paid-amount" class="form-control" min="0">
         </div>
       </div>
-      <div class="modal-footer" style="display:flex; flex-direction:row-reverse; gap:12px; justify-content: flex-start;">
-        <button type="button" class="btn btn-primary" onclick="applyPaymentChanges()" style="margin:0; border-radius:24px; padding:8px 24px;">تطبيق</button>
-        <button type="button" class="btn" style="margin:0; border-radius:24px; padding:8px 24px; background:#0ea5e9; color:#fff; font-weight:600;" onclick="resendPaymentConfirmation()">إرسال تأكيد الدفع</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('payment-modal')" style="margin:0; border-radius:24px; padding:8px 24px; background:#fff; border:1px solid #e2e8f0; color:#1e293b;">إلغاء</button>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="applyPaymentChanges()">تطبيق</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('payment-modal')">إلغاء</button>
       </div>
     </div>
   </div>
