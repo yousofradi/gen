@@ -1,11 +1,17 @@
 const Redis = require('ioredis');
 
-const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const redisUrl = process.env.REDIS_URL;
+
+if (!redisUrl) {
+  console.error('❌ REDIS_URL is not set. Please add it to your environment variables.');
+}
 
 const redis = new Redis(redisUrl, {
-  maxRetriesPerRequest: null, // Required for BullMQ
+  maxRetriesPerRequest: null,
   enableReadyCheck: false,
-  tls: redisUrl.startsWith('rediss://') ? {
+  connectTimeout: 15000, 
+  commandTimeout: 5000,  // If Redis doesn't respond in 5s, fail and move on
+  tls: (redisUrl && redisUrl.startsWith('rediss://')) ? {
     rejectUnauthorized: false
   } : undefined
 });
