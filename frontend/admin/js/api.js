@@ -294,7 +294,7 @@ window.showConfirmModal = function (title, message) {
 
 // ── Currency formatter ─────────────────────────────────
 function formatPrice(p) {
-  return `${Number(p || 0).toLocaleString('ar-EG')} ج.م`;
+  return `${Number(p || 0).toLocaleString('ar-EG', { useGrouping: false })} ج.م`;
 }
 
 // ── Mobile sidebar toggle (auto-init) ─────────────────
