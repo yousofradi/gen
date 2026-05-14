@@ -8,6 +8,7 @@ const cityMap = require('./cityMap');
 async function sendWebhook(event, data) {
   try {
     const webhooks = await Webhook.find({ active: true, events: event });
+    console.log(`[Webhook] Found ${webhooks.length} active webhooks for event: ${event}`);
 
     if (webhooks.length > 0) {
       // Calculate subamount if needed
@@ -44,16 +45,17 @@ async function sendWebhook(event, data) {
         data: rawPayload
       });
 
-      const promises = webhooks.map(wh =>
-        fetch(wh.url, {
+      const promises = webhooks.map(wh => {
+        console.log(`[Webhook] Sending payload to ${wh.url}...`);
+        return fetch(wh.url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: payload,
           signal: AbortSignal.timeout(5000)
         }).catch(err => {
           console.error(`Failed to send webhook to ${wh.url}:`, err.message);
-        })
-      );
+        });
+      });
 
       await Promise.all(promises);
     }
