@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
+// Initialize background worker
+require('./utils/queue');
+
 const app = express();
 
 // ── Middleware ───────────────────────────────────────────

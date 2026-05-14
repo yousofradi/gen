@@ -45,8 +45,12 @@ router.get('/', async (req, res) => {
     
     const cacheKey = `products:${JSON.stringify({ page, limit, collectionId, search, hasOptions })}`;
     if (admin !== 'true') {
-      const cached = await redis.get(cacheKey);
-      if (cached) return res.json(JSON.parse(cached));
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) return res.json(JSON.parse(cached));
+      } catch (err) {
+        console.error('[Redis] Cache get failed:', err.message);
+      }
     }
 
     const query = {};
@@ -142,7 +146,11 @@ router.get('/', async (req, res) => {
       };
 
       if (admin !== 'true') {
-        await redis.set(cacheKey, JSON.stringify(result), 'EX', 3600);
+        try {
+          await redis.set(cacheKey, JSON.stringify(result), 'EX', 3600);
+        } catch (err) {
+          console.error('[Redis] Cache set failed:', err.message);
+        }
       }
       
       res.json(result);
@@ -156,7 +164,11 @@ router.get('/', async (req, res) => {
       let products = await queryExec;
       products = products.map(optimizeProductData);
       if (admin !== 'true') {
-        await redis.set(cacheKey, JSON.stringify(products), 'EX', 3600);
+        try {
+          await redis.set(cacheKey, JSON.stringify(products), 'EX', 3600);
+        } catch (err) {
+          console.error('[Redis] Cache set failed:', err.message);
+        }
       }
       res.json(products);
     }
