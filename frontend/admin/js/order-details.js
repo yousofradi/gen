@@ -8,7 +8,8 @@ let shippingMap = {};
 
 // Smart Search helper for Arabic
 function smartMatch(text, query) {
-  if (!text || !query) return false;
+  if (!query) return true; // Show all if no query
+  if (!text) return false;
   const normalize = (s) => s.toLowerCase()
     .replace(/[أإآ]/g, 'ا')
     .replace(/ة/g, 'ه')
@@ -744,6 +745,21 @@ window.applyItemDiscount = async function () {
     if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
       markAsReady();
     }
+  }
+};
+
+window.resendPaymentConfirmationDirect = async function () {
+  if (!currentOrder) return;
+  try {
+    const success = await api.triggerOrderPaid(currentOrder.orderId, currentOrder);
+    if (success) {
+      showToast('تم إرسال تأكيد الدفع بنجاح');
+    } else {
+      showToast('فشل إرسال التأكيد', 'error');
+    }
+  } catch (err) {
+    console.error('Resend Error:', err);
+    showToast('حدث خطأ أثناء الإرسال', 'error');
   }
 };
 

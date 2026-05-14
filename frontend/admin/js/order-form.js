@@ -11,7 +11,8 @@ function debounce(func, delay = 300) {
 
 // Smart Search helper for Arabic
 function smartMatch(text, query) {
-  if (!text || !query) return false;
+  if (!query) return true; // Show all if no query
+  if (!text) return false;
   const normalize = (s) => s.toLowerCase()
     .replace(/[أإآ]/g, 'ا')
     .replace(/ة/g, 'ه')
