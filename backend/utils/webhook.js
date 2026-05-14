@@ -211,17 +211,17 @@ ${shortLink}`;
             let finalWaUrl = '';
             if (mediaData) {
               finalWaUrl = `${cleanBaseUrl}/message/sendMedia/${conf.instance}`;
-              waPayload.mediatype = 'Image';
+              waPayload.mediatype = 'image'; // Use lowercase 'image' for Evolution API
               waPayload.mimetype = 'image/png';
               waPayload.caption = ownerMessage;
-              waPayload.media = mediaData;
+              waPayload.media = mediaData.replace(/\s/g, ''); // Ensure no spaces/newlines
               waPayload.fileName = `invoice-${data.orderId}.png`;
             } else {
               finalWaUrl = `${cleanBaseUrl}/message/sendText/${conf.instance}`;
               waPayload.text = ownerMessage;
             }
 
-            console.log(`[WhatsApp] Sending ${mediaData ? 'Media' : 'Text'} to ${finalWaUrl}`);
+            console.log(`[WhatsApp] Sending to ${finalWaUrl}`);
 
             try {
               const res = await fetch(finalWaUrl, {
@@ -232,10 +232,15 @@ ${shortLink}`;
                 },
                 body: JSON.stringify(waPayload)
               });
+              
               const json = await res.json();
-              console.log(`[WhatsApp] Response from ${conf.instance}:`, json);
+              if (!res.ok) {
+                console.error(`[WhatsApp] API Error (${res.status}):`, JSON.stringify(json, null, 2));
+              } else {
+                console.log(`[WhatsApp] Success from ${conf.instance}:`, json.message || 'Sent');
+              }
             } catch (err) {
-              console.error(`[WhatsApp] Delivery failed for ${conf.instance}:`, err.message);
+              console.error(`[WhatsApp] Network failed for ${conf.instance}:`, err.message);
             }
           }
         }
