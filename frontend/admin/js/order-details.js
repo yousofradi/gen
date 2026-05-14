@@ -163,6 +163,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const success = await saveOrderChanges();
     if (success !== false) {
       originalOrder = JSON.parse(JSON.stringify(currentOrder));
+      // Give time for toast, then reload for a clean state
+      setTimeout(() => window.location.reload(), 800);
     }
     return success;
   };
@@ -546,8 +548,10 @@ window.applyPaymentChanges = async function () {
   renderOrder();
   closeModal('payment-modal');
 
-  // Trigger unsaved changes bar
-  if (window.markAsModified) window.markAsModified();
+  // Save immediately as requested
+  await saveOrderChanges(true);
+  
+  if (window.hideBar) window.hideBar();
 };
 
 // ── Actions ────────────────────────────────────────────
@@ -731,13 +735,10 @@ window.markFullyPaid = async function () {
   // Instant UI update
   renderOrder();
   
-  showToast('جارٍ تحديث حالة الدفع...', 'info');
+  showToast('جارٍ تحديث حالة الدفع وحفظ الطلب...', 'info');
   
   // Save immediately
-  const success = await saveOrderChanges(true);
-  if (success) {
-    showToast('تم تحديث حالة الدفع وحفظ الطلب بنجاح', 'success');
-  }
+  await saveOrderChanges(true);
 };
 
 // ── Save ───────────────────────────────────────────────
@@ -787,13 +788,14 @@ window.saveOrderChanges = async function (silent = false) {
     currentOrder.forcePaymentWebhook = false; // Reset the flag
 
     if (!silent) {
-      showToast('تم حفظ التغييرات <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><polyline points="20 6 9 17 4 12"/></svg>');
+      showToast('تم حفظ التغييرات بنجاح <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><polyline points="20 6 9 17 4 12"/></svg>');
       if (btn) {
         btn.disabled = false;
         btn.textContent = 'حفظ التغييرات';
       }
     } else {
-      showToast('تم تحديث البيانات بنجاح', 'success');
+      // For silent saves (like immediate payment updates), we can show a brief success if not handled by caller
+      // showToast('تم تحديث البيانات', 'success');
     }
 
     // Update baseline for discard
