@@ -146,7 +146,12 @@ const api = {
 
   // Settings
   getSetting(key) { return this._request(`/settings/${key}`, { useCache: true }); },
-  updateSetting(key, value) { return this._request(`/settings/${key}`, { method: 'POST', body: JSON.stringify({ value }), admin: true }); },
+  async updateSetting(key, value) {
+    const res = await this._request(`/settings/${key}`, { method: 'POST', body: JSON.stringify({ value }), admin: true });
+    // Invalidate cache
+    sessionStorage.removeItem(`api_cache_/settings/${key}`);
+    return res;
+  },
 
   // Auth check
   async checkAdmin() {
