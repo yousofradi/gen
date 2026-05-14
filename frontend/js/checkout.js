@@ -79,6 +79,7 @@ async function loadPaymentMethods() {
   }
 }
 
+function renderOrderSummary() {
   updatePriceSummary();
 }
 
