@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
     const { page, limit, admin, collectionId, search, hasOptions, status } = req.query;
     
     // Define cacheKey at the top scope of the route
-    const cacheKey = `storefront:products:list:${JSON.stringify({ page, limit, collectionId, search, hasOptions, status })}`;
+    let cacheKey = `storefront:products:list:${JSON.stringify({ page, limit, collectionId, search, hasOptions, status })}`;
 
     // 1. ADMIN BYPASS: Skip Redis entirely for admin requests
     if (admin !== 'true') {
@@ -197,7 +197,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { admin } = req.query;
-    const cacheKey = `storefront:product:${req.params.id}`;
+    let cacheKey = `storefront:product:${req.params.id}`;
 
     // 1. ADMIN BYPASS
     if (admin !== 'true') {
