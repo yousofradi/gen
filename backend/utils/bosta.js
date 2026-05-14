@@ -48,7 +48,8 @@ async function generateBostaPayload(order, bostaConfig) {
     receiver: {
       firstName: order.customer.name.split(' ')[0],
       lastName: order.customer.name.split(' ').slice(1).join(' ') || 'Customer',
-      phone: order.customer.phone
+      phone: order.customer.phone,
+      ...(order.customer.secondPhone ? { secondPhone: order.customer.secondPhone } : {})
     },
     isConsigneeReschedule: true,
     notes: 'يرجى التواصل مع العميل قبل التحرك - قابل للكسر',

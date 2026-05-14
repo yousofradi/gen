@@ -41,9 +41,9 @@ async function clearCache() {
 // GET /api/products — list all (with pagination & collection filter)
 router.get('/', async (req, res) => {
   try {
-    const { page, limit, admin, collectionId, search, hasOptions } = req.query;
+    const { page, limit, admin, collectionId, search, hasOptions, status } = req.query;
     
-    const cacheKey = `products:${JSON.stringify({ page, limit, collectionId, search, hasOptions })}`;
+    const cacheKey = `products:${JSON.stringify({ page, limit, collectionId, search, hasOptions, status })}`;
     if (admin !== 'true') {
       try {
         const cached = await redis.get(cacheKey);
@@ -55,8 +55,12 @@ router.get('/', async (req, res) => {
 
     const query = {};
     
+    // If admin request, allow filtering by status
+    if (admin === 'true' && status) {
+      query.status = status;
+    } 
     // If not admin request, only show active products
-    if (admin !== 'true') {
+    else if (admin !== 'true') {
       query.active = { $ne: false };
       query.status = { $ne: 'draft' };
       // Hide out-of-stock products (quantity === 0) from storefront
@@ -92,7 +96,7 @@ router.get('/', async (req, res) => {
       }
     }
 
-    let sortObj = { createdAt: -1 };
+    let sortObj = { updatedAt: -1 };
     
     // Support manual sorting if collectionId is provided
     let manualOrder = null;

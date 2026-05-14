@@ -5,26 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!requireAdmin()) return;
   loadProducts();
 
+  // Global save/discard handle for potential future use (though reordering is disabled)
   window.handleGlobalSave = async () => {
-    const tbody = document.getElementById('products-tbody');
-    const order = Array.from(tbody.children)
-      .map((el, idx) => ({ id: el.getAttribute('data-id'), sortOrder: (currentPage - 1) * currentLimit + idx }))
-      .filter(x => x.id);
-    
-    try {
-      await api.reorderProducts(order);
-      showToast('تم حفظ الترتيب بنجاح');
-      if (window.hideBar) window.hideBar();
-      return true;
-    } catch (err) {
-      showToast('فشل حفظ الترتيب', 'error');
-      return false;
-    }
+     return true;
   };
 
   window.handleGlobalDiscard = () => {
     loadProducts();
-    if (window.hideBar) window.hideBar();
   };
 });
 
@@ -34,15 +21,17 @@ let totalPages = 1;
 let currentLimit = 30;
 let searchQuery = '';
 let currentFilter = 'all';
-let selectedProductIds = new Set(); // Persistent selection across search/pagination
+let selectedProductIds = new Set(); 
 
 async function loadProducts() {
   const tbody = document.getElementById('products-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" class="text-center"><div class="spinner"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>';
   try {
-    const hasOptions = currentFilter === 'variable' ? 'true' : '';
+    // If filter is 'draft', we pass it as status. Otherwise, we don't pass hasOptions anymore as we renamed the tab.
+    const statusParam = currentFilter === 'draft' ? 'draft' : '';
+    
     const [res, collections] = await Promise.all([
-      api.getProducts(currentPage, currentLimit, true, '', searchQuery, hasOptions),
+      api.getProducts(currentPage, currentLimit, true, '', searchQuery, '', statusParam),
       api.getCollections().catch(() => [])
     ]);
     
@@ -50,7 +39,7 @@ async function loadProducts() {
     totalPages = res.totalPages || 1;
 
     if (!products.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px">لا توجد منتجات مطابقة للبحث</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:40px">لا توجد منتجات مطابقة للبحث</td></tr>';
       updatePaginationInfo(0);
       return;
     }
@@ -60,28 +49,9 @@ async function loadProducts() {
     updatePaginationInfo(res.total || products.length);
     updateBulkActions();
 
-    // Initialize Sortable
-    if (productsSortable) productsSortable.destroy();
-    
-    // Only enable reordering if not searching and on page 1 (or allow on any page but only reorder visible ones)
-    const canReorder = !searchQuery && currentFilter === 'all';
-    
-    productsSortable = new Sortable(tbody, {
-      handle: '.drag-handle',
-      animation: 150,
-      disabled: !canReorder,
-      onEnd: () => {
-        if (window.markAsModified) window.markAsModified();
-      }
-    });
-
-    if (!canReorder) {
-       document.querySelectorAll('.drag-handle').forEach(h => h.style.opacity = '0.3');
-    }
-
   } catch (err) {
     console.error('Failed to load products:', err);
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">فشل تحميل المنتجات</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">فشل تحميل المنتجات</td></tr>';
   }
 }
 
@@ -95,12 +65,13 @@ function updatePaginationInfo(total) {
   if (infoEl) infoEl.textContent = `إجمالي: ${total} - صفحة ${currentPage} من ${totalPages}`;
   if (prevBtn) prevBtn.disabled = currentPage <= 1;
   if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+  
   const countAll = document.getElementById('count-all');
-  const countVar = document.getElementById('count-variable');
+  const countDraft = document.getElementById('count-draft');
 
-  if (currentFilter === 'variable') {
-    if (countVar) countVar.textContent = total;
-  } else {
+  if (currentFilter === 'draft') {
+    if (countDraft) countDraft.textContent = total;
+  } else if (currentFilter === 'all') {
     if (countAll) countAll.textContent = total;
   }
 
@@ -157,20 +128,17 @@ function renderProducts(collections) {
 
     return `
       <tr data-id="${p._id}" style="cursor:pointer" onclick="onRowClick(event, '${p._id}')">
-        <td class="drag-handle" style="width:30px; cursor:grab; color:#94a3b8; text-align:center;" onclick="event.stopPropagation()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
-        </td>
         <td style="width:40px;text-align:center" onclick="event.stopPropagation()">
           <input type="checkbox" class="product-checkbox" value="${p._id}" 
             ${selectedProductIds.has(p._id) ? 'checked' : ''} 
             onchange="handleProductSelect('${p._id}', this.checked)">
         </td>
-        <td>
+        <td style="width:70px; text-align:center;">
           ${mainImg
         ? `<img src="${mainImg}" alt="${p.name}" style="width:54px;height:54px;border-radius:8px;object-fit:cover;border:1px solid var(--border-color)">`
         : `<div style="width:54px;height:54px;border-radius:8px;background:var(--bg-body);display:flex;align-items:center;justify-content:center;font-size:1.4rem"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`}
         </td>
-        <td>
+        <td style="min-width: 200px;">
           <div style="font-weight:600; font-size:0.95rem; margin-bottom:4px">${p.name || 'بدون اسم'}</div>
           <div class="mobile-price-show" style="display:none; font-size:0.85rem; color:var(--primary); font-weight:700">${priceDisplay}</div>
         </td>
@@ -181,14 +149,6 @@ function renderProducts(collections) {
 
   const selectAll = document.getElementById('select-all');
   if (selectAll) selectAll.checked = false;
-
-  // Update header to match columns
-  const header = document.querySelector('.products-table thead tr');
-  if (header && header.children.length === 5) {
-     const th = document.createElement('th');
-     th.style.width = '30px';
-     header.insertBefore(th, header.firstChild);
-  }
 }
 
 window.onRowClick = function (event, productId) {
@@ -200,6 +160,7 @@ window.toggleProductActive = async function (id, active) {
     const status = active ? 'active' : 'draft';
     await api.updateProduct(id, { active, status });
     showToast('تم تحديث حالة المنتج');
+    loadProducts(); // Reload to reflect changes and potentially move to top
   } catch (err) {
     showToast(err.message, 'error');
     loadProducts();

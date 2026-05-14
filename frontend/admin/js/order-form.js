@@ -69,7 +69,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setupSearch();
   setupCustomerSearch();
+  setupZoneSearch();
   updatePaymentUI();
+
+  // ── Validation Listeners ──
+  const nameInput = document.getElementById('c-name');
+  if (nameInput) {
+    nameInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      // Remove any non-Arabic characters (except spaces)
+      const cleaned = val.replace(/[^\u0600-\u06FF\s]/g, '');
+      if (val !== cleaned) {
+        e.target.value = cleaned;
+      }
+    });
+  }
+
+  const phoneInput = document.getElementById('c-phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      // Remove any non-standard digits (except +)
+      const cleaned = val.replace(/[^0-9+]/g, '');
+      if (val !== cleaned) {
+        e.target.value = cleaned;
+      }
+    });
+  }
 
   // Global Save Handler for the unsaved changes bar
   window.handleGlobalSave = async () => {
@@ -476,34 +502,29 @@ function itemTotal(c) {
 
 window.handleCityChange = async function() {
   const cityId = document.getElementById('c-gov').value;
-  const zoneList = document.getElementById('c-zone-list');
-  if (!zoneList) return;
+  const zoneInput = document.getElementById('c-zone');
+  const zoneDropdown = document.getElementById('zone-dropdown');
+  if (!zoneInput || !zoneDropdown) return;
   
-  zoneList.innerHTML = '';
+  zoneInput.value = '';
+  zoneDropdown.innerHTML = '';
+  window._currentCityZones = [];
+
   if (cityId) {
     // 1. Try local data first (highly reliable)
     const localGov = (window._fullShippingData || []).find(s => s._id === cityId);
     if (localGov && localGov.zones && localGov.zones.length > 0) {
-      localGov.zones.forEach(z => {
-        const val = z.otherName || z.name;
-        const opt = document.createElement('option');
-        opt.value = val;
-        zoneList.appendChild(opt);
-      });
+      window._currentCityZones = localGov.zones.map(z => z.otherName || z.name);
     } else {
       // 2. Fallback to API fetch
       try {
         const zones = await api.getZones(cityId);
-        zones.forEach(z => {
-          const val = z.otherName || z.name;
-          const opt = document.createElement('option');
-          opt.value = val;
-          zoneList.appendChild(opt);
-        });
+        window._currentCityZones = zones.map(z => z.otherName || z.name);
       } catch (e) {
         console.error('Failed to load zones', e);
       }
     }
+    renderZoneDropdown(window._currentCityZones);
   }
   recalcSummary();
 };
@@ -540,8 +561,18 @@ window.submitOrder = async function () {
 
   if (!name || !phone || !address || !cityName || !zone) return showToast('يرجى ملء جميع الحقول المطلوبة للعميل', 'error');
 
+  // Arabic-only name validation
+  if (!/^[\u0600-\u06FF\s]+$/.test(name)) {
+    return showToast('يرجى إدخال اسم العميل باللغة العربية فقط', 'error');
+  }
+
+  // English-only phone validation (digits)
+  if (!/^[0-9+]+$/.test(phone)) {
+    return showToast('يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط', 'error');
+  }
+
   // Zone validation
-  const zoneOptions = Array.from(document.querySelectorAll('#c-zone-list option')).map(o => o.value);
+  const zoneOptions = window._currentCityZones || [];
   if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
     showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
     return;
@@ -683,7 +714,8 @@ function resetCustomerSelectionUI() {
       document.getElementById('c-second-phone').value = '';
       document.getElementById('c-address').value = '';
       document.getElementById('c-gov').value = '';
-      document.getElementById('c-zone').innerHTML = '<option value="">اختر المنطقة</option>';
+      document.getElementById('c-zone').value = '';
+      document.getElementById('zone-dropdown').innerHTML = '';
     }
   }
 }
@@ -770,7 +802,8 @@ window.toggleCustomerMode = function () {
     document.getElementById('c-second-phone').value = '';
     document.getElementById('c-address').value = '';
     document.getElementById('c-gov').value = '';
-    document.getElementById('c-zone').innerHTML = '<option value="">اختر المنطقة</option>';
+    document.getElementById('c-zone').value = '';
+    document.getElementById('zone-dropdown').innerHTML = '';
     document.getElementById('customer-search').value = '';
     
     // Reset selected UI
@@ -798,6 +831,59 @@ window.setupSearch = function () {
   input.addEventListener('input', (e) => {
     debouncedProductSearch(e.target.value.toLowerCase().trim());
   });
+};
+
+window.setupZoneSearch = function () {
+  const input = document.getElementById('c-zone');
+  const dropdown = document.getElementById('zone-dropdown');
+  if (!input || !dropdown) return;
+
+  input.addEventListener('focus', () => {
+    if (window._currentCityZones && window._currentCityZones.length > 0) {
+      renderZoneDropdown(window._currentCityZones);
+      dropdown.classList.add('active');
+    }
+  });
+
+  input.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    if (!q) {
+      renderZoneDropdown(window._currentCityZones);
+      return;
+    }
+    const filtered = (window._currentCityZones || []).filter(z => z.toLowerCase().includes(q));
+    renderZoneDropdown(filtered);
+    dropdown.classList.add('active');
+  });
+
+  document.addEventListener('click', (e) => {
+    const container = document.getElementById('zone-search-container');
+    if (container && !container.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('active');
+    }
+  });
+};
+
+function renderZoneDropdown(zones) {
+  const dropdown = document.getElementById('zone-dropdown');
+  if (!dropdown) return;
+
+  if (!zones || zones.length === 0) {
+    dropdown.innerHTML = '<div style="padding:16px; text-align:center; color:#64748b; font-size:0.9rem;">لا توجد مناطق</div>';
+    return;
+  }
+
+  dropdown.innerHTML = zones.map(z => `
+    <div class="customer-item" onclick="selectZone('${z}')">
+      <div style="font-weight:600; color:#1e293b; font-size:0.95rem;">${z}</div>
+    </div>
+  `).join('');
+}
+
+window.selectZone = function (name) {
+  document.getElementById('c-zone').value = name;
+  document.getElementById('zone-dropdown').classList.remove('active');
+  if (window.markAsModified) window.markAsModified();
 };
 
 window.addToCart = function (id) {
