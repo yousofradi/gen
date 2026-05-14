@@ -56,8 +56,11 @@ router.get('/', async (req, res) => {
     const query = {};
     
     // If admin request, allow filtering by status
-    if (admin === 'true' && status) {
-      query.status = status;
+    if (admin === 'true') {
+      if (status) {
+        query.status = status;
+      }
+      // If no status provided, show both active and draft products for admin
     } 
     // If not admin request, only show active products
     else if (admin !== 'true') {

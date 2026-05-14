@@ -364,39 +364,56 @@ window.openCustomerModal = function () {
 
 window.handleModalCityChange = async function () {
   const cityId = document.getElementById('modal-c-gov').value;
-  const zoneList = document.getElementById('modal-c-zone-list');
   const zoneInput = document.getElementById('modal-c-zone');
-  if (!zoneList) return;
+  if (!zoneInput) return;
 
-  zoneList.innerHTML = '';
-  if (cityId) {
-    // 1. Try local data first (highly reliable)
-    const localGov = (window._fullShippingData || []).find(s => s._id === cityId);
-    if (localGov && localGov.zones && localGov.zones.length > 0) {
-      localGov.zones.forEach(z => {
-        const val = z.otherName || z.name;
-        const opt = document.createElement('option');
-        opt.value = val;
-        zoneList.appendChild(opt);
-      });
-      // Auto-update fee input when city changes
-      // document.getElementById('modal-shipping-fee').value = localGov.fee || 0; // Removed in previous turn
-    } else {
-      // 2. Fallback to API fetch
-      try {
-        const zones = await api.getZones(cityId);
-        zones.forEach(z => {
-          const val = z.otherName || z.name;
-          const opt = document.createElement('option');
-          opt.value = val;
-          zoneList.appendChild(opt);
-        });
-      } catch (e) {
-        console.error('Failed to load zones', e);
-      }
-    }
-  }
+  zoneInput.value = ''; // Clear current selection
+  const list = (window._fullShippingData || []).find(s => s._id === cityId);
+  window._modalZones = list ? (list.zones || []) : [];
+  
+  renderModalZoneDropdown();
 };
+
+window.renderModalZoneDropdown = function () {
+  const dropdown = document.getElementById('modal-c-zone-dropdown');
+  const query = document.getElementById('modal-c-zone').value.toLowerCase().trim();
+  
+  if (!window._modalZones || window._modalZones.length === 0) {
+    dropdown.style.display = 'none';
+    return;
+  }
+
+  const filtered = window._modalZones.filter(z => 
+    z.name.toLowerCase().includes(query) || (z.otherName && z.otherName.toLowerCase().includes(query))
+  );
+
+  dropdown.style.display = 'block';
+  if (filtered.length === 0) {
+    dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
+  } else {
+    dropdown.innerHTML = filtered.map(z => `
+      <div class="dropdown-item" onclick="selectModalZone('${z.otherName || z.name}')" 
+        style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
+        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+        ${z.otherName || z.name}
+      </div>
+    `).join('');
+  }
+}
+
+window.selectModalZone = function(val) {
+  const zoneInput = document.getElementById('modal-c-zone');
+  zoneInput.value = val;
+  document.getElementById('modal-c-zone-dropdown').style.display = 'none';
+};
+
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('modal-c-zone-search-container');
+  const dropdown = document.getElementById('modal-c-zone-dropdown');
+  if (container && !container.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
 
 window.applyCustomerChanges = async function () {
   const name = document.getElementById('modal-c-name').value.trim();
@@ -416,6 +433,24 @@ window.applyCustomerChanges = async function () {
 
   if (!name || !phone || !cityName || !zone) {
     showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');
+    return;
+  }
+
+  // Arabic-only name validation
+  if (!/^[\u0600-\u06FF\s]+$/.test(name)) {
+    showToast('يرجى إدخال اسم العميل باللغة العربية فقط', 'error');
+    return;
+  }
+
+  // English-only phone validation (digits)
+  const phone2 = document.getElementById('modal-c-phone2').value.trim();
+  if (!/^[0-9+]+$/.test(phone) || (phone2 && !/^[0-9+]+$/.test(phone2))) {
+    showToast('يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط', 'error');
+    return;
+  }
+
+  if (!/^01[0-9]{9}$/.test(phone)) {
+    showToast('رقم الهاتف يجب أن يكون 11 رقم ويبدأ بـ 01', 'error');
     return;
   }
 
@@ -660,11 +695,10 @@ window.saveOrderChanges = async function (silent = false) {
     btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
   }
 
-  // Zone validation if list exists
-  const zoneList = document.getElementById('m-zone-list');
-  if (zoneList && zoneList.options.length > 0) {
-    const zoneOptions = Array.from(zoneList.options).map(o => o.value);
-    if (currentOrder.customer.zone && !zoneOptions.includes(currentOrder.customer.zone)) {
+  // Zone validation
+  if (currentOrder.customer.zone) {
+    const zoneOptions = (window._modalZones || []).map(z => z.otherName || z.name);
+    if (zoneOptions.length > 0 && !zoneOptions.includes(currentOrder.customer.zone)) {
       showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
       if (!silent && btn) { 
         btn.disabled = false; 

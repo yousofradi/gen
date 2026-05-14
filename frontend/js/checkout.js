@@ -121,37 +121,66 @@ async function loadCities() {
 
 async function handleCityChange() {
   const cityId = document.getElementById('government').value;
-  const zoneList = document.getElementById('zone-list');
-  if (!zoneList) return;
+  const zoneInput = document.getElementById('zone');
+  if (!zoneInput) return;
   
-  zoneList.innerHTML = '';
-  if (cityId) {
-    // 1. Try local data first
-    const localGov = (window._fullShippingData || []).find(s => s._id === cityId);
-    if (localGov && localGov.zones && localGov.zones.length > 0) {
-      localGov.zones.forEach(z => {
-        const val = z.otherName || z.name;
-        const opt = document.createElement('option');
-        opt.value = val;
-        zoneList.appendChild(opt);
-      });
-    } else {
-      // 2. Fallback to API fetch
-      try {
-        const zones = await api.getZones(cityId);
-        zones.forEach(z => {
-          const val = z.otherName || z.name;
-          const opt = document.createElement('option');
-          opt.value = val;
-          zoneList.appendChild(opt);
-        });
-      } catch (e) {
-        console.error('Failed to load zones', e);
-      }
-    }
-  }
+  zoneInput.value = ''; // Clear current selection
+  const list = (window._fullShippingData || []).find(s => s._id === cityId);
+  window._currentZones = list ? (list.zones || []) : [];
+  
+  renderZoneDropdown();
   updatePriceSummary();
 }
+
+function renderZoneDropdown() {
+  const dropdown = document.getElementById('zone-dropdown');
+  const query = document.getElementById('zone').value.toLowerCase().trim();
+  
+  if (!window._currentZones || window._currentZones.length === 0) {
+    dropdown.style.display = 'none';
+    return;
+  }
+
+  const filtered = window._currentZones.filter(z => 
+    z.name.toLowerCase().includes(query) || (z.otherName && z.otherName.toLowerCase().includes(query))
+  );
+
+  if (filtered.length === 0) {
+    dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
+  } else {
+    dropdown.innerHTML = filtered.map(z => `
+      <div class="dropdown-item" onclick="selectZone('${z.otherName || z.name}')" 
+        style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
+        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+        ${z.otherName || z.name}
+      </div>
+    `).join('');
+  }
+}
+
+window.selectZone = function(val) {
+  const zoneInput = document.getElementById('zone');
+  zoneInput.value = val;
+  document.getElementById('zone-dropdown').style.display = 'none';
+  updatePriceSummary();
+};
+
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('zone-search-container');
+  const dropdown = document.getElementById('zone-dropdown');
+  if (container && !container.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
+
+document.getElementById('zone')?.addEventListener('focus', () => {
+  if (window._currentZones && window._currentZones.length > 0) {
+    document.getElementById('zone-dropdown').style.display = 'block';
+    renderZoneDropdown();
+  }
+});
+
+document.getElementById('zone')?.addEventListener('input', renderZoneDropdown);
 
 function updatePriceSummary() {
   const subtotal = Cart.getTotal();
@@ -178,9 +207,9 @@ function setupForm() {
 
     if (!cityName || !zone) { showToast('الرجاء اختيار المدينة والمنطقة', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
     
-    // Zone validation: must be in datalist
-    const zoneOptions = Array.from(document.querySelectorAll('#zone-list option')).map(o => o.value);
-    if (!zoneOptions.includes(zone)) {
+    // Zone validation
+    const zoneOptions = (window._currentZones || []).map(z => z.otherName || z.name);
+    if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
       showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
       btn.disabled = false; btn.textContent = 'تأكيد الطلب';
       return;
@@ -188,8 +217,24 @@ function setupForm() {
 
     const name = document.getElementById('cust-name').value.trim();
     if (name.split(/\s+/).filter(Boolean).length < 2) { showToast('الرجاء إدخال الاسم الثنائي (الاسم الأول والأخير)', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
+    
+    // Arabic-only name validation
+    if (!/^[\u0600-\u06FF\s]+$/.test(name)) {
+      showToast('يرجى إدخال اسم العميل باللغة العربية فقط', 'error');
+      btn.disabled = false; btn.textContent = 'تأكيد الطلب';
+      return;
+    }
 
     const phone = document.getElementById('cust-phone').value.trim();
+    const phone2 = document.getElementById('cust-phone2').value.trim();
+    
+    // English-only phone validation (digits)
+    if (!/^[0-9+]+$/.test(phone) || (phone2 && !/^[0-9+]+$/.test(phone2))) {
+      showToast('يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط', 'error');
+      btn.disabled = false; btn.textContent = 'تأكيد الطلب';
+      return;
+    }
+
     if (!/^01[0-9]{9}$/.test(phone)) { showToast('رقم الهاتف يجب أن يكون 11 رقم ويبدأ بـ 01', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
 
     const address = document.getElementById('cust-address').value.trim();

@@ -546,10 +546,14 @@
             <option value="">اختر المدينة</option>
           </select>
         </div>
-        <div class="form-group mb-16">
+        <div class="form-group mb-16" style="position: relative;">
           <label class="form-label">المنطقة</label>
-          <input list="modal-c-zone-list" id="modal-c-zone" class="form-control" placeholder="اختر أو ابحث عن المنطقة" autocomplete="off">
-          <datalist id="modal-c-zone-list"></datalist>
+          <div id="modal-c-zone-search-container">
+            <input type="text" id="modal-c-zone" class="form-control" placeholder="اختر أو ابحث عن المنطقة" autocomplete="off" oninput="renderModalZoneDropdown()" onfocus="renderModalZoneDropdown()">
+            <div id="modal-c-zone-dropdown" style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1100; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto;">
+              <!-- Zones will be injected here -->
+            </div>
+          </div>
         </div>
         <div class="form-group mb-16">
           <label class="form-label">العنوان</label>

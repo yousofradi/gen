@@ -241,8 +241,8 @@
             <div style="display:flex; gap:24px; align-items:center;" class="order-tabs">
               <span class="order-tab active" data-filter="all" onclick="setFilter('all')">الجميع <span class="tab-badge"
                   id="count-all">0</span></span>
-              <span class="order-tab" data-filter="draft" onclick="setFilter('draft')">مؤرشف <span
-                  class="tab-badge" id="count-draft">0</span></span>
+              <span class="order-tab" data-filter="draft" onclick="setFilter('draft')">مؤرشف <span class="tab-badge"
+                  id="count-draft">0</span></span>
             </div>
 
             <div style="position:relative; width:300px; max-width:100%;">
@@ -303,15 +303,16 @@
             </div>
           </div>
 
-          <div class="table-wrapper" style="box-shadow:none; border-radius:0; margin:0; border:none;">
-            <table class="products-table" style="width:100%; border-collapse:collapse; text-align:right;">
+          <div class="table-wrapper" style="box-shadow:none; border-radius:0; margin:0 auto; border:none; max-width: 400px; overflow-x: auto;">
+            <table class="products-table" style="width:100%; border-collapse:collapse; text-align:right; table-layout: fixed;">
               <thead>
                 <tr>
                   <th style="width: 40px;"><input type="checkbox" id="select-all" onclick="toggleSelectAll()"></th>
-                  <th>الصورة</th>
-                  <th>الاسم</th>
-                  <th>السعر</th>
-                  <th>الحالة</th>
+                  <th style="width: 70px; text-align: center;">الصورة</th>
+                  <th style="text-align: center;">الاسم</th>
+                  <th style="width: 80px; text-align: center;">(stats)</th>
+                  <th style="width: 100px; text-align: center;">السعر</th>
+                  <th style="width: 80px; text-align: center;">الحالة</th>
                 </tr>
               </thead>
               <tbody id="products-tbody">

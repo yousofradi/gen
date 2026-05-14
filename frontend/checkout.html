@@ -105,10 +105,14 @@
                   <option value="">اختر المدينة...</option>
                 </select>
               </div>
-              <div class="form-group">
+              <div class="form-group" style="position: relative;">
                 <label class="form-label" for="zone">المنطقة *</label>
-                <input class="form-control" id="zone" list="zone-list" required placeholder="اختر المنطقة أو ابحث...">
-                <datalist id="zone-list"></datalist>
+                <div class="customer-search-container" id="zone-search-container">
+                  <input type="text" class="form-control" id="zone" required placeholder="اختر المنطقة أو ابحث..." autocomplete="off">
+                  <div class="customer-dropdown" id="zone-dropdown" style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1000; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 300px; overflow-y: auto;">
+                    <!-- Zones will be injected here -->
+                  </div>
+                </div>
               </div>
             </div>
             <div class="form-group">
