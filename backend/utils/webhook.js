@@ -162,10 +162,10 @@ ${shortLink}`;
               ownerMessage = `إشعار طلب: ${event}\nرقم الطلب: ${data.orderId}\nالعميل: ${data.customer.name}`;
             }
 
-            // 5. Attempt Invoice Image Generation
+            // 5. Attempt Invoice Image Generation (Only for PAID orders)
             let mediaData = null;
             const snapKey = process.env.SNAPRENDER_API_KEY;
-            if (snapKey) {
+            if (snapKey && event === 'order.paid') {
               try {
                 const invoiceHtml = await generateInvoiceInnerHtml(data, settings);
                 const snapRes = await fetch('https://app.snap-render.com/v1/screenshot', {
