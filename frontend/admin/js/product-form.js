@@ -629,10 +629,10 @@ function renderVariantsTable() {
           <td style="text-align:right">
             <div style="display:flex; align-items:center;">
               <button type="button" class="btn-gallery-teal" onclick="openGalleryModal(${c.originalIndex})">
-                ${c.imageUrl 
-                  ? `<img src="${c.imageUrl}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;">`
-                  : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`
-                }
+                ${c.imageUrl
+          ? `<img src="${c.imageUrl}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;">`
+          : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`
+        }
               </button>
               <span style="color:#0f766e; font-weight:500">${otherOptions || parentVal}</span>
             </div>
@@ -680,18 +680,18 @@ window.updateVariantField = function (idx, field, val) {
   if (window.markAsModified) safeMarkAsModified();
 }
 
-window.bulkUpdateGroup = function(parentVal, field, val) {
+window.bulkUpdateGroup = function (parentVal, field, val) {
   const firstGroupName = optionGroups[0]?.name;
   if (!firstGroupName) return;
-  
+
   const numericVal = val === '' ? (field === 'quantity' || field === 'cost' ? null : 0) : Number(val);
-  
+
   variants.forEach(v => {
     if (v.combination[firstGroupName] === parentVal) {
       v[field] = numericVal;
     }
   });
-  
+
   renderVariantsTable();
   if (window.markAsModified) safeMarkAsModified();
 };
@@ -851,11 +851,11 @@ async function saveProduct(e) {
   };
 
   try {
-    if (editId) { 
-      await api.updateProduct(editId, data); 
-      showToast('تم تحديث المنتج'); 
-    } else { 
-      const res = await api.createProduct(data); 
+    if (editId) {
+      await api.updateProduct(editId, data);
+      showToast('تم تحديث المنتج');
+    } else {
+      const res = await api.createProduct(data);
       showToast('تم إضافة المنتج');
       if (res && res._id) {
         editId = res._id;
@@ -868,11 +868,11 @@ async function saveProduct(e) {
         if (deleteBtn) deleteBtn.style.display = 'block';
       }
     }
-    
+
     hasUnsavedChanges = false;
     originalProductData = JSON.parse(JSON.stringify(data));
     if (window.hideBar) window.hideBar();
-    
+
     if (btn) {
       btn.disabled = false;
       btn.textContent = 'حفظ المنتج';
