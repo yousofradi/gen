@@ -252,8 +252,13 @@
       }
 
       try {
-        let configs = await api.getSetting(CONFIG_KEY) || [];
+        const rawConfigs = await api.getSetting(CONFIG_KEY);
+        console.log('[WhatsApp] Loaded configs:', rawConfigs);
+        let configs = Array.isArray(rawConfigs) ? rawConfigs : [];
+        
         configs.push({ baseUrl, instance, apikey, number, triggers });
+        console.log('[WhatsApp] Saving updated configs:', configs);
+        
         await api.updateSetting(CONFIG_KEY, configs);
         
         showToast('تمت إضافة الإعدادات بنجاح');
@@ -264,20 +269,24 @@
         document.getElementById('w-number').value = '';
         triggerChecks.forEach(cb => cb.checked = false);
         
-        loadConfigs();
+        await loadConfigs();
       } catch (e) {
+        console.error('[WhatsApp] Add config failed:', e);
         showToast(e.message, 'error');
       }
     }
 
     async function deleteConfig(idx) {
       try {
-        let configs = await api.getSetting(CONFIG_KEY) || [];
+        const rawConfigs = await api.getSetting(CONFIG_KEY);
+        let configs = Array.isArray(rawConfigs) ? rawConfigs : [];
+        
         configs.splice(idx, 1);
         await api.updateSetting(CONFIG_KEY, configs);
         showToast('تم الحذف بنجاح');
-        loadConfigs();
+        await loadConfigs();
       } catch (e) {
+        console.error('[WhatsApp] Delete config failed:', e);
         showToast(e.message, 'error');
       }
     }
