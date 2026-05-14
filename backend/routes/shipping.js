@@ -4,10 +4,39 @@ const mongoose = require('mongoose');
 const Shipping = require('../models/Shipping');
 const adminAuth = require('../middleware/adminAuth');
 
+const redis = require('../utils/redis');
+const SHIPPING_CACHE_KEY = 'storefront:shipping:list';
+
+async function refreshShippingCache() {
+  try {
+    const fees = await Shipping.find({}, 'city cityOtherName fee zones');
+    await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(fees), 'EX', 86400);
+  } catch (err) {
+    console.error('[Redis] Shipping cache refresh failed:', err.message);
+  }
+}
+
 // GET /api/shipping — return all governorates (minimal data)
 router.get('/', async (req, res) => {
   try {
+    // 1. Try Cache
+    try {
+      const cached = await redis.get(SHIPPING_CACHE_KEY);
+      if (cached) return res.json(JSON.parse(cached));
+    } catch (err) {
+      console.error('[Redis] Shipping cache get failed:', err.message);
+    }
+
+    // 2. Fetch from DB (Include zones as requested)
     const fees = await Shipping.find({}, 'city cityOtherName fee zones');
+    
+    // 3. Set Cache (24 hour TTL for persistent feel)
+    try {
+      await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(fees), 'EX', 86400);
+    } catch (err) {
+      console.error('[Redis] Shipping cache set failed:', err.message);
+    }
+
     res.json(fees);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -53,6 +82,10 @@ router.put('/:id', adminAuth, async (req, res) => {
     if (zones !== undefined) updateData.zones = zones;
 
     const shipping = await Shipping.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    
+    // Write-Through: Refresh the list cache
+    await refreshShippingCache();
+    
     res.json(shipping);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -64,6 +97,10 @@ router.post('/', adminAuth, async (req, res) => {
   try {
     const shipping = new Shipping(req.body);
     await shipping.save();
+    
+    // Write-Through: Refresh the list cache
+    await refreshShippingCache();
+    
     res.json(shipping);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -74,6 +111,10 @@ router.post('/', adminAuth, async (req, res) => {
 router.delete('/:id', adminAuth, async (req, res) => {
   try {
     await Shipping.findByIdAndDelete(req.params.id);
+    
+    // Write-Through: Refresh the list cache
+    await refreshShippingCache();
+    
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -87,6 +128,10 @@ router.post('/bulk-update', adminAuth, async (req, res) => {
     if (fee == null || isNaN(fee)) return res.status(400).json({ error: 'Valid fee is required' });
 
     await Shipping.updateMany({}, { $set: { fee } });
+    
+    // Write-Through: Refresh the list cache
+    await refreshShippingCache();
+    
     res.json({ success: true, message: 'All shipping fees updated' });
   } catch (error) {
     res.status(500).json({ error: error.message });
