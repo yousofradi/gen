@@ -135,13 +135,16 @@ function renderZoneDropdown() {
   if (filtered.length === 0) {
     dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
   } else {
-    dropdown.innerHTML = filtered.map(z => `
-      <div class="dropdown-item" onclick="selectZone('${z.otherName || z.name}')" 
-        style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
-        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-        ${z.otherName || z.name}
-      </div>
-    `).join('');
+    dropdown.innerHTML = filtered.map(z => {
+      const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+      return `
+        <div class="dropdown-item" onclick="selectZone('${zoneLabel.replace(/'/g, "\\'")}')" 
+          style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
+          onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+          ${zoneLabel}
+        </div>
+      `;
+    }).join('');
   }
 }
 
@@ -231,7 +234,7 @@ function setupForm() {
     if (!cityName || !zone) { showToast('الرجاء اختيار المدينة والمنطقة', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
     
     // Zone validation
-    const zoneOptions = (window._currentZones || []).map(z => z.otherName || z.name);
+    const zoneOptions = (window._currentZones || []).map(z => `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`);
     if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
       showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
       btn.disabled = false; btn.textContent = 'تأكيد الطلب';
