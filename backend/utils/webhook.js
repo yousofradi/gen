@@ -295,7 +295,7 @@ ${shortLink}`;
                     html: fullHtml,
                     type: 'png',
                     width: 500,
-                    fullPage: true,
+                    selector: '.invoice',
                     deviceScaleFactor: 2
                   }),
                   signal: AbortSignal.timeout(10000)
