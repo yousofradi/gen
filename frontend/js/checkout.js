@@ -79,27 +79,13 @@ async function loadPaymentMethods() {
   }
 }
 
-function renderOrderSummary(items) {
-  const el = document.getElementById('order-items');
-  el.innerHTML = items.map(item => `
-    <div class="cart-item" style="padding:12px; display:flex; align-items:center; gap:12px; border:1px solid #f1f5f9; border-radius:12px; margin-bottom:8px; background:#fff;">
-      <div style="width:50px; height:50px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-        ${item.imageUrl ? `<img src="${item.imageUrl}" style="max-width:100%; max-height:100%; object-fit:cover;">` : `
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-          </svg>
-        `}
-      </div>
-      <div class="cart-item-info" style="flex:1; text-align:right;">
-        <div class="cart-item-name" style="font-weight:700; font-size:0.9rem;">${item.name}</div>
-        <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500;">${item.quantity} x ${formatPrice(item.unitPrice)}</div>
-        <div class="cart-item-options" style="font-size:0.8rem; color:#64748b;">${item.selectedOptions.map(o => `${o.groupName}: ${o.label}`).join(', ')}</div>
-      </div>
-      <div class="cart-item-price" style="flex-shrink:0; font-weight:700; color:var(--primary, #916C4F);">${formatPrice(item.unitPrice * item.quantity)}</div>
-    </div>
-  `).join('');
   updatePriceSummary();
 }
+
+window.toggleSummary = function() {
+  const summary = document.getElementById('collapsible-summary');
+  if (summary) summary.classList.toggle('open');
+};
 
 async function loadCities() {
   try {
@@ -183,15 +169,47 @@ document.getElementById('zone')?.addEventListener('focus', () => {
 document.getElementById('zone')?.addEventListener('input', renderZoneDropdown);
 
 function updatePriceSummary() {
+  const items = Cart.getItems();
   const subtotal = Cart.getTotal();
   const cityId = document.getElementById('government').value;
   const data = (window._fullShippingData || []).find(s => s._id === cityId);
   const shippingFee = data ? (data.fee || 0) : 0;
   const total = subtotal + shippingFee;
 
-  document.getElementById('subtotal').textContent = formatPrice(subtotal);
-  document.getElementById('shipping-fee').textContent = cityId ? formatPrice(shippingFee) : '—';
-  document.getElementById('total-price').textContent = formatPrice(total);
+  // Update Header Price
+  const headerTotal = document.getElementById('header-total-price');
+  if (headerTotal) headerTotal.textContent = formatPrice(total);
+
+  // Update Summary Rows
+  const subEl = document.getElementById('summary-subtotal');
+  const shipEl = document.getElementById('summary-shipping');
+  const totalEl = document.getElementById('summary-total-final');
+
+  if (subEl) subEl.textContent = formatPrice(subtotal);
+  if (shipEl) shipEl.textContent = cityId ? formatPrice(shippingFee) : '—';
+  if (totalEl) totalEl.textContent = formatPrice(total);
+
+  // Render Items in Summary
+  const listEl = document.getElementById('summary-items-list');
+  if (listEl) {
+    listEl.innerHTML = items.map(item => `
+      <div class="summary-item">
+        <div class="summary-item-price">${formatPrice(item.unitPrice * item.quantity)}</div>
+        <div class="summary-item-info">
+          <div class="summary-item-name">${item.name}</div>
+          <div class="summary-item-desc">${item.selectedOptions.map(o => o.label).join(' / ')}</div>
+        </div>
+        <div class="summary-item-img-wrapper">
+          ${item.imageUrl ? `<img src="${item.imageUrl}" class="summary-item-img">` : `
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f8fafc;color:#94a3b8">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          `}
+          <div class="summary-item-qty">${item.quantity}</div>
+        </div>
+      </div>
+    `).join('');
+  }
 }
 
 function setupForm() {
