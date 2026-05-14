@@ -167,7 +167,36 @@ ${shortLink}`;
             const snapKey = process.env.SNAPRENDER_API_KEY;
             if (snapKey && event === 'order.paid') {
               try {
-                const invoiceHtml = await generateInvoiceInnerHtml(data, settings);
+                const innerHtml = await generateInvoiceInnerHtml(data, settings);
+                const fullHtml = `
+                  <html>
+                    <head>
+                      <link rel="preconnect" href="https://fonts.googleapis.com">
+                      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+                      <style>
+                        body { font-family: 'Cairo', sans-serif; direction: rtl; margin: 0; padding: 20px; background: #fff; width: 460px; }
+                        .invoice { background: #fff; }
+                        .customer-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        .customer-table td { padding: 8px; border: 1px solid #eee; }
+                        .label-column { font-weight: 700; width: 30%; background: #f8fafc; }
+                        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        .items-table th { background: #f1f5f9; padding: 10px; text-align: right; border: 1px solid #e2e8f0; }
+                        .items-table td { padding: 10px; border: 1px solid #e2e8f0; text-align: right; }
+                        .summary { margin-top: 20px; border-top: 2px solid #334155; padding-top: 10px; }
+                        .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; }
+                        .grand { font-size: 18px; font-weight: 700; color: #1e293b; border-top: 1px solid #e2e8f0; margin-top: 5px; padding-top: 10px; }
+                        .paid-box { margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+                        .green { color: #166534; font-weight: 700; }
+                        .red { color: #991b1b; font-weight: 700; }
+                        .notes-section { margin-top: 20px; padding: 15px; border-right: 4px solid #64748b; background: #f1f5f9; }
+                        .footer { margin-top: 30px; text-align: center; color: #64748b; font-size: 12px; }
+                      </style>
+                    </head>
+                    <body>${innerHtml}</body>
+                  </html>
+                `;
+
                 const snapRes = await fetch('https://app.snap-render.com/v1/screenshot', {
                   method: 'POST',
                   headers: {
@@ -175,7 +204,7 @@ ${shortLink}`;
                     'X-API-Key': snapKey
                   },
                   body: JSON.stringify({
-                    html: invoiceHtml,
+                    html: fullHtml,
                     type: 'png',
                     width: 500,
                     fullPage: true,
@@ -201,10 +230,13 @@ ${shortLink}`;
             if (!cleanBaseUrl.startsWith('http')) cleanBaseUrl = `https://${cleanBaseUrl}`;
             
             let cleanNumber = conf.number.trim().replace(/\D/g, '');
-            // Strip leading zeros if present
+            // Strip leading zeros or 00 prefix
             cleanNumber = cleanNumber.replace(/^0+/, '');
-            // Ensure it starts with 2 (Egypt country code 20)
-            if (!cleanNumber.startsWith('2')) cleanNumber = '2' + cleanNumber;
+            
+            // If it doesn't start with 20, and it's a 10-11 digit number (Egypt), prepend 20
+            if (!cleanNumber.startsWith('20')) {
+              cleanNumber = '20' + cleanNumber;
+            }
             
             const waPayload = {
               number: cleanNumber,
