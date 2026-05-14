@@ -175,31 +175,113 @@ ${shortLink}`;
               try {
                 const innerHtml = await generateInvoiceInnerHtml(data, settings);
                 const fullHtml = `
-                  <html>
-                    <head>
-                      <link rel="preconnect" href="https://fonts.googleapis.com">
-                      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-                      <style>
-                        body { font-family: 'Cairo', sans-serif; direction: rtl; margin: 0; padding: 20px; background: #fff; width: 460px; }
-                        .invoice { background: #fff; }
-                        .customer-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        .customer-table td { padding: 8px; border: 1px solid #eee; }
-                        .label-column { font-weight: 700; width: 30%; background: #f8fafc; }
-                        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        .items-table th { background: #f1f5f9; padding: 10px; text-align: right; border: 1px solid #e2e8f0; }
-                        .items-table td { padding: 10px; border: 1px solid #e2e8f0; text-align: right; }
-                        .summary { margin-top: 20px; border-top: 2px solid #334155; padding-top: 10px; }
-                        .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; }
-                        .grand { font-size: 18px; font-weight: 700; color: #1e293b; border-top: 1px solid #e2e8f0; margin-top: 5px; padding-top: 10px; }
-                        .paid-box { margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
-                        .green { color: #166534; font-weight: 700; }
-                        .red { color: #991b1b; font-weight: 700; }
-                        .notes-section { margin-top: 20px; padding: 15px; border-right: 4px solid #64748b; background: #f1f5f9; }
-                        .footer { margin-top: 30px; text-align: center; color: #64748b; font-size: 12px; }
-                      </style>
-                    </head>
-                    <body>${innerHtml}</body>
+                  <!DOCTYPE html>
+                  <html dir="rtl" lang="ar">
+                  <head>
+                    <meta charset="UTF-8">
+                    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+                    <style>
+                      * { box-sizing: border-box; }
+                      html, body {
+                        margin: 0;
+                        padding: 0;
+                        width: 100%;
+                        background: #ffffff;
+                        font-family: 'Tajawal', Arial, sans-serif;
+                      }
+                      .invoice {
+                        width: 500px;
+                        margin: 0 auto;
+                        direction: rtl;
+                        padding: 10px 5px;
+                      }
+                      .customer-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        border: 1px solid #000;
+                        margin-bottom: 7px;
+                      }
+                      .customer-table td {
+                        border: 1px solid #000;
+                        font-size: 10px;
+                        font-weight: 600;
+                        text-align: center;
+                        padding: 4px;
+                      }
+                      .label-column { width: 25%; }
+                      .value-column { width: 75%; }
+                      .order-section {
+                        border: 1px solid #000;
+                      }
+                      .items-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                      }
+                      .items-table thead {
+                        background: #f5ede0;
+                      }
+                      .items-table th,
+                      .items-table td {
+                        padding: 6px 6px;
+                        font-weight: 600; 
+                        font-size: 12px;
+                        text-align: center;
+                        border-bottom: 1px solid #a6a5a5;
+                      }
+                      .items-table td:first-child,
+                      .items-table th:first-child {
+                        text-align: right;
+                      }
+                      .summary {
+                        background: #f5ede0;
+                        padding: 1px 6px;
+                      }
+                      .row {
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 13px;
+                        margin: 2px;
+                      }
+                      .grand {
+                        border-top: 2px solid #4a2c0a;
+                        font-weight: 700;
+                        margin-top: 4px;
+                        padding-top: 4px;
+                      }
+                      .paid-box {
+                        background: #e8f5ed;
+                        padding: 1px 6px;
+                      }
+                      .green {
+                        color: #1a7a45;
+                        font-weight: 700;
+                      }
+                      .red {
+                        color: #b84a20;
+                        font-weight: 700;
+                      }
+                      .notes-section {
+                        padding: 4px 6px;
+                        font-size: 11px;
+                        background: #f5ede0;
+                      }
+                      .notes-title {
+                        font-weight: 700;
+                        color: #b84a20;
+                        text-decoration: underline;
+                        padding-bottom: 2px;
+                      }
+                      .footer {
+                        background: #4a2c0a;
+                        color: #fff;
+                        text-align: center;
+                        padding: 7px;
+                        font-weight: 700;
+                        font-size: 13px;
+                      }
+                    </style>
+                  </head>
+                  <body>${innerHtml}</body>
                   </html>
                 `;
 

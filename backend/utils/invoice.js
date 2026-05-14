@@ -21,13 +21,7 @@ async function generateInvoiceInnerHtml(order, settings) {
     
     return `
     <tr>
-      <td style="text-align: right; display:flex; align-items:center; gap:8px;">
-        ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:6px; margin-left:8px;">` : ''}
-        <div>
-          <div style="font-weight:700;">${safe(p.name)}</div>
-          ${optionsText ? `<div style="font-size:10px; color:#666;">(${safe(optionsText)})</div>` : ''}
-        </div>
-      </td>
+      <td>${safe(p.name)} ${optionsText ? `(${safe(optionsText)})` : ''}</td>
       <td>${safe(p.quantity)}</td>
       <td>${num(unitPrice)}</td>
       <td>${num(lineTotal)} ج</td>
@@ -52,9 +46,6 @@ async function generateInvoiceInnerHtml(order, settings) {
   const total = num(order.totalPrice);
   const paid = num(order.paidAmount);
   const remaining = total - paid;
-
-  // Add 10 EGP extra fee if not fully paid (COD fee logic from user's sample)
-  const displayRemaining = remaining > 0 ? (remaining + 10) : 0;
 
   // ================== PHONE ==================
   let phone = safe(order.customer.phone);
@@ -81,7 +72,7 @@ async function generateInvoiceInnerHtml(order, settings) {
 
 <tr>
 <td class="label-column">الهاتف</td>
-<td class="value-column" dir="ltr">${phone}</td>
+<td class="value-column">${phone}</td>
 </tr>
 
 <tr>
@@ -140,7 +131,7 @@ ${productsHtml}
 
 <div class="row red">
 <span>${remtext}</span>
-<span>${displayRemaining} ج</span>
+<span>${remaining} ج</span>
 </div>
 
 </div>
