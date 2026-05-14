@@ -171,14 +171,20 @@ function renderZoneDropdown() {
     return;
   }
 
-  const filtered = window._currentZones.filter(z => 
+  const isExactMatch = window._currentZones.some(z => {
+    const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+    return zoneLabel.toLowerCase().trim() === query;
+  });
+
+  const filtered = isExactMatch ? window._currentZones : window._currentZones.filter(z => 
     z.name.toLowerCase().includes(query) || (z.otherName && z.otherName.toLowerCase().includes(query))
   );
 
-  if (filtered.length === 0) {
+  if (filtered.length === 0 && query !== '') {
     dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
   } else {
-    dropdown.innerHTML = filtered.map(z => {
+    const displayList = filtered.length > 0 ? filtered : window._currentZones;
+    dropdown.innerHTML = displayList.map(z => {
       const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
       return `
         <div class="dropdown-item" onclick="selectZone('${zoneLabel.replace(/'/g, "\\'")}')" 
