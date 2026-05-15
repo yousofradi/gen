@@ -177,25 +177,9 @@ function renderStoreCard(p) {
   const hasVariants = p.variants && p.variants.length > 0;
   const hasOptions = p.options && p.options.length > 0;
   
-  // Calculate price range if variants exist
-  let displayPrice = p.salePrice || p.basePrice;
-  let originalPrice = p.basePrice;
-  let isRange = false;
-
-  if (hasVariants) {
-    const activeVariants = p.variants.filter(v => v.active !== false);
-    if (activeVariants.length > 0) {
-      const prices = activeVariants.map(v => (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price);
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      displayPrice = minPrice;
-      if (maxPrice > minPrice) isRange = true;
-      
-      // Original price fallback
-      const basePrices = activeVariants.map(v => v.price);
-      originalPrice = Math.min(...basePrices);
-    }
-  }
+  const displayPrice = p.salePrice || p.basePrice;
+  const originalPrice = p.basePrice;
+  const isRange = false;
 
   const hasDiscount = displayPrice < originalPrice;
   const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
