@@ -450,12 +450,18 @@ function normalizeCombinations() {
         if (fuzzyMatch) {
           newCombo[name] = v.combination[fuzzyMatch];
         } else {
-          // 3. Fallback: if there's only one group and one key, map it
-          if (groupNames.length === 1 && oldKeys.length === 1) {
+          // 3. Fallback by index if the number of keys matches the number of groups
+          // This handles cases where groups were renamed or reordered
+          if (groupNames.length === oldKeys.length && oldKeys[i]) {
+             newCombo[name] = v.combination[oldKeys[i]];
+          } 
+          // 4. Single group fallback
+          else if (groupNames.length === 1 && oldKeys.length === 1) {
              newCombo[name] = v.combination[oldKeys[0]];
           } else {
-             // 4. Last resort: default to first value of the group to avoid undefined
-             newCombo[name] = validGroups[i].values.find(val => val) || '';
+             // 5. Last resort: keep existing if there's only one value that could fit, 
+             // or default to first value of the group to avoid undefined
+             newCombo[name] = v.combination[name] || validGroups[i].values.find(val => val) || '';
           }
         }
       }
@@ -1027,11 +1033,11 @@ function populateProductForm(p) {
     }
     return {
       combination: combo,
-      price: v.price,
-      salePrice: v.salePrice,
-      cost: v.cost || null,
-      quantity: v.quantity,
-      imageUrl: v.imageUrl,
+      price: Number(v.price || 0),
+      salePrice: (v.salePrice !== null && v.salePrice !== undefined) ? Number(v.salePrice) : null,
+      cost: (v.cost !== null && v.cost !== undefined) ? Number(v.cost) : null,
+      quantity: (v.quantity !== null && v.quantity !== undefined) ? Number(v.quantity) : null,
+      imageUrl: v.imageUrl || '',
       active: v.active !== false
     };
   });
