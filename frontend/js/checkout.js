@@ -148,6 +148,7 @@ async function loadCities() {
       hiddenInput.value = id;
       searchInput.value = name;
       dropdown.style.display = 'none';
+      if (window.setErrorOnCheckout) window.setErrorOnCheckout(searchInput, null);
       handleGovChange();
     };
 
@@ -234,6 +235,7 @@ window.selectZone = function(val) {
   const zoneInput = document.getElementById('zone');
   zoneInput.value = val;
   document.getElementById('zone-dropdown').style.display = 'none';
+  if (window.setErrorOnCheckout) window.setErrorOnCheckout(zoneInput, null);
   updatePriceSummary();
 };
 
@@ -326,16 +328,14 @@ function setupForm() {
 
   // Helper to show/hide errors
   function setError(input, msg) {
-    let errEl = input.parentNode.querySelector('.error-message');
+    const group = input.closest('.form-group');
+    if (!group) return;
+
+    let errEl = group.querySelector('.error-message');
     if (!errEl) {
       errEl = document.createElement('div');
       errEl.className = 'error-message';
-      // For phone/search wrappers, we might need to append to the parent of the wrapper
-      if (input.parentNode.classList.contains('phone-input-wrapper') || input.parentNode.classList.contains('customer-search-container')) {
-        input.parentNode.parentNode.appendChild(errEl);
-      } else {
-        input.parentNode.appendChild(errEl);
-      }
+      group.appendChild(errEl);
     }
     
     if (msg) {
@@ -347,6 +347,7 @@ function setupForm() {
       errEl.style.display = 'none';
     }
   }
+  window.setErrorOnCheckout = setError;
 
   // Real-time validation listeners
   nameInput.addEventListener('input', () => {
