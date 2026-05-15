@@ -25,17 +25,17 @@ function optimizeProductData(p) {
   return p;
 }
 
-const redis = require('../utils/redis');
+const cache = require('../utils/cache');
 
-const REDIS_TTL = 3600; // 1 hour
+const REDIS_TTL = 2592000; // 30 days ("Never violate")
 
 async function updateStorefrontCache(productId, productData) {
   try {
     const cacheKey = `storefront:product:${productId}`;
     if (productData) {
-      await redis.set(cacheKey, JSON.stringify(productData), 'EX', REDIS_TTL);
+      await cache.set(cacheKey, productData, REDIS_TTL);
     } else {
-      await redis.del(cacheKey);
+      await cache.del(cacheKey);
     }
     // Always clear list cache when a product changes
     await clearListCache();
@@ -45,15 +45,7 @@ async function updateStorefrontCache(productId, productData) {
 }
 
 async function clearListCache() {
-  try {
-    const keys = await redis.keys('storefront:products:list:*');
-    if (keys.length > 0) {
-      await redis.del(...keys);
-      console.log(`[Redis] Cleared ${keys.length} product list cache keys`);
-    }
-  } catch (err) {
-    console.error('[Redis] Failed to clear list cache:', err);
-  }
+  await cache.clearPrefix('storefront:products:list:');
 }
 
 // ── Public ──────────────────────────────────────────────
@@ -68,12 +60,8 @@ router.get('/', async (req, res) => {
 
     // 1. ADMIN BYPASS: Skip Redis entirely for admin requests
     if (admin !== 'true') {
-      try {
-        const cached = await redis.get(cacheKey);
-        if (cached) return res.json(JSON.parse(cached));
-      } catch (err) {
-        console.error('[Redis] Cache get failed:', err.message);
-      }
+      const cached = await cache.get(cacheKey);
+      if (cached) return res.json(cached);
     }
 
     const query = {};
@@ -180,11 +168,7 @@ router.get('/', async (req, res) => {
       };
 
       if (admin !== 'true') {
-        try {
-          await redis.set(cacheKey, JSON.stringify(result), 'EX', 3600);
-        } catch (err) {
-          console.error('[Redis] Cache set failed:', err.message);
-        }
+        await cache.set(cacheKey, result, REDIS_TTL);
       }
       
       res.json(result);
@@ -198,11 +182,7 @@ router.get('/', async (req, res) => {
       let products = await queryExec;
       products = products.map(optimizeProductData);
       if (admin !== 'true') {
-        try {
-          await redis.set(cacheKey, JSON.stringify(products), 'EX', 3600);
-        } catch (err) {
-          console.error('[Redis] Cache set failed:', err.message);
-        }
+        await cache.set(cacheKey, products, REDIS_TTL);
       }
       res.json(products);
     }
@@ -234,11 +214,7 @@ router.get('/:id', async (req, res) => {
 
     // Update cache if not admin
     if (admin !== 'true') {
-      try {
-        await redis.set(cacheKey, JSON.stringify(optimized), 'EX', REDIS_TTL);
-      } catch (err) {
-        console.error('[Redis] Cache set failed:', err.message);
-      }
+      await cache.set(cacheKey, optimized, REDIS_TTL);
     }
 
     res.json(optimized);

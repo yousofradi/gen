@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Setting = require('../models/Setting');
 const adminAuth = require('../middleware/adminAuth');
+const cache = require('../utils/cache');
 
 router.get('/paymentMethods', async (req, res) => {
   try {
@@ -15,8 +16,17 @@ router.get('/paymentMethods', async (req, res) => {
 
 router.get('/:key', async (req, res) => {
   try {
-    const setting = await Setting.findOne({ key: req.params.key });
-    res.json(setting ? setting.value : null);
+    const { key } = req.params;
+    const cacheKey = `storefront:settings:${key}`;
+    
+    const cached = await cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
+    const setting = await Setting.findOne({ key });
+    const value = setting ? setting.value : null;
+    
+    await cache.set(cacheKey, value);
+    res.json(value);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -29,6 +39,10 @@ router.post('/:key', adminAuth, async (req, res) => {
       { value: req.body.value },
       { upsert: true, new: true }
     );
+    
+    // Clear cache
+    await cache.del(`storefront:settings:${req.params.key}`);
+    
     res.json(setting.value);
   } catch (err) {
     res.status(500).json({ error: err.message });

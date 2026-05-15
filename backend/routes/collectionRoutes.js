@@ -3,28 +3,22 @@ const router = express.Router();
 const collectionController = require('../controllers/collectionController');
 const adminAuth = require('../middleware/adminAuth');
 
-// ── Caching ──────────────────────────────────────────────
-let collectionCache = null;
-let cacheTime = 0;
-const CACHE_DURATION = 30 * 1000; // 30 seconds
-
-function clearCache() {
-  collectionCache = null;
-  cacheTime = 0;
-}
+const cache = require('../utils/cache');
 
 router.get('/', async (req, res, next) => {
   const { admin } = req.query;
-  if (admin !== 'true' && collectionCache && (Date.now() - cacheTime < CACHE_DURATION)) {
-    return res.json(collectionCache);
+  const cacheKey = 'storefront:collections:list';
+
+  if (admin !== 'true') {
+    const cached = await cache.get(cacheKey);
+    if (cached) return res.json(cached);
   }
   
   // Intercept the response to cache it
   const originalJson = res.json;
   res.json = function(data) {
-    if (admin !== 'true' && !res.statusCode || (res.statusCode >= 200 && res.statusCode < 300)) {
-      collectionCache = data;
-      cacheTime = Date.now();
+    if (admin !== 'true' && (!res.statusCode || (res.statusCode >= 200 && res.statusCode < 300))) {
+      cache.set(cacheKey, data);
     }
     return originalJson.call(this, data);
   };
@@ -36,27 +30,27 @@ router.get('/:id', collectionController.getCollection);
 
 // Admin only routes
 router.post('/delete/batch', adminAuth, async (req, res, next) => {
-  clearCache();
+  await cache.del('storefront:collections:list');
   next();
 }, collectionController.deleteCollectionsBatch);
 
 router.post('/', adminAuth, async (req, res, next) => {
-  clearCache();
+  await cache.del('storefront:collections:list');
   next();
 }, collectionController.createCollection);
 
 router.put('/:id', adminAuth, async (req, res, next) => {
-  clearCache();
+  await cache.del('storefront:collections:list');
   next();
 }, collectionController.updateCollection);
 
 router.delete('/:id', adminAuth, async (req, res, next) => {
-  clearCache();
+  await cache.del('storefront:collections:list');
   next();
 }, collectionController.deleteCollection);
 
 router.put('/reorder/batch', adminAuth, async (req, res, next) => {
-  clearCache();
+  await cache.del('storefront:collections:list');
   next();
 }, collectionController.reorderCollectionsBatch);
 
