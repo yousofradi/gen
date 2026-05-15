@@ -80,15 +80,19 @@ router.get('/', async (req, res) => {
     
     // If admin request, allow filtering by status
     if (admin === 'true') {
-      if (status) {
-        query.status = status;
+      if (status === 'draft') {
+        // Show both draft status AND explicitly inactive products
+        query.$or = [{ status: 'draft' }, { active: false }];
+      } else if (status === 'active') {
+        query.status = 'active';
+        query.active = { $ne: false };
       }
       // If no status provided, show both active and draft products for admin
     } 
     // If not admin request, only show active products
     else if (admin !== 'true') {
       query.active = { $ne: false };
-      query.status = { $ne: 'draft' };
+      query.status = 'active'; // Strictly active
       // Hide out-of-stock products (quantity === 0) from storefront
       // quantity: null or undefined means unlimited
       query.$and = [

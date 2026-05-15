@@ -124,8 +124,9 @@ function renderProducts(collections) {
 
   tbody.innerHTML = allProducts.map((p, idx) => {
     const mainImg = getMainImage(p);
-    const statusLabel = p.status === 'draft' ? 'مسودة' : 'نشط';
-    const statusClass = p.status === 'draft' ? 'badge-warning' : 'badge-success';
+    const isInactive = p.status === 'draft' || p.active === false;
+    const statusLabel = isInactive ? 'مؤرشف' : 'نشط';
+    const statusClass = isInactive ? 'badge-warning' : 'badge-success';
     const priceDisplay = p.salePrice && p.salePrice < p.basePrice
       ? `<span style="font-weight:700">${formatPrice(p.salePrice)}</span> <span style="text-decoration:line-through;color:#999;font-size:0.8rem">${formatPrice(p.basePrice)}</span>`
       : `<span style="font-weight:700">${formatPrice(p.basePrice)}</span>`;
