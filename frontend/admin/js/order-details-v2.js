@@ -1139,7 +1139,7 @@ window.addSelectedProducts = function (btn) {
   
   if (btn) {
     btn.disabled = false;
-    btn.innerHTML = 'إضافة المنتجات المختارة';
+    btn.innerHTML = 'أضف منتج';
   }
   
   closeProductsModal();
