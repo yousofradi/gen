@@ -516,6 +516,7 @@ window.applyCustomerChanges = async function (btn) {
   let govData = (window._fullShippingData || []).find(s => s._id === cityId);
   const cityName = govData ? (govData.cityOtherName || govData.city) : cityNameFromSearch;
 
+  // Validation logic remains
   if (!name || !phone || !cityName || !zone) {
     showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');
     return;
@@ -539,10 +540,6 @@ window.applyCustomerChanges = async function (btn) {
     return;
   }
 
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
-  }
 
   currentOrder.customer.name = name;
   currentOrder.customer.phone = phone;
@@ -565,11 +562,6 @@ window.applyCustomerChanges = async function (btn) {
     closeModal('customer-modal');
     if (window.hideBar) window.hideBar();
     showToast('تم تحديث بيانات العميل بنجاح');
-  } else {
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'تطبيق';
-    }
   }
 };
 
@@ -581,10 +573,6 @@ window.openPaymentModal = function () {
 };
 
 window.applyPaymentChanges = async function (btn) {
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
-  }
   currentOrder.paymentMethod = document.getElementById('modal-payment-method').value;
   currentOrder.paidAmount = parseFloat(document.getElementById('modal-paid-amount').value) || 0;
 
@@ -671,11 +659,6 @@ window.applyItemQty = async function (btn) {
   const idx = parseInt(document.getElementById('modal-qty-idx').value, 10);
   const qty = parseInt(document.getElementById('modal-item-qty').value, 10);
   if (qty >= 1 && currentOrder.items[idx]) {
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
-    }
-    
     currentOrder.items[idx].quantity = qty;
     updateTotals();
     
@@ -683,15 +666,7 @@ window.applyItemQty = async function (btn) {
     if (success) {
       closeModal('item-qty-modal');
       if (window.hideBar) window.hideBar();
-      // Refresh ready modal if open
-      if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
-        markAsReady();
-      }
-    } else {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'تطبيق';
-      }
+      if (document.getElementById('ready-confirm-modal').style.display === 'flex') markAsReady();
     }
   }
 };
@@ -708,11 +683,6 @@ window.applyItemDiscount = async function (btn) {
   const discount = parseFloat(document.getElementById('modal-item-discount').value) || 0;
   
   if (currentOrder.items[idx]) {
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
-    }
-
     currentOrder.items[idx].discount = discount;
     updateTotals();
 
@@ -720,15 +690,7 @@ window.applyItemDiscount = async function (btn) {
     if (success) {
       closeModal('item-discount-modal');
       if (window.hideBar) window.hideBar();
-      // Refresh ready modal if open
-      if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
-        markAsReady();
-      }
-    } else {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'تطبيق';
-      }
+      if (document.getElementById('ready-confirm-modal').style.display === 'flex') markAsReady();
     }
   }
 };
@@ -1119,13 +1081,6 @@ window.renderModalProducts = function () {
 };
 
 window.addSelectedProducts = async function (btn) {
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الإضافة...';
-  }
-  
-  const initialItemsCount = currentOrder.items.length;
-
   // 1. Add simple products from persistent set
   modalSelectedProducts.forEach(pid => {
     const p = allProducts.find(x => x._id === pid);
@@ -1182,11 +1137,6 @@ window.addSelectedProducts = async function (btn) {
   
   // Save immediately
   const success = await saveOrderChanges(true);
-  
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = 'أضف منتج';
-  }
 
   if (success) {
     closeProductsModal();
