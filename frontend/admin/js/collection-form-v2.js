@@ -219,6 +219,9 @@ function renderProductsList(productsToRender = collectionProducts) {
     `;
   }).join('');
 
+  // Bulk bar update
+  updateProductSelectionUI();
+
   if (!list) return; // Safety check
 
   if (sortableList) {
@@ -238,6 +241,8 @@ function renderProductsList(productsToRender = collectionProducts) {
     onSelect: function(evt) {
       const id = evt.item.getAttribute('data-id');
       selectedCollectionProductIds.add(id);
+      const row = evt.item;
+      if (row) row.classList.add('selected-for-drag');
       const cb = evt.item.querySelector('.product-select-cb');
       if (cb) cb.checked = true;
       updateProductSelectionUI();
@@ -245,6 +250,8 @@ function renderProductsList(productsToRender = collectionProducts) {
     onDeselect: function(evt) {
       const id = evt.item.getAttribute('data-id');
       selectedCollectionProductIds.delete(id);
+      const row = evt.item;
+      if (row) row.classList.remove('selected-for-drag');
       const cb = evt.item.querySelector('.product-select-cb');
       if (cb) cb.checked = false;
       updateProductSelectionUI();
@@ -257,15 +264,16 @@ function renderProductsList(productsToRender = collectionProducts) {
       const draftIds = collectionProducts.filter(p => p.status === 'draft').map(p => p._id);
       const combinedIds = [...newOrderIds, ...draftIds];
       
-      collectionProducts = combinedIds.map(id => allProducts.find(p => p._id === id)).filter(Boolean);
+      const pMap = {};
+      collectionProducts.forEach(p => pMap[p._id] = p);
+      collectionProducts = combinedIds.map(id => pMap[id]).filter(Boolean);
       
       if (window.markAsModified) window.markAsModified();
+      if (window.showBar) window.showBar();
       
-      // Update the count badge if needed (though it usually disappears on end)
       const badges = document.querySelectorAll('.drag-badge');
       badges.forEach(b => b.remove());
     },
-    // Custom ghost for multi-drag count
     setData: function (dataTransfer, dragEl) {
       const selectedCount = selectedCollectionProductIds.size || 1;
       if (selectedCount > 1) {

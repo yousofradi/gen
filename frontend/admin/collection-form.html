@@ -49,6 +49,10 @@
       align-items: start;
     }
 
+    #bulk-reorder-bar.visible {
+      display: flex !important;
+    }
+
     .image-upload-area {
       border: 1px dashed #ccc;
       border-radius: 8px;
@@ -423,6 +427,20 @@
               </div>
               <div id="collection-products-list">
                 <!-- Products will load here -->
+              </div>
+              <!-- Floating Bulk Reorder Bar -->
+              <div id="bulk-reorder-bar" 
+                style="position: sticky; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; padding: 12px 24px; display: none; align-items: center; justify-content: space-between; z-index: 100; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                <div style="display:flex; align-items:center; gap:16px;">
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600;">
+                    <input type="checkbox" id="select-all-reorder" onchange="toggleSelectAllProducts(this.checked)">
+                    تم تحديد <span id="selected-reorder-count">0</span>
+                  </label>
+                  <div style="width:1px; height:20px; background:#e2e8f0;"></div>
+                  <button type="button" class="btn-text" onclick="bulkReorderAction('top')" style="color:var(--primary); font-weight:700;">نقل للأعلى</button>
+                  <button type="button" class="btn-text" onclick="bulkReorderAction('bottom')" style="color:var(--primary); font-weight:700;">نقل للأسفل</button>
+                </div>
+                <button type="button" class="btn-text danger" onclick="bulkReorderAction('clear')">إلغاء التحديد</button>
               </div>
             </div>
 
