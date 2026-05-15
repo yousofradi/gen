@@ -750,36 +750,17 @@ window.applyOrderDiscount = async function (btn) {
 
 window.resendPaymentConfirmationDirect = async function (btn) {
   if (!currentOrder) return;
-  
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الإرسال...';
-  }
-
   try {
     const success = await api.triggerOrderPaid(currentOrder.orderId, currentOrder);
-    if (success) {
-      showToast('تم إرسال تأكيد الدفع بنجاح');
-    } else {
-      showToast('فشل إرسال التأكيد', 'error');
-    }
+    if (success) showToast('تم إرسال تأكيد الدفع بنجاح');
+    else showToast('فشل إرسال التأكيد', 'error');
   } catch (err) {
     console.error('Resend Error:', err);
     showToast('حدث خطأ أثناء الإرسال', 'error');
-  } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = 'ارسال';
-    }
   }
 };
 
 window.markFullyPaid = async function (btn) {
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الحفظ...';
-  }
-  
   currentOrder.paidAmount = currentOrder.totalPrice;
   currentOrder.paid = true;
   currentOrder.forcePaymentWebhook = true;
@@ -788,12 +769,7 @@ window.markFullyPaid = async function (btn) {
   renderOrder();
 
   // Save immediately
-  const success = await saveOrderChanges(true);
-  
-  if (!success && btn) {
-    btn.disabled = false;
-    btn.innerHTML = 'مدفوع بالكامل';
-  }
+  await saveOrderChanges(true);
 };
 
 // ── Save ───────────────────────────────────────────────
@@ -879,21 +855,12 @@ window.cancelOrder = async function (btn) {
   const confirmed = await window.showConfirmModal('تأكيد الإلغاء', 'هل أنت متأكد من إلغاء هذا الطلب؟ سيتم إرسال إشعار بذلك وتصفير القيم.');
   if (!confirmed) return;
 
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الإلغاء...';
-  }
-
   try {
     await api.cancelOrder(currentOrder.orderId);
     showToast('تم إلغاء الطلب بنجاح');
     setTimeout(() => window.location.reload(), 1000);
   } catch (err) {
     showToast(err.message || 'فشل الإلغاء', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg> <span>إلغاء الطلب</span>';
-    }
   }
 };
 
@@ -1163,11 +1130,6 @@ window.archiveCurrentOrder = async function (btn) {
   const confirmed = await window.showConfirmModal('تأكيد الأرشفة', 'هل أنت متأكد من أرشفة هذا الطلب؟');
   if (!confirmed) return;
   
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الأرشفة...';
-  }
-
   try {
     document.body.classList.add('is-loading');
     await api.archiveOrders([currentOrder.orderId]);
@@ -1175,10 +1137,6 @@ window.archiveCurrentOrder = async function (btn) {
     window.location.href = 'orders';
   } catch (err) {
     showToast(err.message || 'فشل الأرشفة', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg> <span>أرشفة</span>';
-    }
   } finally {
     document.body.classList.remove('is-loading');
   }
@@ -1188,11 +1146,6 @@ window.deleteCurrentOrder = async function (btn) {
   const confirmed = await window.showConfirmModal('تأكيد الحذف', 'سيتم حذف هذا الطلب نهائياً. هل أنت متأكد؟');
   if (!confirmed) return;
   
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الحذف...';
-  }
-
   try {
     document.body.classList.add('is-loading');
     await api.deleteOrder(currentOrder.orderId);
@@ -1200,10 +1153,6 @@ window.deleteCurrentOrder = async function (btn) {
     window.location.href = 'orders';
   } catch (err) {
     showToast(err.message || 'فشل الحذف', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg> <span style="font-weight:600;">حذف نهائي</span>';
-    }
   } finally {
     document.body.classList.remove('is-loading');
   }
