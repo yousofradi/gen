@@ -54,4 +54,4 @@ router.put('/reorder/batch', adminAuth, async (req, res, next) => {
   next();
 }, collectionController.reorderCollectionsBatch);
 
-module.exports = { router, clearCache };
+module.exports = { router };

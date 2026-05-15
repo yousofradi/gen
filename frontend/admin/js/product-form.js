@@ -760,8 +760,12 @@ window.toggleVariantChildren = function (parentVal) {
 }
 
 window.updateVariantField = function (idx, field, val) {
-  if (field === 'price' || field === 'salePrice' || field === 'quantity' || field === 'cost') {
-    variants[idx][field] = val === '' ? (field === 'quantity' || field === 'cost' ? null : 0) : Number(val);
+  if (field === 'price' || field === 'salePrice' || field === 'quantity') {
+    if (val === '') {
+      variants[idx][field] = (field === 'price') ? 0 : null;
+    } else {
+      variants[idx][field] = Number(val);
+    }
   } else {
     variants[idx][field] = val;
   }

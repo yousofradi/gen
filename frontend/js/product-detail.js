@@ -79,9 +79,11 @@ function renderProduct(p) {
         const matchKey = comboKeys.find(k => k.trim().toLowerCase() === groupNameClean);
         
         if (!matchKey) return false;
-        return (combo[matchKey] || '').trim().toLowerCase() === valueLabelClean && 
+        const comboVal = (combo[matchKey] || '').trim().toLowerCase();
+        
+        return comboVal === valueLabelClean && 
                (varObj.active !== false) &&
-               (varObj.quantity === null || varObj.quantity === undefined || varObj.quantity > 0);
+               (varObj.quantity === null || varObj.quantity === undefined || varObj.quantity === "" || Number(varObj.quantity) > 0);
       });
     });
 
@@ -206,7 +208,7 @@ window.updateTotalPrice = function() {
     finalBasePrice = matchingVariant.price;
     finalSalePrice = matchingVariant.salePrice !== null ? matchingVariant.salePrice : matchingVariant.price;
     variantImg = matchingVariant.imageUrl;
-    isAvailable = matchingVariant.active !== false && (matchingVariant.quantity === null || matchingVariant.quantity > 0);
+    isAvailable = matchingVariant.active !== false && (matchingVariant.quantity === null || matchingVariant.quantity === undefined || matchingVariant.quantity === "" || Number(matchingVariant.quantity) > 0);
   } else {
     const hasVariants = currentProduct.variants && currentProduct.variants.length > 0;
     if (hasVariants) {
@@ -224,7 +226,7 @@ window.updateTotalPrice = function() {
         finalSalePrice = (currentProduct.salePrice || currentProduct.basePrice);
       }
     }
-    isAvailable = currentProduct.quantity === null || currentProduct.quantity > 0;
+    isAvailable = currentProduct.quantity === null || currentProduct.quantity === undefined || currentProduct.quantity === "" || Number(currentProduct.quantity) > 0;
   }
   
   const hasDiscount = finalSalePrice < finalBasePrice;
