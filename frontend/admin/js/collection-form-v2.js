@@ -219,7 +219,16 @@ function renderProductsList(productsToRender = collectionProducts) {
     `;
   }).join('');
 
-  if (sortableList) sortableList.destroy();
+  if (!list) return; // Safety check
+
+  if (sortableList) {
+    try {
+      sortableList.destroy();
+    } catch (e) {
+      console.warn('Failed to destroy previous sortable instance', e);
+    }
+  }
+
   sortableList = new Sortable(list, {
     handle: '.btn-reorder',
     animation: 150,
