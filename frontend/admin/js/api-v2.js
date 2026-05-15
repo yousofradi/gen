@@ -44,6 +44,10 @@ const api = {
   async _request(path, opts = {}) {
     const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
     if (opts.admin) headers['x-admin-key'] = this._adminKey();
+    if (API_BASE === 'API_URL_PLACEHOLDER') {
+      console.error('CRITICAL: API_URL_PLACEHOLDER detected. Backend URL is not configured.');
+      throw new Error('خطأ في تهيئة الاتصال بالخادم. يرجى مراجعة الإعدادات.');
+    }
     const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
