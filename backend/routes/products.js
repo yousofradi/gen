@@ -37,8 +37,22 @@ async function updateStorefrontCache(productId, productData) {
     } else {
       await redis.del(cacheKey);
     }
+    // Always clear list cache when a product changes
+    await clearListCache();
   } catch (err) {
     console.error('[Redis] Cache update failed:', err);
+  }
+}
+
+async function clearListCache() {
+  try {
+    const keys = await redis.keys('storefront:products:list:*');
+    if (keys.length > 0) {
+      await redis.del(...keys);
+      console.log(`[Redis] Cleared ${keys.length} product list cache keys`);
+    }
+  } catch (err) {
+    console.error('[Redis] Failed to clear list cache:', err);
   }
 }
 
@@ -354,6 +368,7 @@ router.post('/delete/batch', adminAuth, async (req, res) => {
     for (const id of productIds) {
       await updateStorefrontCache(id, null);
     }
+    await clearListCache();
     
     res.json({ message: 'Products deleted successfully' });
   } catch (err) {
@@ -470,7 +485,7 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
 
     if (deleteAll === 'true') {
       await Product.deleteMany({});
-      clearCache();
+      await clearListCache();
     }
 
     const normalizeArabic = (str) => {

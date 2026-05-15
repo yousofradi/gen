@@ -442,11 +442,12 @@ function removeOptionValue(gi, vi) {
 
 function updateGroupName(gi, val) {
   const oldName = optionGroups[gi].name;
-  optionGroups[gi].name = val;
-  if (oldName && oldName !== val) {
+  const newName = val.trim();
+  optionGroups[gi].name = newName;
+  if (oldName && oldName !== newName) {
     variants.forEach(v => {
-      if (v.combination.hasOwnProperty(oldName)) {
-        v.combination[val] = v.combination[oldName];
+      if (v.combination && v.combination.hasOwnProperty(oldName)) {
+        v.combination[newName] = v.combination[oldName];
         delete v.combination[oldName];
       }
     });
@@ -497,10 +498,13 @@ function syncVariants() {
 
   variants = combinations.map(combo => {
     // 1. Exact match
-    let existing = oldVariants.find(v =>
-      Object.entries(combo).every(([key, val]) => v.combination[key] === val) &&
-      Object.keys(combo).length === Object.keys(v.combination).length
-    );
+    let existing = oldVariants.find(v => {
+      if (!v.combination) return false;
+      const vKeys = Object.keys(v.combination);
+      const cKeys = Object.keys(combo);
+      if (vKeys.length !== cKeys.length) return false;
+      return cKeys.every(key => v.combination[key] === combo[key]);
+    });
     if (existing) return existing;
 
     // 2. Partial match (inheriting prices when a new option group is added)
@@ -968,15 +972,25 @@ function populateProductForm(p) {
   }));
   optionEditModes = optionGroups.map(() => false);
 
-  variants = (p.variants || []).map(v => ({
-    combination: v.combination instanceof Map ? Object.fromEntries(v.combination) : v.combination,
-    price: v.price,
-    salePrice: v.salePrice,
-    cost: v.cost || null,
-    quantity: v.quantity,
-    imageUrl: v.imageUrl,
-    active: v.active !== false
-  }));
+  variants = (p.variants || []).map(v => {
+    let combo = {};
+    if (v.combination) {
+      if (v.combination instanceof Map) {
+        combo = Object.fromEntries(v.combination);
+      } else if (typeof v.combination === 'object') {
+        combo = { ...v.combination };
+      }
+    }
+    return {
+      combination: combo,
+      price: v.price,
+      salePrice: v.salePrice,
+      cost: v.cost || null,
+      quantity: v.quantity,
+      imageUrl: v.imageUrl,
+      active: v.active !== false
+    };
+  });
 
   if (optionGroups.length > 0) {
     document.getElementById('enable-variants').checked = true;
