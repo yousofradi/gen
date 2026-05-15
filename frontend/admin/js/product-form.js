@@ -427,6 +427,43 @@ function removeOptionGroup(gi) {
   if (window.markAsModified) safeMarkAsModified();
 }
 
+/** 
+ * Heals variants if their combination keys don't match current option group names 
+ */
+function normalizeCombinations() {
+  const validGroups = optionGroups.filter(g => g.name && g.values.some(v => v));
+  const groupNames = validGroups.map(g => g.name);
+
+  variants.forEach(v => {
+    if (!v.combination) v.combination = {};
+    const newCombo = {};
+    const oldKeys = Object.keys(v.combination);
+
+    groupNames.forEach((name, i) => {
+      // 1. Exact match
+      if (v.combination.hasOwnProperty(name)) {
+        newCombo[name] = v.combination[name];
+      } 
+      // 2. Case/Space insensitive match
+      else {
+        const fuzzyMatch = oldKeys.find(k => k.trim().toLowerCase() === name.trim().toLowerCase());
+        if (fuzzyMatch) {
+          newCombo[name] = v.combination[fuzzyMatch];
+        } else {
+          // 3. Fallback: if there's only one group and one key, map it
+          if (groupNames.length === 1 && oldKeys.length === 1) {
+             newCombo[name] = v.combination[oldKeys[0]];
+          } else {
+             // 4. Last resort: default to first value of the group to avoid undefined
+             newCombo[name] = validGroups[i].values.find(val => val) || '';
+          }
+        }
+      }
+    });
+    v.combination = newCombo;
+  });
+}
+
 function addOptionValue(gi) {
   optionGroups[gi].values.push('');
   renderOptionSetup();
@@ -458,11 +495,12 @@ function updateGroupName(gi, val) {
 function updateValueName(gi, vi, val) {
   const groupName = optionGroups[gi].name;
   const oldVal = optionGroups[gi].values[vi];
-  optionGroups[gi].values[vi] = val;
-  if (oldVal && oldVal !== val && groupName) {
+  const newVal = val.trim();
+  optionGroups[gi].values[vi] = newVal;
+  if (oldVal && oldVal !== newVal && groupName) {
     variants.forEach(v => {
-      if (v.combination[groupName] === oldVal) {
-        v.combination[groupName] = val;
+      if (v.combination && v.combination[groupName] === oldVal) {
+        v.combination[groupName] = newVal;
       }
     });
   }
@@ -627,6 +665,9 @@ function renderVariantsTable() {
       const rowClass = optionGroups.length > 1 ? 'variant-row child child-indent' : 'variant-row child';
       const rowStyle = (optionGroups.length === 1 || isExpanded) ? 'table-row' : 'none';
 
+      // Robust Label: Fallback to the value from combination even if firstGroupName is slightly different
+      const labelText = otherOptions || c.combination[firstGroupName] || Object.values(c.combination)[0] || 'متغير';
+
       html += `
         <tr class="${rowClass} parent-${parentVal.replace(/\s+/g, '-')}" style="display:${rowStyle}">
           <td><input type="checkbox" class="selection-checkbox"></td>
@@ -638,7 +679,7 @@ function renderVariantsTable() {
           : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`
         }
               </button>
-              <span style="color:#0f766e; font-weight:500">${otherOptions || parentVal}</span>
+              <span style="color:#0f766e; font-weight:500">${labelText}</span>
             </div>
           </td>
           <td>
@@ -844,14 +885,17 @@ async function saveProduct(e) {
     quantity: qtyVal !== '' ? Number(qtyVal) : null,
     handle: document.getElementById('p-handle').value.trim() || undefined,
     options: document.getElementById('enable-variants').checked ? optionGroups.filter(g => g.name && g.values.some(v => v)).map(g => ({
-      name: g.name,
+      name: g.name.trim(),
       required: true,
-      values: g.values.filter(v => v).map(v => ({ label: v, price: 0 }))
+      values: g.values.filter(v => v).map(v => ({ label: v.trim(), price: 0 }))
     })) : [],
-    variants: document.getElementById('enable-variants').checked ? variants.map(v => ({
-      ...v,
-      combination: v.combination
-    })) : []
+    variants: document.getElementById('enable-variants').checked ? (function() {
+      normalizeCombinations();
+      return variants.map(v => ({
+        ...v,
+        combination: v.combination
+      }));
+    })() : []
   };
 
   try {
@@ -1002,6 +1046,8 @@ function populateProductForm(p) {
     document.getElementById('enable-variants').checked = false;
     document.getElementById('variant-setup-container').style.display = 'none';
   }
+  
+  normalizeCombinations();
   renderOptionSetup();
   renderVariantsTable();
 }
