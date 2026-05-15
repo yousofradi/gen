@@ -11,7 +11,7 @@ function num(val) {
 }
 
 async function generateInvoiceInnerHtml(order, settings) {
-  const brandName = settings.storeNameAr || settings.invoicePrefix || settings.storeName || 'admin Store';
+  const brandName = settings.storeNameAr || settings.storeName || 'سندورة';
 
   // ================== PRODUCTS ==================
   const productsHtml = order.items.map((p) => {

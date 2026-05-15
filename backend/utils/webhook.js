@@ -68,7 +68,7 @@ async function sendWebhook(event, data) {
       const waConfigSetting = await Setting.findOne({ key: 'whatsapp_configs' });
       const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
       const settings = globalSettings ? globalSettings.value : {};
-      const brandName = settings.storeNameAr || settings.invoicePrefix || settings.storeName || 'Store';
+      const brandName = settings.storeNameAr || settings.storeName;
 
       if (waConfigSetting && Array.isArray(waConfigSetting.value)) {
         const configs = waConfigSetting.value;
@@ -84,7 +84,7 @@ async function sendWebhook(event, data) {
             const remainingTextCustomer = baseRemaining > 0
               ? `الدفع عند الاستلام (+10 ج رسوم) : ${displayRemaining} EGP`
               : `مدفوع بالكامل`;
-              
+
             const remainingTextOwner = baseRemaining > 0
               ? `المتبقي عند الاستلام (+10 ج): ${displayRemaining} EGP`
               : `المدفوع : بالكامل`;

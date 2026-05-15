@@ -226,17 +226,19 @@ function renderProductsList(productsToRender = collectionProducts) {
     multiDrag: true,
     selectedClass: 'selected-for-drag',
     // Set initial selection
-    onChoose: function(evt) {
-      // Sync Sortable selection with our checkboxes when starting a drag
-      const selectedIds = Array.from(selectedCollectionProductIds);
-      document.querySelectorAll('.product-row').forEach(row => {
-        const id = row.getAttribute('data-id');
-        if (selectedIds.includes(id)) {
-          Sortable.utils.select(row);
-        } else {
-          Sortable.utils.deselect(row);
-        }
-      });
+    onSelect: function(evt) {
+      const id = evt.item.getAttribute('data-id');
+      selectedCollectionProductIds.add(id);
+      const cb = evt.item.querySelector('.product-select-cb');
+      if (cb) cb.checked = true;
+      updateProductSelectionUI();
+    },
+    onDeselect: function(evt) {
+      const id = evt.item.getAttribute('data-id');
+      selectedCollectionProductIds.delete(id);
+      const cb = evt.item.querySelector('.product-select-cb');
+      if (cb) cb.checked = false;
+      updateProductSelectionUI();
     },
     onEnd: function (evt) {
       // Re-sync array based on DOM after multi-drag
@@ -258,25 +260,28 @@ function renderProductsList(productsToRender = collectionProducts) {
     setData: function (dataTransfer, dragEl) {
       const selectedCount = selectedCollectionProductIds.size || 1;
       if (selectedCount > 1) {
+        // Create a badge that will be cloned as part of the ghost
         const badge = document.createElement('div');
         badge.className = 'drag-badge';
         badge.textContent = selectedCount;
         badge.style.cssText = `
           position: absolute;
-          top: -10px;
-          right: -10px;
+          top: -12px;
+          right: -12px;
           background: #3b82f6;
           color: white;
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 12px;
-          font-weight: bold;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          z-index: 1000;
+          font-size: 14px;
+          font-weight: 800;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+          border: 2px solid #fff;
+          z-index: 9999;
+          animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         `;
         dragEl.style.position = 'relative';
         dragEl.appendChild(badge);

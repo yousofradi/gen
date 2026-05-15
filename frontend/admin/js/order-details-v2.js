@@ -5,6 +5,7 @@ let originalOrder = null;
 let allProducts = [];
 let collectionsMap = {};
 let shippingMap = {};
+let isSaving = false;
 
 // Smart Search helper for Arabic
 function smartMatch(text, query) {
@@ -801,6 +802,8 @@ window.markFullyPaid = async function (btn) {
 // ── Save ───────────────────────────────────────────────
 
 window.saveOrderChanges = async function (silent = false) {
+  if (isSaving) return false;
+  
   const btn = document.getElementById('save-all-btn');
   const originalText = btn ? btn.textContent : '';
 
@@ -808,6 +811,8 @@ window.saveOrderChanges = async function (silent = false) {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
   }
+
+  isSaving = true;
 
   // Zone validation
   if (currentOrder.customer.zone) {
@@ -863,6 +868,7 @@ window.saveOrderChanges = async function (silent = false) {
     showToast(err.message || 'فشل الحفظ', 'error');
     return false;
   } finally {
+    isSaving = false;
     if (!silent && btn) {
       btn.disabled = false;
       btn.textContent = originalText || 'حفظ التغييرات';

@@ -8,16 +8,16 @@
   <meta http-equiv="Expires" content="0">
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>التصنيفات — Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260515">
+  <link rel="stylesheet" href="css/style.css?v=20260515_v2">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     .collection-row {
       display: grid;
-      grid-template-columns: 80px 1fr 150px 100px;
+      grid-template-columns: 40px 60px 1fr 60px;
       align-items: center;
-      padding: 16px;
-      border-bottom: 1px solid #eee;
-      gap: 16px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      gap: 12px;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -87,6 +87,12 @@
       .collection-img, .collection-img-placeholder {
         width: 46px; height: 46px;
       }
+    }
+    .collection-checkbox {
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      accent-color: var(--primary);
     }
     @media (max-width: 480px) {
       .header-actions { flex-direction: column; align-items: stretch; }
@@ -182,10 +188,10 @@
         </div>
         
         <div class="collection-list-container">
-          <div class="collection-row header" style="grid-template-columns: 50px 80px 1fr 80px;">
-            <div style="text-align: center;"><input type="checkbox" id="select-all-collections" onchange="toggleSelectAll()"></div>
+          <div class="collection-row header" style="grid-template-columns: 32px 70px 1fr 80px; gap: 8px;">
+            <div style="text-align: right; display: flex; align-items: center; justify-content: flex-start;"><input type="checkbox" id="select-all-collections" onchange="toggleSelectAll()" class="collection-checkbox"></div>
             <div style="text-align: center;">الصورة</div>
-            <div style="text-align: center;">الاسم</div>
+            <div style="text-align: right; padding-right: 8px;">الاسم</div>
             <div style="text-align: center;">إجراءات</div>
           </div>
           <div id="collections-list" style="padding-bottom: 80px;">
@@ -197,9 +203,9 @@
   </div>
 
   <div id="toast-container" class="toast-container"></div>
-  <script src="js/api.js?v=20260515"></script>
-  <script src="js/auth.js?v=20260515"></script>
-  <script src="js/collections.js?v=20260515"></script>
+  <script src="js/api-v2.js?v=20260515_v2"></script>
+  <script src="js/auth-v2.js?v=20260515_v2"></script>
+  <script src="js/collections-v2.js?v=20260515_v2"></script>
 </body>
 </html>
 
