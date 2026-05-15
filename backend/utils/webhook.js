@@ -68,7 +68,7 @@ async function sendWebhook(event, data) {
       const waConfigSetting = await Setting.findOne({ key: 'whatsapp_configs' });
       const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
       const settings = globalSettings ? globalSettings.value : {};
-      const brandName = settings.invoicePrefix || settings.storeNameAr || settings.storeName || 'Store';
+      const brandName = settings.storeNameAr || settings.invoicePrefix || settings.storeName || 'Store';
 
       if (waConfigSetting && Array.isArray(waConfigSetting.value)) {
         const configs = waConfigSetting.value;

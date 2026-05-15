@@ -4,8 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>تفاصيل الطلب — لوحة التحكم</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260515">
   <style>
     .order-details-layout {
       display: grid;
@@ -319,7 +322,7 @@
                 <span>طباعة الفاتورة</span>
               </button>
 
-              <button class="dropdown-item-btn" onclick="archiveCurrentOrder()">
+              <button class="dropdown-item-btn" onclick="archiveCurrentOrder(this)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path
@@ -330,7 +333,7 @@
                 <span>أرشفة</span>
               </button>
 
-              <button class="dropdown-item-btn danger" onclick="cancelOrder()">
+              <button class="dropdown-item-btn danger" onclick="cancelOrder(this)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
@@ -342,7 +345,7 @@
 
               <div class="dropdown-divider"></div>
 
-              <button class="dropdown-item-btn danger" onclick="deleteCurrentOrder()">
+              <button class="dropdown-item-btn danger" onclick="deleteCurrentOrder(this)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 6h18" />
@@ -434,9 +437,9 @@
                   </div>
 
                   <div class="flex gap-8 mt-16" style="justify-content:flex-start">
-                    <button class="btn btn-primary btn-sm" id="btn-mark-paid" onclick="markFullyPaid()">مدفوع بالكامل</button>
+                    <button class="btn btn-primary btn-sm" id="btn-mark-paid" onclick="markFullyPaid(this)">مدفوع بالكامل</button>
                     <button class="btn btn-secondary btn-sm" onclick="openPaymentModal()">تعديل الدفع</button>
-                    <button class="btn btn-sm" style="background:#0ea5e9; color:#fff; font-weight:600;" onclick="resendPaymentConfirmationDirect()">ارسال</button>
+                    <button class="btn btn-sm" style="background:#0ea5e9; color:#fff; font-weight:600;" onclick="resendPaymentConfirmationDirect(this)">ارسال</button>
                   </div>
                 </div>
               </div>
@@ -509,7 +512,7 @@
       <div class="modal-footer" style="display:flex; gap:12px;">
         <button type="button" class="btn btn-secondary" onclick="closeProductsModal()"
           style="background:#fff;color:#333;border:1px solid #ccc; flex:1; margin:0;">إلغاء</button>
-        <button type="button" class="btn btn-primary" onclick="addSelectedProducts()" style="flex:1; margin:0;">أضف
+        <button type="button" class="btn btn-primary" onclick="addSelectedProducts(this)" style="flex:1; margin:0;">أضف
           منتج</button>
       </div>
     </div>
@@ -577,7 +580,7 @@
       <div class="modal-footer" style="justify-content: flex-start; gap: 12px; flex-direction: row-reverse;">
         <button type="button" class="btn"
           style="background:#10b981; color:#fff; border-radius:24px; padding:8px 32px; font-weight:600;"
-          onclick="applyCustomerChanges()">تطبيق</button>
+          onclick="applyCustomerChanges(this)">تطبيق</button>
         <button type="button" class="btn"
           style="background:#fff; border:1px solid #e2e8f0; color:#1e293b; border-radius:24px; padding:8px 32px; font-weight:600;"
           onclick="closeModal('customer-modal')">إلغاء</button>
@@ -607,7 +610,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" onclick="applyPaymentChanges()">تطبيق</button>
+        <button type="button" class="btn btn-primary" onclick="applyPaymentChanges(this)">تطبيق</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('payment-modal')">إلغاء</button>
       </div>
     </div>
@@ -637,7 +640,7 @@
         style="border:none; justify-content: flex-start; gap: 12px; flex-direction: row-reverse;">
         <button type="button" class="btn"
           style="background:#10b981; color:#fff; border-radius:24px; padding:8px 48px; font-weight:600;"
-          onclick="applyItemDiscount()">تطبيق</button>
+          onclick="applyItemDiscount(this)">تطبيق</button>
         <button type="button" class="btn"
           style="background:#fff; border:1px solid #e2e8f0; color:#1e293b; border-radius:24px; padding:8px 48px; font-weight:600;"
           onclick="closeModal('item-discount-modal')">إلغاء</button>
@@ -666,7 +669,7 @@
         style="border:none; justify-content: flex-start; gap: 12px; flex-direction: row-reverse;">
         <button type="button" class="btn"
           style="background:#10b981; color:#fff; border-radius:24px; padding:8px 48px; font-weight:600;"
-          onclick="applyItemQty()">تطبيق</button>
+          onclick="applyItemQty(this)">تطبيق</button>
         <button type="button" class="btn"
           style="background:#fff; border:1px solid #e2e8f0; color:#1e293b; border-radius:24px; padding:8px 48px; font-weight:600;"
           onclick="closeModal('item-qty-modal')">إلغاء</button>
@@ -697,7 +700,7 @@
         style="border:none; justify-content: flex-start; gap: 12px; flex-direction: row-reverse;">
         <button type="button" class="btn"
           style="background:#10b981; color:#fff; border-radius:24px; padding:8px 48px; font-weight:600;"
-          onclick="applyOrderDiscount()">تطبيق</button>
+          onclick="applyOrderDiscount(this)">تطبيق</button>
         <button type="button" class="btn"
           style="background:#fff; border:1px solid #e2e8f0; color:#1e293b; border-radius:24px; padding:8px 48px; font-weight:600;"
           onclick="closeModal('order-discount-modal')">إلغاء</button>
@@ -733,9 +736,9 @@
 
 
 
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/order-details.js"></script>
+  <script src="js/api.js?v=20260515"></script>
+  <script src="js/auth.js?v=20260515"></script>
+  <script src="js/order-details.js?v=20260515"></script>
 </body>
 
 </html>

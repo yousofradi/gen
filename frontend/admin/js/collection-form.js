@@ -130,7 +130,8 @@ window.closeImageModal = function () {
   document.body.style.overflow = '';
 };
 
-window.applyImageUrl = function () {
+window.applyImageUrl = function (btn) {
+  if (btn) btn.disabled = true;
   const url = document.getElementById('modal-image-url').value.trim();
   if (url) {
     document.getElementById('c-image').value = url;
@@ -308,7 +309,8 @@ function filterAvailableProducts(e) {
   renderSelectModalLists(e.target.value.toLowerCase());
 }
 
-window.saveSelectedProducts = function () {
+window.saveSelectedProducts = function (btn) {
+  if (btn) btn.disabled = true;
   renderProductsList();
   closeSelectModal();
 };

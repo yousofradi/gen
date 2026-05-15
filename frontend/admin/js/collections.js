@@ -179,7 +179,7 @@ window.unselectAll = function() {
   updateBulkBar();
 };
 
-window.bulkDelete = async function() {
+window.bulkDelete = async function(btn) {
   const selected = document.querySelectorAll('.collection-checkbox:checked');
   const ids = Array.from(selected).map(cb => cb.getAttribute('data-id'));
   
@@ -188,11 +188,20 @@ window.bulkDelete = async function() {
   const confirmed = await window.showConfirmModal('تأكيد الحذف', `هل أنت متأكد من حذف ${ids.length} تصنيفات نهائياً؟`);
   if (!confirmed) return;
   
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الحذف...';
+  }
+
   try {
     await api.deleteCollectionsBatch(ids);
     showToast('تم حذف التصنيفات بنجاح');
     loadCollections();
   } catch (err) {
     showToast(err.message || 'فشل حذف التصنيفات', 'error');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> حذف نهائي';
+    }
   }
 };

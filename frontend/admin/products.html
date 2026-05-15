@@ -4,9 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>المنتجات — Admin</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260515">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     @media (max-width: 640px) {
@@ -257,7 +260,7 @@
                 style="background:rgba(255,255,255,0.2); border-radius:4px; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold;">-</span>
             </button>
             <div style="position:relative;">
-              <button class="btn btn-secondary" onclick="toggleBulkMenu(event)"
+              <button class="btn btn-secondary btn-bulk-action" onclick="toggleBulkMenu(event)"
                 style="border-radius:20px; padding:8px 16px; border:1px solid #e2e8f0; background:#fff; color:#475569; font-weight:600; display:flex; align-items:center; gap:8px;">
                 إجراءات
                 <span style="font-size:0.8rem; margin-top:2px;"><svg width="12" height="12" viewBox="0 0 24 24"
@@ -268,14 +271,14 @@
               </button>
               <div id="bulk-menu"
                 style="display:none; position:absolute; top:100%; right:0; margin-top:8px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 10px 25px -3px rgba(0,0,0,0.15); width:220px; z-index:100; overflow:hidden; padding:6px;">
-                <button onclick="bulkAction('active')"
+                <button onclick="bulkAction('active', this)"
                   style="width:100%; text-align:right; padding:12px 14px; background:none; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:10px; color:#475569; font-size:0.95rem; font-family:inherit;"
                   onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''">
                   اجعله <span
                     style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;"></span>
                   نشط
                 </button>
-                <button onclick="bulkAction('draft')"
+                <button onclick="bulkAction('draft', this)"
                   style="width:100%; text-align:right; padding:12px 14px; background:none; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:10px; color:#475569; font-size:0.95rem; font-family:inherit;"
                   onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''">
                   اجعله <span
@@ -283,7 +286,7 @@
                   غير نشط
                 </button>
                 <div style="height:1px;background:#e2e8f0;margin:4px 0;"></div>
-                <button onclick="bulkAction('delete')"
+                <button onclick="bulkAction('delete', this)"
                   style="width:100%; text-align:right; padding:12px 14px; background:none; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:10px; color:#ef4444; font-size:0.95rem; font-family:inherit; font-weight:600;"
                   onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
                   حذف المنتجات
@@ -405,9 +408,9 @@
   </div>
   </main>
   </div>
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/products.js"></script>
+  <script src="js/api.js?v=20260515"></script>
+  <script src="js/auth.js?v=20260515"></script>
+  <script src="js/products.js?v=20260515"></script>
 </body>
 
 </html>

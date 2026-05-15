@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>إعدادات المتجر — Admin</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260515">
 </head>
 <body>
   <div class="admin-layout">
@@ -126,8 +129,13 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">اسم البراند بالعربي (Brand Name in Arabic)</label>
-            <input type="text" id="setting-invoice-prefix" class="form-control" placeholder="اسم البراند">
+            <label class="form-label">اسم المتجر بالعربي (Store Name in Arabic)</label>
+            <input type="text" id="setting-store-name-ar" class="form-control" placeholder="اسم متجرك بالعربي">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">بادئة الفاتورة (Invoice Prefix)</label>
+            <input type="text" id="setting-invoice-prefix" class="form-control" placeholder="مثال: INV-">
           </div>
 
           <div class="form-group">
@@ -184,9 +192,9 @@
     </main>
   </div>
 
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/settings.js"></script>
+  <script src="js/api.js?v=20260515"></script>
+  <script src="js/auth.js?v=20260515"></script>
+  <script src="js/settings.js?v=20260515"></script>
 </body>
 </html>
 

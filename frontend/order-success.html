@@ -181,7 +181,7 @@
         const settings = await api.getSetting('sundura_global_settings');
         let waNumber = (settings.socialWa || '').replace(/[^0-9]/g, '');
         if (waNumber.startsWith('01')) waNumber = '2' + waNumber;
-        const brandName = settings.invoicePrefix || 'المتجر';
+        const brandName = settings.storeNameAr || settings.invoicePrefix || 'المتجر';
         const waMessage = encodeURIComponent(`مرحباً، قمت بطلب من متجر ${brandName}.\nرقم الطلب الخاص بي هو: ${order.orderId}`);
         whatsappBtn.href = `https://wa.me/${waNumber}?text=${waMessage}`;
         whatsappBtn.style.display = 'flex';

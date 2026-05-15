@@ -67,6 +67,7 @@ function updateBranding(name) {
 
 function populateSettingsForm(s) {
   document.getElementById('setting-store-name').value = s.storeName || '';
+  document.getElementById('setting-store-name-ar').value = s.storeNameAr || '';
   document.getElementById('setting-store-logo').value = s.storeLogo || '';
   document.getElementById('setting-store-favicon').value = s.storeFavicon || '';
   document.getElementById('setting-store-preview').value = s.storePreview || '';
@@ -199,6 +200,7 @@ function renderPaymentMethods() {
 async function saveSettings() {
   const settings = {
     storeName: document.getElementById('setting-store-name').value.trim(),
+    storeNameAr: document.getElementById('setting-store-name-ar').value.trim(),
     storeLogo: document.getElementById('setting-store-logo').value.trim(),
     storeFavicon: document.getElementById('setting-store-favicon').value.trim(),
     storePreview: document.getElementById('setting-store-preview').value.trim(),

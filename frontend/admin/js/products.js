@@ -234,9 +234,18 @@ window.bulkAction = async function (action) {
   const menu = document.getElementById('bulk-menu');
   if (menu) menu.style.display = 'none';
 
+  const bulkBtn = document.querySelector('.btn-bulk-action'); // The trigger button
+  const oldContent = bulkBtn ? bulkBtn.innerHTML : '';
+
   if (action === 'delete') {
     const confirmed = await window.showConfirmModal('تأكيد الحذف', `هل أنت متأكد من حذف ${ids.length} منتج نهائياً؟`);
     if (!confirmed) return;
+    
+    if (bulkBtn) {
+      bulkBtn.disabled = true;
+      bulkBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الحذف...';
+    }
+
     try {
       await api.deleteProductsBatch(ids);
       showToast('تم حذف المنتجات بنجاح');
@@ -244,11 +253,20 @@ window.bulkAction = async function (action) {
       loadProducts();
     } catch (err) {
       showToast(err.message || 'فشل حذف المنتجات', 'error');
+      if (bulkBtn) {
+        bulkBtn.disabled = false;
+        bulkBtn.innerHTML = oldContent;
+      }
     }
   } else if (action === 'draft' || action === 'active') {
     const statusText = action === 'draft' ? 'مسودة' : 'نشط';
     const confirmed = await window.showConfirmModal('تأكيد التحديث', `هل أنت متأكد من تغيير حالة ${ids.length} منتج إلى ${statusText}؟`);
     if (!confirmed) return;
+
+    if (bulkBtn) {
+      bulkBtn.disabled = true;
+      bulkBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري التحديث...';
+    }
 
     showToast('جاري التحديث...', 'info');
     let hasError = false;
@@ -264,6 +282,11 @@ window.bulkAction = async function (action) {
 
     unselectAll();
     loadProducts();
+    
+    if (bulkBtn) {
+      bulkBtn.disabled = false;
+      bulkBtn.innerHTML = oldContent;
+    }
   }
 };
 

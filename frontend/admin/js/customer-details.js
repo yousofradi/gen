@@ -208,7 +208,12 @@ function closeEditModal() {
   document.getElementById('edit-modal').classList.remove('open');
 }
 
-async function applyChanges() {
+async function applyChanges(btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الحفظ...';
+  }
+
   const name = document.getElementById('modal-c-name').value.trim();
   const phone = document.getElementById('modal-c-phone').value.trim();
   const phone2 = document.getElementById('modal-c-phone2').value.trim();
@@ -221,6 +226,10 @@ async function applyChanges() {
 
   if (!name || !phone || !cityName || !zone) {
     showToast('الاسم ورقم الهاتف والمحافظة والمنطقة مطلوبة', 'error');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'تطبيق';
+    }
     return;
   }
 

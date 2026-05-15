@@ -135,13 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // 3. Register Service Worker
+    // 3. Unregister Service Worker (to prevent caching)
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        // Use relative path for sw.js to ensure it works on any subpath
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('Admin SW Registered'))
-          .catch(err => console.log('Admin SW Registration failed', err));
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const registration of registrations) {
+          registration.unregister();
+          console.log('Admin SW Unregistered');
+        }
       });
     }
 
@@ -315,19 +315,33 @@ function initUnsavedChangesBar() {
   });
 
   // Action: Save
-  document.getElementById('btn-global-save').addEventListener('click', async () => {
-    if (window.handleGlobalSave) {
-      const success = await window.handleGlobalSave();
-      if (success !== false) window.hideBar();
-    } else {
-      // Fallback: try to find a primary save button and click it
-      const primaryBtn = document.querySelector('button[type="submit"], .btn-primary, #save-btn');
-      if (primaryBtn) {
-        primaryBtn.click();
-        window.hideBar();
+  document.getElementById('btn-global-save').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (btn.disabled) return;
+
+    const oldText = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الحفظ...';
+
+    try {
+      if (window.handleGlobalSave) {
+        const success = await window.handleGlobalSave();
+        if (success !== false) window.hideBar();
       } else {
-        console.warn('Global save handler not implemented for this page.');
+        // Fallback: try to find a primary save button and click it
+        const primaryBtn = document.querySelector('button[type="submit"], .btn-primary, #save-btn');
+        if (primaryBtn) {
+          primaryBtn.click();
+          window.hideBar();
+        } else {
+          console.warn('Global save handler not implemented for this page.');
+        }
       }
+    } catch (err) {
+      console.error('Global save error:', err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldText;
     }
   });
 

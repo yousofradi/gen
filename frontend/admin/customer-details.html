@@ -4,8 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>تفاصيل العميل — لوحة التحكم</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260515">
   <style>
     .customer-layout {
       display: grid;
@@ -400,7 +403,7 @@
       <div class="modal-footer" style="justify-content: flex-start; gap: 12px; flex-direction: row-reverse;">
         <button type="button" class="btn"
           style="background:#10b981; color:#fff; border-radius:24px; padding:8px 32px; font-weight:600;"
-          onclick="applyChanges()">تطبيق</button>
+          onclick="applyChanges(this)">تطبيق</button>
         <button type="button" class="btn"
           style="background:#fff; border:1px solid #e2e8f0; color:#1e293b; border-radius:24px; padding:8px 32px; font-weight:600;"
           onclick="closeEditModal()">إلغاء</button>
@@ -408,9 +411,9 @@
     </div>
   </div>
 
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/customer-details.js"></script>
+  <script src="js/api.js?v=20260515"></script>
+  <script src="js/auth.js?v=20260515"></script>
+  <script src="js/customer-details.js?v=20260515"></script>
 </body>
 
 </html>

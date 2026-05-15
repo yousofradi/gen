@@ -11,14 +11,14 @@ function num(val) {
 }
 
 async function generateInvoiceInnerHtml(order, settings) {
-  const brandName = settings.storeNameAr || settings.storeName || 'admin Store';
+  const brandName = settings.storeNameAr || settings.invoicePrefix || settings.storeName || 'admin Store';
 
   // ================== PRODUCTS ==================
   const productsHtml = order.items.map((p) => {
     const unitPrice = Number(p.unitPrice) || Number(p.price) || Number(p.basePrice) || 0;
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
     const lineTotal = p.finalPrice;
-    
+
     return `
     <tr>
       <td>${safe(p.name)} ${optionsText ? `(${safe(optionsText)})` : ''}</td>
