@@ -412,7 +412,8 @@ router.put('/reorder/batch', adminAuth, async (req, res) => {
     const ops = order.map(item => ({
       updateOne: {
         filter: { _id: item.id },
-        update: { $set: { sortOrder: item.sortOrder } }
+        update: { $set: { sortOrder: item.sortOrder } },
+        timestamps: false // Prevent updatedAt from changing during manual reorder
       }
     }));
     await Product.bulkWrite(ops);
