@@ -379,3 +379,30 @@ window.submitCSVImport = async function () {
     importBtn.disabled = false;
   }
 };
+
+window.exportProductsJSON = async function() {
+  try {
+    showToast('جاري تحضير ملف التصدير...');
+    // Fetch all products (passing a very large limit to get everything)
+    const res = await api.getProducts(1, 5000, true);
+    const products = res.products || res || [];
+    
+    if (!products.length) {
+      showToast('لا توجد منتجات لتصديرها', 'error');
+      return;
+    }
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `products_export_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    
+    showToast('تم تصدير المنتجات بنجاح');
+  } catch (err) {
+    console.error('Export failed:', err);
+    showToast('فشل تصدير المنتجات: ' + err.message, 'error');
+  }
+};
