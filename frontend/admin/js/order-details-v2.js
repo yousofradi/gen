@@ -597,20 +597,7 @@ window.applyPaymentChanges = async function (btn) {
   if (window.hideBar) window.hideBar();
 };
 
-window.resendPaymentConfirmationDirect = async function () {
-  if (!currentOrder || (currentOrder.paidAmount || 0) <= 0) {
-    showToast('يجب أن يكون المبلغ المدفوع أكبر من 0 لإرسال التأكيد', 'error');
-    return;
-  }
 
-  const confirmed = await window.showConfirmModal('إرسال تأكيد', 'هل تريد إرسال تأكيد الدفع والفاتورة للعميل الآن؟');
-  if (!confirmed) return;
-
-  currentOrder.forcePaymentWebhook = true;
-
-  showToast('جاري إرسال التأكيد...', 'info');
-  await saveOrderChanges(true); // Save with trigger
-}
 
 // ── Actions ────────────────────────────────────────────
 
