@@ -216,7 +216,8 @@ function renderProductsList(productsToRender = collectionProducts) {
       <div style="display:flex; align-items:center; gap:12px;">
         <input type="checkbox" class="product-select-cb collection-checkbox" data-id="${p._id}" 
           ${isSelected ? 'checked' : ''}
-          onchange="handleProductSelect('${p._id}', this.checked)">
+          onchange="handleProductSelect('${p._id}', this.checked)"
+          style="width:22px; height:22px; cursor:pointer; accent-color:var(--primary);">
         <div class="btn-reorder" style="cursor:grab; color:#94a3b8;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
         </div>
@@ -276,8 +277,12 @@ function renderProductsList(productsToRender = collectionProducts) {
       const badges = document.querySelectorAll('.drag-badge');
       badges.forEach(b => b.remove());
       
+      // Auto-deselect after reorder
+      selectedCollectionProductIds.clear();
+
       // Re-render to ensure DOM matches state exactly
       renderProductsList();
+      updateProductSelectionUI();
     },
     setData: function (dataTransfer, dragEl) {
       const selectedCount = selectedCollectionProductIds.size || 1;
@@ -493,7 +498,11 @@ window.bulkReorderAction = function (action) {
     collectionProducts = [...remainingItems, ...selectedItems];
   }
 
+  // Auto-deselect after move
+  selectedCollectionProductIds.clear();
+
   renderProductsList();
+  updateProductSelectionUI();
   if (window.markAsModified) window.markAsModified();
   showToast(action === 'top' ? 'تم النقل للأعلى' : 'تم النقل للأسفل');
 };
