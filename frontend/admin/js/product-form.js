@@ -516,7 +516,6 @@ function updateValueName(gi, vi, val) {
 // ── Variant Generation ──────────────────────────────────
 
 function syncVariants() {
-  const oldVariants = [...variants];
   const validGroups = optionGroups.filter(g => g.name && g.values.some(v => v));
 
   if (validGroups.length === 0) {
@@ -524,6 +523,10 @@ function syncVariants() {
     renderVariantsTable();
     return;
   }
+
+  // Heal existing variants before we use them for matching
+  normalizeCombinations();
+  const oldVariants = [...variants];
 
   // Generate all combinations
   let combinations = [{}];
@@ -541,25 +544,59 @@ function syncVariants() {
   const defaultSalePrice = document.getElementById('p-sale-price').value ? Number(document.getElementById('p-sale-price').value) : null;
 
   variants = combinations.map(combo => {
-    // 1. Exact match
+    const cKeys = Object.keys(combo);
+    
+    // Attempt to find the best existing variant to inherit data from
     let existing = oldVariants.find(v => {
       if (!v.combination) return false;
       const vKeys = Object.keys(v.combination);
-      const cKeys = Object.keys(combo);
-      if (vKeys.length !== cKeys.length) return false;
-      return cKeys.every(key => v.combination[key] === combo[key]);
+      
+      // 1. Check for exact match (using fuzzy key names)
+      if (vKeys.length === cKeys.length) {
+        return cKeys.every(cKey => {
+          // Find matching key in v.combination (fuzzy)
+          const vKeyMatch = vKeys.find(vk => vk.trim().toLowerCase() === cKey.trim().toLowerCase());
+          return vKeyMatch && v.combination[vKeyMatch] === combo[cKey];
+        });
+      }
+      return false;
     });
-    if (existing) return existing;
 
-    // 2. Partial match (inheriting prices when a new option group is added)
-    existing = oldVariants.find(v =>
-      Object.entries(v.combination).every(([key, val]) => combo[key] === val)
-    );
+    if (!existing) {
+      // 2. Partial match (DELETING an option group)
+      // If we have fewer groups now, find a variant that matches all our current keys
+      existing = oldVariants.find(v => {
+        if (!v.combination) return false;
+        const vKeys = Object.keys(v.combination);
+        return cKeys.every(cKey => {
+          const vKeyMatch = vKeys.find(vk => vk.trim().toLowerCase() === cKey.trim().toLowerCase());
+          return vKeyMatch && v.combination[vKeyMatch] === combo[cKey];
+        });
+      });
+    }
+
+    if (!existing) {
+      // 3. Partial match (ADDING an option group)
+      // If we have more groups now, find a variant whose keys are all present in our new combo
+      existing = oldVariants.find(v => {
+        if (!v.combination) return false;
+        const vKeys = Object.keys(v.combination);
+        if (vKeys.length === 0) return false;
+        return vKeys.every(vKey => {
+          const cKeyMatch = cKeys.find(ck => ck.trim().toLowerCase() === vKey.trim().toLowerCase());
+          return cKeyMatch && combo[cKeyMatch] === v.combination[vKey];
+        });
+      });
+    }
 
     if (existing) {
       return {
         ...existing,
-        combination: combo
+        combination: combo,
+        // Ensure numbers are preserved as numbers
+        price: Number(existing.price) || defaultPrice,
+        salePrice: existing.salePrice !== null ? (Number(existing.salePrice) || 0) : null,
+        quantity: existing.quantity !== null ? (Number(existing.quantity) || 0) : null
       };
     }
 
@@ -1032,6 +1069,7 @@ function populateProductForm(p) {
       }
     }
     return {
+      _id: v._id, // Preserve ID for atomic updates in DB
       combination: combo,
       price: Number(v.price || 0),
       salePrice: (v.salePrice !== null && v.salePrice !== undefined) ? Number(v.salePrice) : null,
@@ -1045,6 +1083,10 @@ function populateProductForm(p) {
   if (optionGroups.length > 0) {
     document.getElementById('enable-variants').checked = true;
     document.getElementById('variant-setup-container').style.display = 'block';
+    
+    // Ensure combinations match group names (healing legacy/mismatched data)
+    normalizeCombinations();
+
     if (variants.length === 0) {
       syncVariants();
     }
