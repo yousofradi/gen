@@ -1136,6 +1136,12 @@ window.addSelectedProducts = function (btn) {
   renderItems();
   updateTotals();
   if (window.markAsModified) window.markAsModified();
+  
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = 'إضافة المنتجات المختارة';
+  }
+  
   closeProductsModal();
 };
 

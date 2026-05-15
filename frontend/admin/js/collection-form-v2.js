@@ -355,8 +355,8 @@ function filterAvailableProducts(e) {
 }
 
 window.saveSelectedProducts = function (btn) {
-  if (btn) btn.disabled = true;
   renderProductsList();
+  if (btn) btn.disabled = false;
   closeSelectModal();
 };
 
