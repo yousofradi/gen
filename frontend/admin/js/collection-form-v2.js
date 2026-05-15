@@ -4,6 +4,12 @@ let allProducts = [];
 let sortableList = null;
 let originalCollection = null;
 let selectedCollectionProductIds = new Set(); // Persistent selection for bulk actions
+let lastCheckedId = null; // For shift-click
+
+// Mount Sortable Plugins
+if (typeof Sortable !== 'undefined' && typeof MultiDrag !== 'undefined') {
+  Sortable.mount(new MultiDrag());
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAdmin()) return;
@@ -189,7 +195,21 @@ function renderProductsList(productsToRender = collectionProducts) {
 
   list.innerHTML = productsToRender.filter(p => p.status !== 'draft').map(p => {
     const isSelected = selectedCollectionProductIds.has(p._id);
-    const inStock = p.stock > 0 || (p.variants && p.variants.some(v => v.stock > 0));
+    
+    const isInactive = p.status === 'draft' || p.active === false;
+    const statusLabel = isInactive ? 'مؤرشف' : 'نشط';
+    const statusColor = isInactive ? '#dc2626' : '#16a34a';
+    const statusBg = isInactive ? '#fef2f2' : '#f0fdf4';
+
+    const qty = p.quantity !== null && p.quantity !== undefined ? p.quantity : Infinity;
+    const hasVariants = p.variants && p.variants.length > 0;
+    const variantQty = hasVariants ? p.variants.reduce((sum, v) => sum + (v.quantity || 0), 0) : 0;
+    const totalQty = hasVariants ? variantQty : qty;
+    
+    const inStock = totalQty > 0 || (qty === Infinity && !hasVariants) || (hasVariants && p.variants.some(v => v.quantity === null));
+    const stockLabel = inStock ? (qty === Infinity && !hasVariants ? 'متوفر (∞)' : `متوفر (${totalQty})`) : 'نفذ من المخزن';
+    const stockColor = inStock ? '#2563eb' : '#ea580c';
+    const stockBg = inStock ? '#eff6ff' : '#fff7ed';
 
     return `
     <div class="product-row ${isSelected ? 'selected-for-drag' : ''}" data-id="${p._id}" style="transition: background 0.2s;">
@@ -205,12 +225,12 @@ function renderProductsList(productsToRender = collectionProducts) {
       <div style="flex:1;">
         <div style="font-weight:600; font-size:0.95rem; color:#1e293b; margin-bottom:4px;">${p.name}</div>
         <div style="display:flex; gap:8px; align-items:center;">
-          <span style="font-size:0.75rem; padding:2px 8px; border-radius:12px; background:${p.active ? '#f0fdf4' : '#fef2f2'}; color:${p.active ? '#16a34a' : '#dc2626'}; font-weight:600; display:flex; align-items:center; gap:4px; cursor:pointer;" onclick="toggleProductRowStatus('${p._id}', ${!p.active})">
+          <span style="font-size:0.75rem; padding:2px 8px; border-radius:12px; background:${statusBg}; color:${statusColor}; font-weight:600; display:flex; align-items:center; gap:4px; cursor:pointer;" onclick="toggleProductRowStatus('${p._id}', ${isInactive})">
             <span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>
-            ${p.active ? 'نشط' : 'غير نشط'}
+            ${statusLabel}
           </span>
-          <span style="font-size:0.75rem; padding:2px 8px; border-radius:12px; background:${inStock ? '#eff6ff' : '#fff7ed'}; color:${inStock ? '#2563eb' : '#ea580c'}; font-weight:600;">
-            ${inStock ? 'في المخزون' : 'نفذ من المخزن'}
+          <span style="font-size:0.75rem; padding:2px 8px; border-radius:12px; background:${stockBg}; color:${stockColor}; font-weight:600;">
+            ${stockLabel}
           </span>
         </div>
       </div>
@@ -234,33 +254,15 @@ function renderProductsList(productsToRender = collectionProducts) {
 
   sortableList = new Sortable(list, {
     handle: '.btn-reorder',
-    animation: 150,
+    animation: 200,
     multiDrag: true,
     selectedClass: 'selected-for-drag',
-    // Set initial selection
-    onSelect: function (evt) {
-      const id = evt.item.getAttribute('data-id');
-      selectedCollectionProductIds.add(id);
-      const row = evt.item;
-      if (row) row.classList.add('selected-for-drag');
-      const cb = evt.item.querySelector('.product-select-cb');
-      if (cb) cb.checked = true;
-      updateProductSelectionUI();
-    },
-    onDeselect: function (evt) {
-      const id = evt.item.getAttribute('data-id');
-      selectedCollectionProductIds.delete(id);
-      const row = evt.item;
-      if (row) row.classList.remove('selected-for-drag');
-      const cb = evt.item.querySelector('.product-select-cb');
-      if (cb) cb.checked = false;
-      updateProductSelectionUI();
-    },
+    // Selection is handled via checkboxes/Set to keep it stable
     onEnd: function (evt) {
-      // Re-sync array based on DOM after multi-drag
       const rows = Array.from(list.children);
       const newOrderIds = rows.map(r => r.getAttribute('data-id'));
 
+      // Find draft products that were hidden from the list
       const draftIds = collectionProducts.filter(p => p.status === 'draft').map(p => p._id);
       const combinedIds = [...newOrderIds, ...draftIds];
 
@@ -273,38 +275,38 @@ function renderProductsList(productsToRender = collectionProducts) {
 
       const badges = document.querySelectorAll('.drag-badge');
       badges.forEach(b => b.remove());
+      
+      // Re-render to ensure DOM matches state exactly
+      renderProductsList();
     },
     setData: function (dataTransfer, dragEl) {
       const selectedCount = selectedCollectionProductIds.size || 1;
       if (selectedCount > 1) {
-        // Create a badge that will be cloned as part of the ghost
         const badge = document.createElement('div');
         badge.className = 'drag-badge';
         badge.textContent = selectedCount;
         badge.style.cssText = `
-          position: absolute;
-          top: -12px;
-          right: -12px;
-          background: #3b82f6;
-          color: white;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 14px;
-          font-weight: 800;
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-          border: 2px solid #fff;
-          z-index: 9999;
-          animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: absolute; top: -12px; right: -12px; background: #3b82f6; color: white;
+          width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+          justify-content: center; font-size: 14px; font-weight: 800;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); border: 2px solid #fff; z-index: 9999;
         `;
         dragEl.style.position = 'relative';
         dragEl.appendChild(badge);
       }
     }
   });
+
+  // Sync Sortable's internal selection with our Set
+  if (selectedCollectionProductIds.size > 0) {
+    const rows = list.querySelectorAll('.product-row');
+    rows.forEach(row => {
+      const id = row.getAttribute('data-id');
+      if (selectedCollectionProductIds.has(id)) {
+        Sortable.utils.select(row);
+      }
+    });
+  }
 }
 
 function filterCollectionProducts(e) {
@@ -378,39 +380,144 @@ window.saveSelectedProducts = function (btn) {
 };
 
 window.updateProductSelectionUI = function () {
+  const count = selectedCollectionProductIds.size;
+  
+  // Update regular bulk bar
   const bar = document.getElementById('collection-bulk-bar');
   if (bar) {
-    bar.style.display = selectedCollectionProductIds.size > 0 ? 'flex' : 'none';
+    bar.style.display = count > 0 ? 'flex' : 'none';
     const countEl = document.getElementById('selected-products-count');
-    if (countEl) countEl.textContent = selectedCollectionProductIds.size;
+    if (countEl) countEl.textContent = count;
+    
+    const masterCb = document.getElementById('select-all-products');
+    if (masterCb) {
+      const visibleCheckboxes = document.querySelectorAll('.product-select-cb:not(#select-all-products)');
+      masterCb.checked = count > 0 && count === visibleCheckboxes.length;
+      masterCb.indeterminate = count > 0 && count < visibleCheckboxes.length;
+    }
+  }
+
+  // Update floating reorder bar
+  const reorderBar = document.getElementById('bulk-reorder-bar');
+  if (reorderBar) {
+    reorderBar.style.display = count > 0 ? 'flex' : 'none';
+    const countEl = document.getElementById('selected-reorder-count');
+    if (countEl) countEl.textContent = count;
+    
+    const reorderMasterCb = document.getElementById('select-all-reorder');
+    if (reorderMasterCb) {
+      const visibleCheckboxes = document.querySelectorAll('.product-select-cb:not(#select-all-products)');
+      reorderMasterCb.checked = count > 0 && count === visibleCheckboxes.length;
+      reorderMasterCb.indeterminate = count > 0 && count < visibleCheckboxes.length;
+    }
   }
 };
 
 window.handleProductSelect = function (pid, checked) {
-  if (checked) selectedCollectionProductIds.add(pid);
-  else selectedCollectionProductIds.delete(pid);
+  const event = window.event;
+  const checkboxes = Array.from(document.querySelectorAll('.product-select-cb:not(#select-all-products)'));
+  
+  if (event && event.shiftKey && lastCheckedId) {
+    let start = checkboxes.findIndex(cb => cb.getAttribute('data-id') === lastCheckedId);
+    let end = checkboxes.findIndex(cb => cb.getAttribute('data-id') === pid);
+    
+    if (start !== -1 && end !== -1) {
+      const range = checkboxes.slice(Math.min(start, end), Math.max(start, end) + 1);
+      range.forEach(cb => {
+        const id = cb.getAttribute('data-id');
+        cb.checked = checked;
+        if (checked) {
+          selectedCollectionProductIds.add(id);
+          const row = cb.closest('.product-row');
+          if (row) {
+            row.classList.add('selected-for-drag');
+            if (sortableList) Sortable.utils.select(row);
+          }
+        } else {
+          selectedCollectionProductIds.delete(id);
+          const row = cb.closest('.product-row');
+          if (row) {
+            row.classList.remove('selected-for-drag');
+            if (sortableList) Sortable.utils.deselect(row);
+          }
+        }
+      });
+    }
+  } else {
+    if (checked) {
+      selectedCollectionProductIds.add(pid);
+    } else {
+      selectedCollectionProductIds.delete(pid);
+    }
 
-  const row = document.querySelector(`.product-row[data-id="${pid}"]`);
-  if (row) {
-    if (checked) row.classList.add('selected-for-drag');
-    else row.classList.remove('selected-for-drag');
+    const row = document.querySelector(`.product-row[data-id="${pid}"]`);
+    if (row) {
+      if (checked) {
+        row.classList.add('selected-for-drag');
+        if (sortableList) Sortable.utils.select(row);
+      } else {
+        row.classList.remove('selected-for-drag');
+        if (sortableList) Sortable.utils.deselect(row);
+      }
+    }
   }
 
+  lastCheckedId = pid;
   updateProductSelectionUI();
 };
 
-window.toggleSelectAllProducts = function (masterCb) {
-  const cbs = document.querySelectorAll('.product-select-cb');
+window.bulkReorderAction = function (action) {
+  if (action === 'clear') {
+    selectedCollectionProductIds.clear();
+    const rows = document.querySelectorAll('.product-row');
+    rows.forEach(r => {
+      r.classList.remove('selected-for-drag');
+      const cb = r.querySelector('.product-select-cb');
+      if (cb) cb.checked = false;
+      if (sortableList) Sortable.utils.deselect(r);
+    });
+    updateProductSelectionUI();
+    return;
+  }
+
+  if (selectedCollectionProductIds.size === 0) return;
+
+  const selectedIds = Array.from(selectedCollectionProductIds);
+  // Filter based on the current collectionProducts order to preserve relative order
+  const selectedItems = collectionProducts.filter(p => selectedIds.includes(p._id));
+  const remainingItems = collectionProducts.filter(p => !selectedIds.includes(p._id));
+
+  if (action === 'top') {
+    collectionProducts = [...selectedItems, ...remainingItems];
+  } else if (action === 'bottom') {
+    collectionProducts = [...remainingItems, ...selectedItems];
+  }
+
+  renderProductsList();
+  if (window.markAsModified) window.markAsModified();
+  showToast(action === 'top' ? 'تم النقل للأعلى' : 'تم النقل للأسفل');
+};
+
+window.toggleSelectAllProducts = function (input) {
+  const isChecked = typeof input === 'boolean' ? input : input.checked;
+  const cbs = document.querySelectorAll('.product-select-cb:not(#select-all-products):not(#select-all-reorder)');
+  
   cbs.forEach(cb => {
-    cb.checked = masterCb.checked;
+    cb.checked = isChecked;
     const pid = cb.getAttribute('data-id');
     const row = cb.closest('.product-row');
-    if (masterCb.checked) {
+    if (isChecked) {
       selectedCollectionProductIds.add(pid);
-      if (row) row.classList.add('selected-for-drag');
+      if (row) {
+        row.classList.add('selected-for-drag');
+        if (sortableList) Sortable.utils.select(row);
+      }
     } else {
       selectedCollectionProductIds.delete(pid);
-      if (row) row.classList.remove('selected-for-drag');
+      if (row) {
+        row.classList.remove('selected-for-drag');
+        if (sortableList) Sortable.utils.deselect(row);
+      }
     }
   });
   updateProductSelectionUI();

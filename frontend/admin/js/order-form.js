@@ -40,11 +40,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.classList.add('is-loading');
 
   try {
-    const [productsRes, shippingRes, settings, customersRes] = await Promise.all([
+    const [productsRes, shippingRes, settings, customersRes, collectionsRes] = await Promise.all([
       api.getProducts(1, 1000, true).catch(() => []),
       api.getShippingList().catch(() => []),
       api.getSetting('sundura_global_settings').catch(() => ({})),
-      api.getCustomers().catch(() => [])
+      api.getCustomers().catch(() => []),
+      api.getCollections().catch(() => [])
     ]);
 
     const products = (productsRes.products || productsRes).filter(p => p.status !== 'draft');
@@ -52,6 +53,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     let shipping = shippingRes;
 
     allProducts = products;
+
+    // Populate Collections Map and Modal Dropdown
+    const colFilter = document.getElementById('modal-col-filter');
+    if (colFilter) {
+      colFilter.innerHTML = '<option value="">جميع المنتجات</option>';
+      collectionsRes.forEach(c => {
+        collectionsMap[c._id] = c.name;
+        colFilter.add(new Option(c.name, c._id));
+      });
+    }
     window._fullShippingData = shipping; // Store full objects
 
     const searchInput = document.getElementById('c-gov-search');
@@ -204,20 +215,8 @@ window.openProductsModal = async function () {
     const listEl = document.getElementById('modal-products-list');
     if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center;">جاري تحميل المنتجات...</div>';
     try {
-      const [productsRes, collections] = await Promise.all([
-        // Use caching for modal products to load faster
-        api.getProducts(1, 1000, true, '', '', '', true).catch(() => []),
-        api.getCollections()
-      ]);
+      const productsRes = await api.getProducts(1, 1000, true, '', '', '', true).catch(() => []);
       allProducts = (productsRes.products || productsRes).filter(p => p.status !== 'draft');
-      const colFilter = document.getElementById('modal-col-filter');
-      if (colFilter) {
-        colFilter.innerHTML = '<option value="">جميع المنتجات</option>';
-        collections.forEach(c => {
-          collectionsMap[c._id] = c.name;
-          colFilter.add(new Option(c.name, c._id));
-        });
-      }
     } catch (err) {
       console.error('Failed to load products for modal', err);
     }

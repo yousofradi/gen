@@ -11,10 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.classList.add('is-loading');
 
   try {
-    const [productsRes, shippingRes, settings] = await Promise.all([
+    const [productsRes, shippingRes, settings, collectionsRes] = await Promise.all([
       api.getProducts(1, 1000, true).catch(() => []),
       api.getShipping().catch(() => ({})),
-      api.getSetting('sundura_global_settings').catch(() => ({}))
+      api.getSetting('sundura_global_settings').catch(() => ({})),
+      api.getCollections().catch(() => [])
     ]);
 
     const products = (productsRes.products || productsRes).filter(p => p.status !== 'draft');
@@ -29,6 +30,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     allProducts = products;
     shippingMap = shipping;
+
+    // Populate Collections Map and Modal Dropdown
+    const colFilter = document.getElementById('modal-col-filter');
+    if (colFilter) {
+      colFilter.innerHTML = '<option value="">جميع المنتجات</option>';
+      collectionsRes.forEach(c => {
+        collectionsMap[c._id] = c.name;
+        colFilter.add(new Option(c.name, c._id));
+      });
+    }
 
     const govSelect = document.getElementById('c-gov');
     if (govSelect) {
