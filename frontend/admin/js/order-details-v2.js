@@ -970,7 +970,7 @@ window.renderModalProducts = function () {
   // Filter by stock
   filtered = filtered.filter(p => {
     if (p.variants && p.variants.length > 0) {
-      return p.variants.some(v => v.quantity === null || v.quantity > 0);
+      return p.variants.some(v => v.active !== false && (v.quantity === null || v.quantity > 0));
     }
     return p.quantity === null || p.quantity > 0;
   });
@@ -1010,34 +1010,40 @@ window.renderModalProducts = function () {
     }
 
     let variantsHtml = '';
-    const combinations = p.variants && p.variants.length > 0 ? [] : getProductCombinations(p.options);
-
+    
     if (p.variants && p.variants.length > 0) {
       variantsHtml = p.variants
-        .filter(v => v.quantity === null || v.quantity > 0)
+        .filter(v => v.active !== false && (v.quantity === null || v.quantity > 0))
         .map((v, idx) => {
-          const comboList = Object.entries(v.combination).map(([g, l]) => ({ groupName: g, label: l }));
+          // Normalize combination to array format for consistent selection
+          const combo = v.combination instanceof Map ? Object.fromEntries(v.combination) : v.combination;
+          const comboList = Object.entries(combo).map(([g, l]) => ({ groupName: g, label: l }));
           const title = comboList.map(c => c.label).join(' / ');
           const finalPrice = (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price;
           const comboStr = encodeURIComponent(JSON.stringify(comboList));
           const vKey = `${p._id}-${comboStr}`;
+          
           return `
-            <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border-color); background:#fafafa; cursor:pointer; padding-right:48px;">
+            <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--border-color); background:rgba(0,0,0,0.02); cursor:pointer; padding-right:48px; transition: background 0.2s;">
               <div style="display:flex; align-items:center; gap:12px;">
-                <div style="font-size:0.9rem;font-weight:500;">${title}</div>
-                <div style="font-size:0.85rem;color:var(--primary)">${formatPrice(finalPrice)}</div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--text-main);">${title}</div>
+                <div style="font-size:0.8rem; color:var(--primary); font-weight:600;">${formatPrice(finalPrice)}</div>
               </div>
               <input type="checkbox" class="pli-checkbox product-variant-cb" 
                 data-pid="${p._id}" data-combo="${comboStr}" data-price="${finalPrice}"
                 ${modalSelectedVariants.has(vKey) ? 'checked' : ''}
-                onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)">
+                onchange="handleModalVariantSelect('${p._id}', '${comboStr}', ${finalPrice}, this.checked)"
+                style="width:16px; height:16px; accent-color:var(--primary); cursor:pointer;">
             </label>
           `;
         }).join('');
-    } else {
+    } else if (hasOptions) {
+      // Fallback for products that only have options but no variants array (legacy)
+      const combinations = getProductCombinations(p.options);
       variantsHtml = combinations.map((combo, idx) => {
         const title = combo.map(c => c.label).join(' / ');
         const optionsPriceTotal = combo.reduce((sum, c) => sum + (c.price || 0), 0);
+        const finalPrice = optionsPriceTotal > 0 ? optionsPriceTotal : effectiveBase;
         // Matching storefront logic: options prices REPLACE base price if no variants
         const finalPrice = optionsPriceTotal > 0 ? optionsPriceTotal : effectiveBase;
         const comboStr = encodeURIComponent(JSON.stringify(combo));

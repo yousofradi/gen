@@ -104,36 +104,62 @@ function getImg(product) {
 
 function renderProductCard(p) {
   const img = getImg(p);
-  const salePrice = p.salePrice || p.basePrice;
-  const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
-  const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
+  const hasVariants = p.variants && p.variants.length > 0;
   const hasOptions = p.options && p.options.length > 0;
+  
+  // Calculate price range if variants exist
+  let displayPrice = p.salePrice || p.basePrice;
+  let originalPrice = p.basePrice;
+  let isRange = false;
+
+  if (hasVariants) {
+    const activeVariants = p.variants.filter(v => v.active !== false);
+    if (activeVariants.length > 0) {
+      const prices = activeVariants.map(v => (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      displayPrice = minPrice;
+      if (maxPrice > minPrice) isRange = true;
+      
+      // Original price fallback
+      const basePrices = activeVariants.map(v => v.price);
+      originalPrice = Math.min(...basePrices);
+    }
+  }
+
+  const hasDiscount = displayPrice < originalPrice;
+  const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
   
   const pJson = JSON.stringify({
     _id: p._id, name: p.name, basePrice: p.basePrice, salePrice: p.salePrice,
     images: p.images, imageUrl: p.imageUrl, options: p.options, quantity: p.quantity
   }).replace(/"/g, '&quot;');
 
-  const btnHtml = hasOptions 
-    ? `<a href="${productLink}" class="btn btn-secondary btn-block" style="margin-top:8px;text-align:center;padding:6px;font-size:0.9rem">حدد اختيارك</a>`
-    : `<button class="btn btn-primary btn-block" style="margin-top:8px;padding:6px;font-size:0.9rem" data-product="${pJson}" onclick="quickAddToCart(event, this)">أضف للسلة</button>`;
+  const btnHtml = (hasVariants || hasOptions)
+    ? `<a href="${productLink}" class="btn btn-secondary btn-block" style="margin-top:8px;text-align:center;padding:8px;font-size:0.9rem;border-radius:8px;">حدد اختيارك</a>`
+    : `<button class="btn btn-primary btn-block" style="margin-top:8px;padding:8px;font-size:0.9rem;border-radius:8px;" data-product="${pJson}" onclick="quickAddToCart(event, this)">أضف للسلة</button>`;
 
   return `
     <div class="store-product-card" style="display:flex;flex-direction:column;">
       <a href="${productLink}" style="display:block; text-decoration:none; color:inherit; flex:1;">
-        <div class="store-product-img" style="position:relative">
-          ${img ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain" loading="lazy" onerror="this.style.display='none'">` : ''}
+        <div class="store-product-img" style="position:relative; background:#f8fafc; overflow:hidden; border-radius:12px;">
+          ${img ? `
+            <img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;transition:transform 0.3s;" loading="lazy" class="product-hover-img">
+          ` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f1f5f9;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
           ${hasDiscount ? '<span class="discount-badge">خصم</span>' : ''}
         </div>
-        <div class="store-product-info">
-          <div class="store-product-name">${p.name}</div>
-          <div class="store-product-prices">
-            <span class="store-price-sale">${formatPrice(salePrice)}</span>
-            ${hasDiscount ? `<span class="store-price-original">${formatPrice(p.basePrice)}</span>` : ''}
+        <div class="store-product-info" style="padding:12px 4px;">
+          <div class="store-product-name" style="font-weight:500; margin-bottom:6px; color:var(--text-main); font-size:0.95rem;">${p.name}</div>
+          <div class="store-product-prices" style="display:flex; align-items:center; gap:8px;">
+            <span class="store-price-sale" style="font-weight:700; color:var(--primary); font-size:1.1rem;">
+              ${isRange ? '<span style="font-size:0.8rem; font-weight:500; color:#64748b; margin-left:2px;">يبدأ من</span>' : ''}
+              ${formatPrice(displayPrice)}
+            </span>
+            ${hasDiscount && !isRange ? `<span class="store-price-original" style="text-decoration:line-through; color:#94a3b8; font-size:0.85rem;">${formatPrice(originalPrice)}</span>` : ''}
           </div>
         </div>
       </a>
-      <div style="padding: 0 12px 12px; margin-top:auto;">
+      <div style="padding: 0 4px 12px; margin-top:auto;">
         ${btnHtml}
       </div>
     </div>`;
