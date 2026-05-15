@@ -505,8 +505,8 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
       collectionMap[normalizeArabic(c.name)] = c._id;
     });
 
-    const productsMap = new Map();
-    let lastProduct = null;
+    const productsToSave = [];
+    let currentProduct = null;
 
     const stream = fs.createReadStream(req.file.path).pipe(csv({
       mapHeaders: ({ header }) => header.toLowerCase().replace(/\ufeff/g, '').trim()
@@ -515,37 +515,37 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
     for await (const row of stream) {
       const title = row['title'] ? row['title'].trim() : '';
       
+      // 1. Detect New Product
       if (title) {
-        const product = {
+        currentProduct = {
           name: title,
           description: row['description'] || '',
-          basePrice: cleanPrice(row['regular price']),
-          salePrice: row['sale price'] ? cleanPrice(row['sale price']) : null,
+          basePrice: cleanPrice(row['p-price']),
+          salePrice: row['p-sale-price'] ? cleanPrice(row['p-sale-price']) : null,
           imageUrl: '',
           images: [],
           status: (row['status'] || 'active').toLowerCase(),
           quantity: (row['quantity'] === 'Available' || !row['quantity']) ? null : (parseInt(row['quantity']) || 0),
           collectionIds: [],
-          options: []
+          options: [],
+          variants: []
         };
 
         const imagesVal = row['images'];
         if (imagesVal) {
           const imgs = imagesVal.split(/\s+/).filter(url => url.startsWith('http'));
-          product.images = imgs;
-          product.imageUrl = imgs[0] || '';
+          currentProduct.images = imgs;
+          currentProduct.imageUrl = imgs[0] || '';
         }
 
-        // Handle collections
         const collectionsVal = row['collections'];
         if (collectionsVal) {
           const names = collectionsVal.split(',').map(n => n.trim()).filter(Boolean);
           for (const name of names) {
             const normName = normalizeArabic(name);
             if (collectionMap[normName]) {
-              product.collectionIds.push(collectionMap[normName]);
+              currentProduct.collectionIds.push(collectionMap[normName]);
             } else if (createCollections === 'true') {
-              // Create collection if missing
               try {
                 const newCol = new Collection({ 
                   name, 
@@ -553,87 +553,91 @@ router.post('/import', adminAuth, upload.single('file'), async (req, res) => {
                 });
                 await newCol.save();
                 collectionMap[normName] = newCol._id;
-                product.collectionIds.push(newCol._id);
+                currentProduct.collectionIds.push(newCol._id);
               } catch (e) {
                 console.error('Failed to auto-create collection:', name, e.message);
               }
             }
           }
         }
-
-        productsMap.set(title, product);
-        lastProduct = product;
+        productsToSave.push(currentProduct);
       }
 
-      // Handle Options (Option1, Option2, Option3)
-      if (lastProduct) {
+      // 2. Extract Variant from CURRENT row
+      if (currentProduct) {
+        const combination = {};
+        let hasVariantInfo = false;
+
         for (let i = 1; i <= 3; i++) {
           const optName = row[`option${i} name`] ? row[`option${i} name`].trim() : '';
           const optValue = row[`option${i} value`] ? row[`option${i} value`].trim() : '';
 
           if (optName && optValue) {
-            let group = lastProduct.options.find(g => g.name === optName);
+            hasVariantInfo = true;
+            combination[optName] = optValue;
+
+            // Aggregated Options (for UI selection)
+            let group = currentProduct.options.find(g => g.name === optName);
             if (!group) {
               group = { name: optName, values: [] };
-              lastProduct.options.push(group);
+              currentProduct.options.push(group);
             }
-
-            // Option pricing: use row prices if available, otherwise fallback to product prices
-            const rowReg = row['regular price'];
-            const rowSale = row['sale price'];
-            
-            const price = rowReg ? cleanPrice(rowReg) : lastProduct.basePrice;
-            const sPrice = rowSale ? cleanPrice(rowSale) : lastProduct.salePrice;
-
-            // Avoid duplicates in the same group
             if (!group.values.find(v => v.label === optValue)) {
-              group.values.push({
-                label: optValue,
-                price: price,
-                salePrice: sPrice
-              });
+              group.values.push({ label: optValue, price: 0 });
             }
           }
+        }
+
+        // Only add to variants if it's a variable product row
+        if (hasVariantInfo) {
+          const variantPrice = cleanPrice(row['p-price']);
+          const variantSalePrice = row['p-sale-price'] ? cleanPrice(row['p-sale-price']) : null;
+          
+          const variantData = {
+            combination,
+            price: variantPrice || currentProduct.basePrice,
+            salePrice: variantSalePrice !== null ? variantSalePrice : currentProduct.salePrice,
+            quantity: (row['quantity'] === 'Available' || !row['quantity']) ? null : (parseInt(row['quantity']) || 0),
+            active: true,
+            imageUrl: ''
+          };
+
+          // If the row has specific images, use the first one for this variant
+          const rowImages = row['images'];
+          if (rowImages) {
+            const imgs = rowImages.split(/\s+/).filter(url => url.startsWith('http'));
+            if (imgs.length > 0) variantData.imageUrl = imgs[0];
+          }
+
+          currentProduct.variants.push(variantData);
         }
       }
     }
 
-    // Now Upsert products
-    const finalProducts = Array.from(productsMap.values());
+    // 3. Persist to DB
     let index = 0;
-    for (const pData of finalProducts) {
-      // Find current count if creating new
-      if (deleteAll !== 'true') {
-         const existing = await Product.findOne({ name: pData.name });
-         if (!existing) {
-           pData.sortOrder = await Product.countDocuments();
-         }
-      } else {
-        pData.sortOrder = index++;
-      }
+    const initialSortOrder = (deleteAll === 'true') ? 0 : await Product.countDocuments();
+
+    for (const p of productsToSave) {
+      p.sortOrder = initialSortOrder + index++;
       
-      await Product.findOneAndUpdate(
-        { name: pData.name },
-        pData,
+      const saved = await Product.findOneAndUpdate(
+        { name: p.name },
+        p,
         { upsert: true, new: true, runValidators: true }
-      );
+      ).lean();
+
+      if (saved) {
+        await updateStorefrontCache(saved._id, optimizeProductData(saved));
+      }
     }
 
-    // Cleanup file
     try { fs.unlinkSync(req.file.path); } catch(e) {}
-    // Write-Through: Update all imported products
-    for (const p of finalProducts) {
-       const saved = await Product.findOne({ name: p.name }).lean();
-       if (saved) await updateStorefrontCache(saved._id, optimizeProductData(saved));
-    }
-
     if (createCollections === 'true') {
-      try {
-        require('./collectionRoutes').clearCache();
-      } catch (e) {}
+      try { require('./collectionRoutes').clearCache(); } catch (e) {}
     }
 
-    res.json({ message: `تم استيراد ${finalProducts.length} منتج بنجاح`, count: finalProducts.length });
+    res.json({ message: `تم استيراد ${productsToSave.length} منتج بنجاح`, count: productsToSave.length });
   } catch (err) {
     console.error('Import Error:', err);
     if (req.file) {
