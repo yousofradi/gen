@@ -315,68 +315,125 @@ function updatePriceSummary() {
 }
 
 function setupForm() {
-  document.getElementById('checkout-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Placing Order...';
+  const form = document.getElementById('checkout-form');
+  const nameInput = document.getElementById('cust-name');
+  const phoneInput = document.getElementById('cust-phone');
+  const phone2Input = document.getElementById('cust-phone2');
+  const addressInput = document.getElementById('cust-address');
+  const govSearchInput = document.getElementById('government-search');
+  const govHiddenInput = document.getElementById('government');
+  const zoneInput = document.getElementById('zone');
 
-    const cityId = document.getElementById('government').value;
-    const zone = document.getElementById('zone').value;
-    const govData = (window._fullShippingData || []).find(s => s._id === cityId);
-    const cityName = govData ? (govData.cityOtherName || govData.city) : '';
-
-    const zoneGroup = document.getElementById('zone-form-group');
-    const isZoneVisible = zoneGroup && zoneGroup.style.display !== 'none';
-
-    if (!cityName || (isZoneVisible && !zone)) { 
-      showToast('الرجاء اختيار المدينة والمنطقة', 'error'); 
-      btn.disabled = false; btn.textContent = 'تأكيد الطلب'; 
-      return; 
-    }
-    
-    // Zone validation
-    if (isZoneVisible) {
-      const zoneOptions = (window._currentZones || []).map(z => `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`);
-      if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
-        showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
-        btn.disabled = false; btn.textContent = 'تأكيد الطلب';
-        return;
+  // Helper to show/hide errors
+  function setError(input, msg) {
+    let errEl = input.parentNode.querySelector('.error-message');
+    if (!errEl) {
+      errEl = document.createElement('div');
+      errEl.className = 'error-message';
+      // For phone/search wrappers, we might need to append to the parent of the wrapper
+      if (input.parentNode.classList.contains('phone-input-wrapper') || input.parentNode.classList.contains('customer-search-container')) {
+        input.parentNode.parentNode.appendChild(errEl);
+      } else {
+        input.parentNode.appendChild(errEl);
       }
     }
-
-    const name = document.getElementById('cust-name').value.trim();
-    if (name.split(/\s+/).filter(Boolean).length < 2) { showToast('الرجاء إدخال الاسم الثنائي (الاسم الأول والأخير)', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
     
-    // Arabic-only name validation
-    if (!/^[\u0600-\u06FF\s]+$/.test(name)) {
-      showToast('يرجى إدخال اسم العميل باللغة العربية فقط', 'error');
-      btn.disabled = false; btn.textContent = 'تأكيد الطلب';
-      return;
+    if (msg) {
+      input.classList.add('invalid');
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    } else {
+      input.classList.remove('invalid');
+      errEl.style.display = 'none';
     }
+  }
 
-    const phone = document.getElementById('cust-phone').value.trim();
-    const phone2 = document.getElementById('cust-phone2').value.trim();
+  // Real-time validation listeners
+  nameInput.addEventListener('input', () => {
+    const val = nameInput.value.trim();
+    if (!val) { setError(nameInput, 'أدخل اسمك كاملاً'); return; }
+    if (!/^[\u0600-\u06FF\s]+$/.test(val)) { setError(nameInput, 'يرجى إدخال الاسم باللغة العربية فقط'); return; }
+    if (val.split(/\s+/).filter(Boolean).length < 2) { setError(nameInput, 'أدخل اسمك كاملاً'); return; }
+    setError(nameInput, null);
+  });
+
+  phoneInput.addEventListener('input', () => {
+    const val = phoneInput.value.trim();
+    if (!val) { setError(phoneInput, 'رقم الهاتف مطلوب'); return; }
+    if (!/^[0-9]+$/.test(val)) { setError(phoneInput, 'يرجى إدخال الأرقام بالإنجليزية فقط'); return; }
+    if (!/^01[0-9]{9}$/.test(val)) { setError(phoneInput, 'يجب أن يكون 11 رقم ويبدأ بـ 01'); return; }
+    setError(phoneInput, null);
+  });
+
+  addressInput.addEventListener('input', () => {
+    const val = addressInput.value.trim();
+    if (!val) { setError(addressInput, 'العنوان مطلوب بالتفصيل'); return; }
+    if (val.split(/\s+/).filter(Boolean).length < 2) { setError(addressInput, 'يرجى إدخال العنوان بالتفصيل'); return; }
+    setError(addressInput, null);
+  });
+
+  govSearchInput.addEventListener('blur', () => {
+    setTimeout(() => {
+      if (!govHiddenInput.value) setError(govSearchInput, 'من فضلك اختر من القائمه');
+      else setError(govSearchInput, null);
+    }, 200);
+  });
+
+  zoneInput.addEventListener('blur', () => {
+    setTimeout(() => {
+      const zoneGroup = document.getElementById('zone-form-group');
+      if (zoneGroup && zoneGroup.style.display !== 'none') {
+        const zoneOptions = (window._currentZones || []).map(z => `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`);
+        if (!zoneInput.value || !zoneOptions.includes(zoneInput.value)) {
+          setError(zoneInput, 'من فضلك اختر من القائمه');
+        } else {
+          setError(zoneInput, null);
+        }
+      }
+    }, 200);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
     
-    // English-only phone validation (digits)
-    if (!/^[0-9+]+$/.test(phone) || (phone2 && !/^[0-9+]+$/.test(phone2))) {
-      showToast('يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط', 'error');
-      btn.disabled = false; btn.textContent = 'تأكيد الطلب';
-      return;
-    }
-
-    if (!/^01[0-9]{9}$/.test(phone)) { showToast('رقم الهاتف يجب أن يكون 11 رقم ويبدأ بـ 01', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
-
-    if (phone2 && phone === phone2) {
-      showToast('لا يمكن استخدام نفس رقم الهاتف مرتين', 'error');
-      btn.disabled = false; btn.textContent = 'تأكيد الطلب';
-      return;
-    }
-
-    const address = document.getElementById('cust-address').value.trim();
-    if (address.split(/\s+/).filter(Boolean).length < 2) { showToast('الرجاء إدخال العنوان بالتفصيل (أكثر من كلمة)', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
-
+    // Final check for all fields
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const phone2 = phone2Input.value.trim();
+    const address = addressInput.value.trim();
+    const cityId = govHiddenInput.value;
+    const zone = zoneInput.value;
     const payment = document.querySelector('input[name="payment"]:checked');
-    if (!payment) { showToast('اختر طريقة الدفع', 'error'); btn.disabled = false; btn.textContent = 'تأكيد الطلب'; return; }
+
+    // Re-validate everything
+    let hasError = false;
+    if (name.split(/\s+/).filter(Boolean).length < 2 || !/^[\u0600-\u06FF\s]+$/.test(name)) { setError(nameInput, 'أدخل اسمك كاملاً'); hasError = true; }
+    if (!/^01[0-9]{9}$/.test(phone)) { setError(phoneInput, 'يجب أن يكون 11 رقم ويبدأ بـ 01'); hasError = true; }
+    if (address.split(/\s+/).filter(Boolean).length < 2) { setError(addressInput, 'يرجى إدخال العنوان بالتفصيل'); hasError = true; }
+    if (!cityId) { setError(govSearchInput, 'من فضلك اختر من القائمه'); hasError = true; }
+    
+    const zoneGroup = document.getElementById('zone-form-group');
+    if (zoneGroup && zoneGroup.style.display !== 'none') {
+        const zoneOptions = (window._currentZones || []).map(z => `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`);
+        if (!zone || !zoneOptions.includes(zone)) {
+          setError(zoneInput, 'من فضلك اختر من القائمه');
+          hasError = true;
+        }
+    }
+
+    if (hasError) {
+      const firstError = document.querySelector('.error-message[style*="display: block"]');
+      if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!payment) { showToast('اختر طريقة الدفع', 'error'); return; }
+
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'جاري تنفيذ طلبك...';
+
+    const govData = (window._fullShippingData || []).find(s => s._id === cityId);
+    const cityName = govData ? (govData.cityOtherName || govData.city) : '';
 
     const items = Cart.getItems().map(item => {
       const effectiveBase = (item.salePrice && item.salePrice < item.basePrice) ? item.salePrice : item.basePrice;
@@ -393,10 +450,10 @@ function setupForm() {
 
     const orderData = {
       customer: {
-        name: document.getElementById('cust-name').value.trim(),
-        phone: document.getElementById('cust-phone').value.trim(),
-        secondPhone: document.getElementById('cust-phone2').value.trim(),
-        address: document.getElementById('cust-address').value.trim(),
+        name,
+        phone,
+        secondPhone: phone2,
+        address,
         government: cityName,
         zone: zone,
         notes: document.getElementById('cust-notes').value.trim()

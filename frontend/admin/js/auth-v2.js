@@ -229,10 +229,12 @@ function initUnsavedChangesBar() {
       }
       .unsaved-actions {
         width: 100%;
+        justify-content: center;
       }
       .unsaved-btn {
-        flex: 1;
-        padding: 10px;
+        flex: initial;
+        padding: 10px 24px;
+        min-width: 120px;
       }
     }
   `;
