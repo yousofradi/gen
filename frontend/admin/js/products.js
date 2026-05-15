@@ -20,15 +20,15 @@ let currentPage = 1;
 let totalPages = 1;
 let currentLimit = 30;
 let searchQuery = '';
-let currentFilter = 'all';
+let currentFilter = 'active';
 let selectedProductIds = new Set(); 
 
 async function loadProducts() {
   const tbody = document.getElementById('products-tbody');
   tbody.innerHTML = '<tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>';
   try {
-    // If filter is 'draft', we pass it as status. Otherwise, we don't pass hasOptions anymore as we renamed the tab.
-    const statusParam = currentFilter === 'draft' ? 'draft' : '';
+    // Pass the current filter directly as the status parameter
+    const statusParam = currentFilter;
     
     const [res, collections] = await Promise.all([
       api.getProducts(currentPage, currentLimit, true, '', searchQuery, '', statusParam),
@@ -47,13 +47,13 @@ async function loadProducts() {
     allProducts = products;
     renderProducts(collections);
     
-    // Always fetch total counts for both tabs regardless of current filter
-    const [allRes, draftRes] = await Promise.all([
-      api.getProducts(1, 1, true),
+    // Fetch total counts for specific tabs
+    const [activeRes, draftRes] = await Promise.all([
+      api.getProducts(1, 1, true, '', '', '', 'active'),
       api.getProducts(1, 1, true, '', '', '', 'draft')
     ]);
     
-    updatePaginationInfo(res.total || products.length, allRes.total, draftRes.total);
+    updatePaginationInfo(res.total || products.length, activeRes.total, draftRes.total);
     updateBulkActions();
 
   } catch (err) {

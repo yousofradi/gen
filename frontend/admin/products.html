@@ -222,12 +222,6 @@
             <p class="page-subtitle" style="margin-bottom:0">إدارة منتجات متجرك</p>
           </div>
           <div class="flex gap-12">
-            <button class="btn btn-secondary" onclick="exportProductsJSON()" title="تصدير جميع المنتجات بصيغة JSON">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-left: 4px;">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              تصدير JSON
-            </button>
             <button class="btn btn-secondary" onclick="openBulkImportModal()">+ إضافة عدة منتجات</button>
             <a href="product-form.html" class="btn btn-primary">+ إضافة منتج</a>
           </div>
@@ -237,7 +231,7 @@
           <div id="filter-bar"
             style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #f1f5f9; flex-wrap:wrap; gap:16px;">
             <div style="display:flex; gap:24px; align-items:center;" class="order-tabs">
-              <span class="order-tab active" data-filter="all" onclick="setFilter('all')">الجميع <span class="tab-badge"
+              <span class="order-tab active" data-filter="active" onclick="setFilter('active')">المنتجات النشطة <span class="tab-badge"
                   id="count-all">0</span></span>
               <span class="order-tab" data-filter="draft" onclick="setFilter('draft')">مؤرشف <span class="tab-badge"
                   id="count-draft">0</span></span>
