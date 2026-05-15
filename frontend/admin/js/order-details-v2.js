@@ -1206,7 +1206,6 @@ window.addSelectedProducts = async function (btn) {
     if (window.hideBar) window.hideBar();
   }
 };
-};
 
 window.toggleDetailsMenu = function (e) {
   e.stopPropagation();
