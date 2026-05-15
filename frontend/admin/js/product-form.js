@@ -503,6 +503,7 @@ function updateValueName(gi, vi, val) {
   const oldVal = optionGroups[gi].values[vi];
   const newVal = val.trim();
   optionGroups[gi].values[vi] = newVal;
+  
   if (oldVal && oldVal !== newVal && groupName) {
     variants.forEach(v => {
       if (v.combination && v.combination[groupName] === oldVal) {
@@ -524,9 +525,7 @@ function syncVariants() {
     return;
   }
 
-  // Heal existing variants before we use them for matching
-  normalizeCombinations();
-  const oldVariants = [...variants];
+  const oldVariants = JSON.parse(JSON.stringify(variants));
 
   // Generate all combinations
   let combinations = [{}];
@@ -545,26 +544,23 @@ function syncVariants() {
 
   variants = combinations.map(combo => {
     const cKeys = Object.keys(combo);
+    const cValues = Object.values(combo).map(v => v.trim().toLowerCase());
     
     // Attempt to find the best existing variant to inherit data from
+    // 1. Exact match (using fuzzy key names)
     let existing = oldVariants.find(v => {
       if (!v.combination) return false;
       const vKeys = Object.keys(v.combination);
-      
-      // 1. Check for exact match (using fuzzy key names)
-      if (vKeys.length === cKeys.length) {
-        return cKeys.every(cKey => {
-          // Find matching key in v.combination (fuzzy)
-          const vKeyMatch = vKeys.find(vk => vk.trim().toLowerCase() === cKey.trim().toLowerCase());
-          return vKeyMatch && v.combination[vKeyMatch] === combo[cKey];
-        });
-      }
-      return false;
+      if (vKeys.length !== cKeys.length) return false;
+      return cKeys.every(cKey => {
+        const vKeyMatch = vKeys.find(vk => vk.trim().toLowerCase() === cKey.trim().toLowerCase());
+        return vKeyMatch && v.combination[vKeyMatch] === combo[cKey];
+      });
     });
 
     if (!existing) {
       // 2. Partial match (DELETING an option group)
-      // If we have fewer groups now, find a variant that matches all our current keys
+      // Matches if all our current keys/values exist in the old variant
       existing = oldVariants.find(v => {
         if (!v.combination) return false;
         const vKeys = Object.keys(v.combination);
@@ -577,7 +573,7 @@ function syncVariants() {
 
     if (!existing) {
       // 3. Partial match (ADDING an option group)
-      // If we have more groups now, find a variant whose keys are all present in our new combo
+      // Matches if all old keys/values exist in our new combo
       existing = oldVariants.find(v => {
         if (!v.combination) return false;
         const vKeys = Object.keys(v.combination);
@@ -589,11 +585,30 @@ function syncVariants() {
       });
     }
 
+    if (!existing) {
+      // 4. Value-based match (Fallback for renames + add/delete)
+      // Matches if all current values exist in the old variant's values
+      existing = oldVariants.find(v => {
+        if (!v.combination) return false;
+        const vVals = Object.values(v.combination).map(val => val.trim().toLowerCase());
+        return cValues.every(cv => vVals.includes(cv));
+      });
+    }
+
+    if (!existing) {
+      // 5. Value-based match reverse (Fallback for renames + addition)
+      existing = oldVariants.find(v => {
+        if (!v.combination) return false;
+        const vVals = Object.values(v.combination).map(val => val.trim().toLowerCase());
+        if (vVals.length === 0) return false;
+        return vVals.every(vv => cValues.includes(vv));
+      });
+    }
+
     if (existing) {
       return {
         ...existing,
         combination: combo,
-        // Ensure numbers are preserved as numbers
         price: Number(existing.price) || defaultPrice,
         salePrice: existing.salePrice !== null ? (Number(existing.salePrice) || 0) : null,
         quantity: existing.quantity !== null ? (Number(existing.quantity) || 0) : null
@@ -614,6 +629,7 @@ function syncVariants() {
   renderVariantsTable();
   if (window.markAsModified) safeMarkAsModified();
 }
+
 
 // ── Variant Table Rendering (Hierarchical with Expansion) ──
 
