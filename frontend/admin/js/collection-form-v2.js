@@ -93,7 +93,7 @@ function populateCollectionForm(col) {
 
   // Get products for this collection
   const associatedProducts = allProducts.filter(p => (p.collectionId === col._id || (p.collectionIds && p.collectionIds.includes(col._id))));
-  
+
   if (col.productOrder && col.productOrder.length > 0) {
     // Sort based on saved productOrder
     const orderMap = {};
@@ -106,7 +106,7 @@ function populateCollectionForm(col) {
   } else {
     collectionProducts = associatedProducts;
   }
-  
+
   renderProductsList();
 }
 
@@ -190,7 +190,7 @@ function renderProductsList(productsToRender = collectionProducts) {
   list.innerHTML = productsToRender.filter(p => p.status !== 'draft').map(p => {
     const isSelected = selectedCollectionProductIds.has(p._id);
     const inStock = p.stock > 0 || (p.variants && p.variants.some(v => v.stock > 0));
-    
+
     return `
     <div class="product-row ${isSelected ? 'selected-for-drag' : ''}" data-id="${p._id}" style="transition: background 0.2s;">
       <div style="display:flex; align-items:center; gap:12px;">
@@ -238,7 +238,7 @@ function renderProductsList(productsToRender = collectionProducts) {
     multiDrag: true,
     selectedClass: 'selected-for-drag',
     // Set initial selection
-    onSelect: function(evt) {
+    onSelect: function (evt) {
       const id = evt.item.getAttribute('data-id');
       selectedCollectionProductIds.add(id);
       const row = evt.item;
@@ -247,7 +247,7 @@ function renderProductsList(productsToRender = collectionProducts) {
       if (cb) cb.checked = true;
       updateProductSelectionUI();
     },
-    onDeselect: function(evt) {
+    onDeselect: function (evt) {
       const id = evt.item.getAttribute('data-id');
       selectedCollectionProductIds.delete(id);
       const row = evt.item;
@@ -260,17 +260,17 @@ function renderProductsList(productsToRender = collectionProducts) {
       // Re-sync array based on DOM after multi-drag
       const rows = Array.from(list.children);
       const newOrderIds = rows.map(r => r.getAttribute('data-id'));
-      
+
       const draftIds = collectionProducts.filter(p => p.status === 'draft').map(p => p._id);
       const combinedIds = [...newOrderIds, ...draftIds];
-      
+
       const pMap = {};
       collectionProducts.forEach(p => pMap[p._id] = p);
       collectionProducts = combinedIds.map(id => pMap[id]).filter(Boolean);
-      
+
       if (window.markAsModified) window.markAsModified();
       if (window.showBar) window.showBar();
-      
+
       const badges = document.querySelectorAll('.drag-badge');
       badges.forEach(b => b.remove());
     },
@@ -377,7 +377,7 @@ window.saveSelectedProducts = function (btn) {
   closeSelectModal();
 };
 
-window.updateProductSelectionUI = function() {
+window.updateProductSelectionUI = function () {
   const bar = document.getElementById('collection-bulk-bar');
   if (bar) {
     bar.style.display = selectedCollectionProductIds.size > 0 ? 'flex' : 'none';
@@ -389,7 +389,7 @@ window.updateProductSelectionUI = function() {
 window.handleProductSelect = function (pid, checked) {
   if (checked) selectedCollectionProductIds.add(pid);
   else selectedCollectionProductIds.delete(pid);
-  
+
   const row = document.querySelector(`.product-row[data-id="${pid}"]`);
   if (row) {
     if (checked) row.classList.add('selected-for-drag');
@@ -399,7 +399,7 @@ window.handleProductSelect = function (pid, checked) {
   updateProductSelectionUI();
 };
 
-window.toggleSelectAllProducts = function(masterCb) {
+window.toggleSelectAllProducts = function (masterCb) {
   const cbs = document.querySelectorAll('.product-select-cb');
   cbs.forEach(cb => {
     cb.checked = masterCb.checked;
@@ -416,7 +416,7 @@ window.toggleSelectAllProducts = function(masterCb) {
   updateProductSelectionUI();
 };
 
-window.bulkRemoveProducts = async function() {
+window.bulkRemoveProducts = async function () {
   const selected = document.querySelectorAll('.product-select-cb:checked');
   if (selected.length === 0) return;
 
@@ -426,17 +426,17 @@ window.bulkRemoveProducts = async function() {
   const idsToRemove = Array.from(selectedCollectionProductIds);
   collectionProducts = collectionProducts.filter(p => !idsToRemove.includes(p._id));
   selectedCollectionProductIds.clear();
-  
+
   renderProductsList();
   updateProductSelectionUI();
   if (window.markAsModified) window.markAsModified();
 };
 
-window.bulkUpdateStatus = async function(active) {
+window.bulkUpdateStatus = async function (active) {
   if (selectedCollectionProductIds.size === 0) return;
 
   const ids = Array.from(selectedCollectionProductIds);
-  
+
   // Update local state
   collectionProducts.forEach(p => {
     if (ids.includes(p._id)) p.active = active;
@@ -448,9 +448,9 @@ window.bulkUpdateStatus = async function(active) {
   showToast(`تم ${active ? 'تفعيل' : 'تعطيل'} المنتجات المحددة`);
 };
 
-window.toggleProductRowStatus = function(id, newStatus) {
+window.toggleProductRowStatus = function (id, newStatus) {
   const selectedIds = Array.from(selectedCollectionProductIds);
-  
+
   if (selectedIds.includes(id)) {
     // If the clicked row is selected, apply to all selected
     collectionProducts.forEach(p => {
@@ -462,7 +462,7 @@ window.toggleProductRowStatus = function(id, newStatus) {
     const p = collectionProducts.find(x => x._id === id);
     if (p) p.active = newStatus;
   }
-  
+
   renderProductsList();
   updateProductSelectionUI();
   if (window.markAsModified) window.markAsModified();
@@ -484,11 +484,11 @@ async function autoSaveCollection() {
 
   try {
     const savedCol = await api.updateCollection(collectionId, data);
-    
+
     // Also update products collection batch if needed
     // In auto-save we only update the collection metadata (name, order, etc)
     // The actual product-to-collection mapping might need an extra call if it's a new product added
-    
+
     // Update products mapping
     const productIds = collectionProducts.map(p => p._id);
     await api._request(`/products/collection/batch`, {
@@ -533,7 +533,7 @@ async function saveCollection(e) {
       savedCol = await api.createCollection(data);
       collectionId = savedCol._id;
       showToast('تم الإنشاء بنجاح');
-      
+
       const formTitle = document.getElementById('form-page-title');
       if (formTitle) formTitle.textContent = 'تعديل التصنيف';
       document.title = 'تعديل التصنيف — Admin';

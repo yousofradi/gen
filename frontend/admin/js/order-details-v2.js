@@ -1045,7 +1045,6 @@ window.renderModalProducts = function () {
         const optionsPriceTotal = combo.reduce((sum, c) => sum + (c.price || 0), 0);
         const finalPrice = optionsPriceTotal > 0 ? optionsPriceTotal : effectiveBase;
         // Matching storefront logic: options prices REPLACE base price if no variants
-        const finalPrice = optionsPriceTotal > 0 ? optionsPriceTotal : effectiveBase;
         const comboStr = encodeURIComponent(JSON.stringify(combo));
         const vKey = `${p._id}-${comboStr}`;
         return `
