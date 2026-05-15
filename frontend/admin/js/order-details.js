@@ -916,7 +916,7 @@ window.openProductsModal = async function () {
     listEl.innerHTML = '<div style="padding:20px; text-align:center;">جاري تحميل المنتجات...</div>';
     try {
       // Use caching for modal products to load faster
-      const res = await api.getProducts(1, 1000, true, '', '', '', true);
+      const res = await api.getProducts(1, 1000, true, '', '', '', '', true);
       if (res) {
         allProducts = Array.isArray(res) ? res : (res.products || []);
       } else {

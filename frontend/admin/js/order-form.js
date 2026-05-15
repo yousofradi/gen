@@ -215,7 +215,7 @@ window.openProductsModal = async function () {
     const listEl = document.getElementById('modal-products-list');
     if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center;">جاري تحميل المنتجات...</div>';
     try {
-      const productsRes = await api.getProducts(1, 1000, true, '', '', '', true).catch(() => []);
+      const productsRes = await api.getProducts(1, 1000, true, '', '', '', '', true).catch(() => []);
       allProducts = (productsRes.products || productsRes).filter(p => p.status !== 'draft');
     } catch (err) {
       console.error('Failed to load products for modal', err);

@@ -55,14 +55,15 @@ const api = {
   },
 
   // Products
-  getProducts(page, limit, admin = true, collectionId = '', search = '', hasOptions = '', useCache = false) {
+  getProducts(page, limit, admin = true, collectionId = '', search = '', hasOptions = '', status = '', useCache = false) {
     let url = `/products?admin=${admin}`;
     if (page) url += `&page=${page}`;
     if (limit) url += `&limit=${limit}`;
     if (collectionId) url += `&collectionId=${collectionId}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
     if (hasOptions) url += `&hasOptions=${hasOptions}`;
-    return this._request(url, { useCache: false });
+    if (status) url += `&status=${status}`;
+    return this._request(url, { useCache });
   },
   searchProducts(query) {
     return this._request(`/products?admin=false&search=${encodeURIComponent(query)}`);
