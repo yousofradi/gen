@@ -258,6 +258,9 @@ function renderProductsList(productsToRender = collectionProducts) {
     animation: 200,
     multiDrag: true,
     selectedClass: 'selected-for-drag',
+    scroll: true,
+    scrollSensitivity: 100,
+    scrollSpeed: 20,
     // Selection is handled via checkboxes/Set to keep it stable
     onEnd: function (evt) {
       const rows = Array.from(list.children);
