@@ -507,11 +507,6 @@ document.addEventListener('click', (e) => {
 });
 
 window.applyCustomerChanges = async function (btn) {
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
-  }
-
   const name = document.getElementById('modal-c-name').value.trim();
   const phone = document.getElementById('modal-c-phone').value.trim();
   const cityId = document.getElementById('modal-c-gov').value;
@@ -523,20 +518,12 @@ window.applyCustomerChanges = async function (btn) {
 
   if (!name || !phone || !cityName || !zone) {
     showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'حفظ التغييرات';
-    }
     return;
   }
 
   // Arabic-only name validation
   if (!/^[\u0600-\u06FF\s]+$/.test(name)) {
     showToast('يرجى إدخال اسم العميل باللغة العربية فقط', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'حفظ التغييرات';
-    }
     return;
   }
 
@@ -544,20 +531,17 @@ window.applyCustomerChanges = async function (btn) {
   const phone2 = document.getElementById('modal-c-phone2').value.trim();
   if (!/^[0-9+]+$/.test(phone) || (phone2 && !/^[0-9+]+$/.test(phone2))) {
     showToast('يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'حفظ التغييرات';
-    }
     return;
   }
 
   if (!/^01[0-9]{9}$/.test(phone)) {
     showToast('رقم الهاتف يجب أن يكون 11 رقم ويبدأ بـ 01', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'حفظ التغييرات';
-    }
     return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
   }
 
   currentOrder.customer.name = name;
@@ -566,19 +550,27 @@ window.applyCustomerChanges = async function (btn) {
   currentOrder.customer.government = cityName;
   currentOrder.customer.zone = zone;
 
-  // Update shipping fee based on city automatically (Ensure it is a number)
+  // Update shipping fee based on city automatically
   const newFee = govData ? parseFloat(govData.fee) : 0;
   currentOrder.shippingFee = isNaN(newFee) ? 0 : newFee;
 
   currentOrder.customer.address = document.getElementById('modal-c-address').value.trim();
   currentOrder.customer.notes = document.getElementById('modal-c-notes').value.trim();
 
-  renderOrder();
   updateTotals();
-  closeModal('customer-modal');
 
-  // Trigger unsaved changes bar
-  if (window.markAsModified) window.markAsModified();
+  // Save immediately
+  const success = await saveOrderChanges(true);
+  if (success) {
+    closeModal('customer-modal');
+    if (window.hideBar) window.hideBar();
+    showToast('تم تحديث بيانات العميل بنجاح');
+  } else {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'تطبيق';
+    }
+  }
 };
 
 window.openPaymentModal = function () {
@@ -688,21 +680,32 @@ window.promptItemQty = function (idx) {
   openModal('item-qty-modal');
 };
 
-window.applyItemQty = function (btn) {
-  if (btn) btn.disabled = true;
+window.applyItemQty = async function (btn) {
   const idx = parseInt(document.getElementById('modal-qty-idx').value, 10);
   const qty = parseInt(document.getElementById('modal-item-qty').value, 10);
   if (qty >= 1 && currentOrder.items[idx]) {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
+    }
+    
     currentOrder.items[idx].quantity = qty;
     updateTotals();
-    renderItems();
-    if (window.markAsModified) window.markAsModified();
-  }
-  closeModal('item-qty-modal');
-
-  // Refresh ready modal if open
-  if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
-    markAsReady();
+    
+    const success = await saveOrderChanges(true);
+    if (success) {
+      closeModal('item-qty-modal');
+      if (window.hideBar) window.hideBar();
+      // Refresh ready modal if open
+      if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
+        markAsReady();
+      }
+    } else {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'تطبيق';
+      }
+    }
   }
 };
 
@@ -713,14 +716,50 @@ window.openItemDiscountModal = function (idx) {
   openModal('item-discount-modal');
 };
 
-window.removeItem = function (idx) {
+window.applyItemDiscount = async function (btn) {
+  const idx = parseInt(document.getElementById('modal-item-idx').value, 10);
+  const discount = parseFloat(document.getElementById('modal-item-discount').value) || 0;
+  
+  if (currentOrder.items[idx]) {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
+    }
+
+    currentOrder.items[idx].discount = discount;
+    updateTotals();
+
+    const success = await saveOrderChanges(true);
+    if (success) {
+      closeModal('item-discount-modal');
+      if (window.hideBar) window.hideBar();
+      // Refresh ready modal if open
+      if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
+        markAsReady();
+      }
+    } else {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'تطبيق';
+      }
+    }
+  }
+};
+
+window.removeItem = async function (idx) {
   const item = currentOrder.items[idx];
   if (!item) return;
 
+  const confirmed = await window.showConfirmModal('تأكيد الحذف', `هل أنت متأكد من حذف ${item.name} من الطلب؟`);
+  if (!confirmed) return;
+
   currentOrder.items.splice(idx, 1);
   updateTotals();
-  renderItems();
-  if (window.markAsModified) window.markAsModified();
+  
+  const success = await saveOrderChanges(true);
+  if (success) {
+    if (window.hideBar) window.hideBar();
+  }
 };
 
 window.promptOrderDiscount = function () {
@@ -734,18 +773,27 @@ window.openOrderDiscountModal = function () {
 };
 
 window.applyOrderDiscount = async function (btn) {
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
+  }
   const val = document.getElementById('modal-order-discount').value;
   currentOrder.discount = parseFloat(val) || 0;
-  closeModal('order-discount-modal');
   updateTotals();
 
-  // Trigger unsaved changes bar
-  if (window.markAsModified) window.markAsModified();
-
-  // Refresh ready modal if open
-  if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
-    markAsReady();
+  const success = await saveOrderChanges(true);
+  if (success) {
+    closeModal('order-discount-modal');
+    if (window.hideBar) window.hideBar();
+    // Refresh ready modal if open
+    if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
+      markAsReady();
+    }
+  } else {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'تطبيق';
+    }
   }
 };
 
@@ -815,9 +863,11 @@ window.saveOrderChanges = async function (silent = false) {
   isSaving = true;
 
   // Zone validation
-  if (currentOrder.customer.zone) {
-    const zoneOptions = (window._modalZones || []).map(z => z.otherName || z.name);
-    if (zoneOptions.length > 0 && !zoneOptions.includes(currentOrder.customer.zone)) {
+  if (currentOrder.customer.zone && window._modalZones && window._modalZones.length > 0) {
+    const zoneOptions = window._modalZones.map(z => 
+      `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`
+    );
+    if (!zoneOptions.includes(currentOrder.customer.zone)) {
       showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
       if (!silent && btn) {
         btn.disabled = false;
@@ -1081,11 +1131,14 @@ window.renderModalProducts = function () {
   }).join('');
 };
 
-window.addSelectedProducts = function (btn) {
+window.addSelectedProducts = async function (btn) {
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الإضافة...';
   }
+  
+  const initialItemsCount = currentOrder.items.length;
+
   // 1. Add simple products from persistent set
   modalSelectedProducts.forEach(pid => {
     const p = allProducts.find(x => x._id === pid);
@@ -1138,16 +1191,21 @@ window.addSelectedProducts = function (btn) {
     }
   });
 
-  renderItems();
   updateTotals();
-  if (window.markAsModified) window.markAsModified();
+  
+  // Save immediately
+  const success = await saveOrderChanges(true);
   
   if (btn) {
     btn.disabled = false;
     btn.innerHTML = 'أضف منتج';
   }
-  
-  closeProductsModal();
+
+  if (success) {
+    closeProductsModal();
+    if (window.hideBar) window.hideBar();
+  }
+};
 };
 
 window.toggleDetailsMenu = function (e) {
