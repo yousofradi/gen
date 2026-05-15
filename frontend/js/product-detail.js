@@ -69,10 +69,20 @@ function renderProduct(p) {
   const optionsHTML = (p.options || []).map((group, gi) => {
     const validValues = group.values.filter(v => {
       if (!p.variants || p.variants.length === 0) return true;
-      return p.variants.some(varObj => 
-        varObj.combination[group.name] === v.label && 
-        (varObj.quantity === null || varObj.quantity === undefined || varObj.quantity > 0)
-      );
+      const groupNameClean = group.name.trim().toLowerCase();
+      const valueLabelClean = v.label.trim().toLowerCase();
+      
+      return p.variants.some(varObj => {
+        if (!varObj.combination) return false;
+        const combo = varObj.combination instanceof Map ? Object.fromEntries(varObj.combination) : varObj.combination;
+        const comboKeys = Object.keys(combo);
+        const matchKey = comboKeys.find(k => k.trim().toLowerCase() === groupNameClean);
+        
+        if (!matchKey) return false;
+        return (combo[matchKey] || '').trim().toLowerCase() === valueLabelClean && 
+               (varObj.active !== false) &&
+               (varObj.quantity === null || varObj.quantity === undefined || varObj.quantity > 0);
+      });
     });
 
     if (validValues.length === 0) return '';
@@ -173,8 +183,17 @@ window.updateTotalPrice = function() {
   let matchingVariant = null;
   if (currentProduct.variants && currentProduct.variants.length > 0) {
     matchingVariant = currentProduct.variants.find(v => {
+      if (!v.combination) return false;
       const combo = v.combination instanceof Map ? Object.fromEntries(v.combination) : v.combination;
-      return Object.entries(selectedOptionsMap).every(([key, val]) => combo[key] === val);
+      const comboKeys = Object.keys(combo);
+      
+      return Object.entries(selectedOptionsMap).every(([key, val]) => {
+        const keyClean = key.trim().toLowerCase();
+        const valClean = val.trim().toLowerCase();
+        const matchKey = comboKeys.find(k => k.trim().toLowerCase() === keyClean);
+        if (!matchKey) return false;
+        return (combo[matchKey] || '').trim().toLowerCase() === valClean;
+      });
     });
   }
 
@@ -266,17 +285,26 @@ window.updateDisabledOptions = function(currentSelections) {
 
       // Check if this value is valid given CURRENT selections in OTHER groups
       const isPossible = activeVariants.some(variant => {
+        if (!variant.combination) return false;
         const combo = variant.combination instanceof Map ? Object.fromEntries(variant.combination) : variant.combination;
+        const comboKeys = Object.keys(combo);
         
         // 1. Must match this value
-        if (combo[group.name] !== v.label) return false;
+        const groupNameClean = group.name.trim().toLowerCase();
+        const valueLabelClean = v.label.trim().toLowerCase();
+        const currentMatchKey = comboKeys.find(k => k.trim().toLowerCase() === groupNameClean);
+        if (!currentMatchKey || (combo[currentMatchKey] || '').trim().toLowerCase() !== valueLabelClean) return false;
 
         // 2. Must match selections in ALL other groups
         return (currentProduct.options || []).every((otherGroup, ogi) => {
           if (ogi === gi) return true; // Skip current group
           const selectedInOther = currentSelections[otherGroup.name];
           if (!selectedInOther) return true; // If nothing selected in other group, it's fine
-          return combo[otherGroup.name] === selectedInOther;
+          
+          const otherGroupNameClean = otherGroup.name.trim().toLowerCase();
+          const otherMatchKey = comboKeys.find(k => k.trim().toLowerCase() === otherGroupNameClean);
+          if (!otherMatchKey) return false;
+          return (combo[otherMatchKey] || '').trim().toLowerCase() === selectedInOther.trim().toLowerCase();
         });
       });
 
