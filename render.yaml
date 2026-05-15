@@ -21,7 +21,7 @@ services:
     name: ecommerce-frontend
     runtime: static
     rootDir: frontend
-    buildCommand: find . -name "api.js" -exec sed -i "s|API_URL_PLACEHOLDER|${API_URL}|g" {} +
+    buildCommand: find . -name "api*.js" -exec sed -i "s|API_URL_PLACEHOLDER|${API_URL}|g" {} +
     publishPath: ./
     envVars: 
       - key: API_URL
