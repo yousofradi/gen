@@ -237,3 +237,26 @@ async function saveSettings() {
     return false;
   }
 }
+async function clearSystemCache() {
+  const btn = document.getElementById('clear-cache-btn');
+  if (!btn) return;
+  
+  const confirmed = await window.showConfirmModal('تأكيد مسح الذاكرة', 'هل أنت متأكد من مسح الذاكرة المؤقتة؟ قد يتسبب ذلك في بطء بسيط في تحميل الصفحات لأول مرة.');
+  if (!confirmed) return;
+
+  try {
+    btn.disabled = true;
+    btn.textContent = 'جاري المسح...';
+    
+    await api.clearCache();
+    
+    showToast('تم مسح الذاكرة المؤقتة بنجاح', 'success');
+  } catch (err) {
+    showToast('فشل مسح الذاكرة المؤقتة', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'مسح الذاكرة المؤقتة';
+  }
+}
+
+window.clearSystemCache = clearSystemCache;

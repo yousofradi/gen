@@ -3,6 +3,16 @@ const router = express.Router();
 const Setting = require('../models/Setting');
 const adminAuth = require('../middleware/adminAuth');
 const cache = require('../utils/cache');
+const Product = require('../models/Product');
+
+router.post('/clear-cache', adminAuth, async (req, res) => {
+  try {
+    await cache.clearPrefix(''); // Clear everything
+    res.json({ message: 'Cache cleared successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear cache' });
+  }
+});
 
 router.get('/paymentMethods', async (req, res) => {
   try {
