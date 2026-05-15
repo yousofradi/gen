@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const col = await api.getCollection(id || slug);
+    window.currentCollection = col;
     currentCollectionId = col._id;
     document.title = `${col.name} | `;
     document.getElementById('collection-title').textContent = col.name;
@@ -43,7 +44,21 @@ async function loadCollectionProducts(page) {
 
     const res = await api._request(`/products?collectionId=${currentCollectionId}&page=${page}&limit=${LIMIT}`);
     
-    const products = Array.isArray(res) ? res : (res.products || []);
+    let products = Array.isArray(res) ? res : (res.products || []);
+
+    // Manually sort products if the collection has a defined productOrder
+    if (window.currentCollection && window.currentCollection.productOrder) {
+      const order = window.currentCollection.productOrder;
+      products.sort((a, b) => {
+        const indexA = order.indexOf(a._id);
+        const indexB = order.indexOf(b._id);
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
+      });
+    }
+
     const total = res.total !== undefined ? res.total : products.length;
     totalPages = res.totalPages || Math.ceil(total / LIMIT) || 1;
     currentPage = page;

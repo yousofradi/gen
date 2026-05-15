@@ -65,6 +65,19 @@ async function renderProductSection(s, products, collections) {
     try {
       const res = await api.getProducts(1, s.maxItems || 8, false, s.collectionId);
       sectionProducts = res.products || res || [];
+
+      // Sort by collection productOrder if available
+      const col = collections.find(c => c._id === s.collectionId);
+      if (col && col.productOrder) {
+        sectionProducts.sort((a, b) => {
+          const idxA = col.productOrder.indexOf(a._id);
+          const idxB = col.productOrder.indexOf(b._id);
+          if (idxA === -1 && idxB === -1) return 0;
+          if (idxA === -1) return 1;
+          if (idxB === -1) return -1;
+          return idxA - idxB;
+        });
+      }
     } catch (e) {
       console.error('Failed to fetch section products', e);
       // Fallback to filtering the global list
