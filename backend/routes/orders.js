@@ -508,6 +508,8 @@ router.post('/cancel/batch', adminAuth, async (req, res) => {
     await Order.updateMany({ orderId: { $in: orderIds } }, { $set: { status: 'cancelled' } });
 
     // Trigger webhooks for each cancelled order
+    res.json({ message: 'Orders cancelled successfully' });
+
     for (const id of orderIds) {
       const order = await Order.findOne({ orderId: id });
       if (order) {
@@ -515,8 +517,6 @@ router.post('/cancel/batch', adminAuth, async (req, res) => {
         sendWebhook('order.cancelled', order.toObject());
       }
     }
-
-    res.json({ message: 'Orders cancelled' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel orders' });
   }
@@ -559,12 +559,11 @@ router.post('/:orderId/cancel', adminAuth, async (req, res) => {
       }
       order.status = 'cancelled';
       await order.save();
+      res.json({ message: 'Order cancelled', order });
+
       // Fire and forget
       sendWebhook('order.cancelled', order.toObject());
     }
-
-    res.json({ message: 'Order cancelled', order });
-
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel order' });
   }
@@ -661,19 +660,17 @@ router.put('/:orderId', adminAuth, async (req, res) => {
     updates.paid = (Number(updates.paidAmount || order.paidAmount) >= totalPrice);
 
     const updatedOrder = await Order.findOneAndUpdate(query, { $set: updates }, { new: true, runValidators: true });
+    res.json(updatedOrder);
 
-    // 4. Trigger Webhooks (WhatsApp, etc.)
+    // 4. Trigger Webhooks (WhatsApp, etc.) - Background
     if (updates.forcePaymentWebhook || (!order.paid && updatedOrder.paid)) {
       // If paidAmount is 0, trigger order.created (New Order message)
       // If paidAmount > 0, trigger order.paid (Paid confirmation message)
       const event = (updatedOrder.paidAmount > 0) ? 'order.paid' : 'order.created';
       console.log(`[Webhook] Force triggering ${event} for order ${updatedOrder.orderId}`);
-      // Fire and forget - don't block the API response
+      // Fire and forget
       sendWebhook(event, updatedOrder.toObject());
     }
-
-    res.json(updatedOrder);
-
   } catch (err) {
     console.error('Order update error:', err);
     res.status(500).json({ error: 'Failed to update order' });
