@@ -627,7 +627,7 @@ api.openSearch = function () {
               <img src="${p.imageUrl}" class="search-result-img" onerror="this.style.display='none'">
               <div class="search-result-info">
                 <div class="search-result-name">${p.name}</div>
-                <div class="search-result-price">${p.salePrice || p.price} ج.م</div>
+                <div class="search-result-price">${p.salePrice || p.basePrice} ج.م</div>
               </div>
             </a>
           `).join('');
