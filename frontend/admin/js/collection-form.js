@@ -7,20 +7,25 @@ let selectedCollectionProductIds = new Set(); // Persistent selection for bulk a
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAdmin()) return;
+  document.body.classList.add('is-loading');
 
-  await loadAllProducts();
+  try {
+    await loadAllProducts();
 
-  if (collectionId) {
-    document.title = 'تعديل التصنيف — Admin';
-    const formTitle = document.getElementById('form-page-title');
-    if (formTitle) formTitle.textContent = 'تعديل التصنيف';
-    await loadCollection(collectionId);
-  } else {
-    document.title = 'إضافة تصنيف — Admin';
-    const formTitle = document.getElementById('form-page-title');
-    if (formTitle) formTitle.textContent = 'إضافة تصنيف';
-    originalCollection = null;
-    populateCollectionForm(null);
+    if (collectionId) {
+      document.title = 'تعديل التصنيف — Admin';
+      const formTitle = document.getElementById('form-page-title');
+      if (formTitle) formTitle.textContent = 'تعديل التصنيف';
+      await loadCollection(collectionId);
+    } else {
+      document.title = 'إضافة تصنيف — Admin';
+      const formTitle = document.getElementById('form-page-title');
+      if (formTitle) formTitle.textContent = 'إضافة تصنيف';
+      originalCollection = null;
+      populateCollectionForm(null);
+    }
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 
   document.getElementById('collection-form').addEventListener('submit', saveCollection);

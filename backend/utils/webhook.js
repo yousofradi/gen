@@ -92,7 +92,6 @@ async function sendWebhook(event, data) {
                 .join('\n');
 
               customerMessage = `مرحباً ${data.customer.name}
-شكراً لشرائك من متجر ${brandName} ♡
 
 رقم الطلب: ${data.orderId}
 إجمالي المبلغ: ${data.totalPrice} EGP
@@ -109,9 +108,10 @@ ${settings.paymentNotes || ''}
               // Default/Paid message
               customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
 
-رقم الطلب: ${data.orderId}
-إجمالي المبلغ: ${data.totalPrice} EGP
-${remainingText}
+رقم الأوردر : ${data.orderId}
+المبلغ الاجمالي : ${data.totalPrice} EGP
+تم الدفع : ${data.paidAmount || 0} EGP
+${remainingTextCustomer}
 
 شكراً لثقتك بنا ♡`;
             }

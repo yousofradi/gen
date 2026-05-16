@@ -103,6 +103,8 @@ async function loadCollections() {
   } catch (e) {
     console.error(e);
     list.innerHTML = '<div style="padding:40px;text-align:center;color:red">فشل تحميل التصنيفات</div>';
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 }
 

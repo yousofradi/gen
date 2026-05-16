@@ -60,6 +60,8 @@ async function loadProducts() {
   } catch (err) {
     console.error('Failed to load products:', err);
     tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">فشل تحميل المنتجات</td></tr>';
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 }
 

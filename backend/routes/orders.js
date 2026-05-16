@@ -660,8 +660,13 @@ router.put('/:orderId', adminAuth, async (req, res) => {
 
     const updatedOrder = await Order.findOneAndUpdate(query, { $set: updates }, { new: true, runValidators: true });
 
+    // 4. Trigger Webhooks (WhatsApp, etc.)
     if (updates.forcePaymentWebhook || (!order.paid && updatedOrder.paid)) {
-      await sendWebhook('order.paid', updatedOrder.toObject());
+      // If paidAmount is 0, trigger order.created (New Order message)
+      // If paidAmount > 0, trigger order.paid (Paid confirmation message)
+      const event = (updatedOrder.paidAmount > 0) ? 'order.paid' : 'order.created';
+      console.log(`[Webhook] Force triggering ${event} for order ${updatedOrder.orderId}`);
+      await sendWebhook(event, updatedOrder.toObject());
     }
 
     res.json(updatedOrder);

@@ -714,13 +714,31 @@ window.applyOrderDiscount = async function (btn) {
 
 window.resendPaymentConfirmationDirect = async function (btn) {
   if (!currentOrder) return;
+  
+  const confirmed = await window.showConfirmModal('إرسال تأكيد', 'هل تريد إرسال تأكيد الطلب/الدفع للعميل الآن؟');
+  if (!confirmed) return;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الإرسال...';
+  }
+
   try {
+    // This will trigger order.created if paidAmount=0, or order.paid if paidAmount>0
     const success = await api.triggerOrderPaid(currentOrder.orderId, currentOrder);
-    if (success) showToast('تم إرسال تأكيد الدفع بنجاح');
-    else showToast('فشل إرسال التأكيد', 'error');
+    if (success) {
+      showToast('تم إرسال التأكيد بنجاح');
+    } else {
+      showToast('فشل إرسال التأكيد', 'error');
+    }
   } catch (err) {
     console.error('Resend Error:', err);
     showToast('حدث خطأ أثناء الإرسال', 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = 'ارسال';
+    }
   }
 };
 
