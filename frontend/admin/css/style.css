@@ -1051,19 +1051,18 @@ tr:hover td {
 
 /* ── Loading ─────────────────────────────────────────── */
 .spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid var(--border-color);
-  border-top-color: var(--primary);
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top-color: #916C4F;
   border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-  margin: 36px auto;
+  animation: spin 0.8s linear infinite;
+  margin: 40px auto;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @keyframes slideUp {

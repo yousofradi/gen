@@ -232,15 +232,20 @@
       pointer-events: none;
     }
 
-    @media (max-width: 768px) {
-      .form-layout {
-        grid-template-columns: 1fr;
       }
+    }
 
-      .modal {
-        padding: 16px;
-        max-width: 95%;
-      }
+    /* Local Loader */
+    #page-content-spinner {
+      display: none;
+      padding: 100px 0;
+      text-align: center;
+    }
+    body.is-loading #page-content-spinner {
+      display: block;
+    }
+    body.is-loading #main-content-layout {
+      display: none !important;
     }
   </style>
 </head>
@@ -348,7 +353,13 @@
     </aside>
 
     <main class="admin-main">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+      <!-- Local Spinner -->
+      <div id="page-content-spinner">
+        <div class="spinner"></div>
+      </div>
+
+      <div id="main-content-layout">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
         <h1 class="page-title" style="margin:0; display:flex; align-items:center; gap:8px">
           <a href="collections.html"
             style="font-size:1.1rem; color:var(--text-main); text-decoration:none; font-weight:700; display:flex; align-items:center; gap:6px">
@@ -472,7 +483,8 @@
           </div>
         </div>
       </form>
-    </main>
+    </div> <!-- End main-content-layout -->
+  </main>
   </div>
 
   <!-- Select Products Modal -->

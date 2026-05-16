@@ -145,6 +145,19 @@
       cursor: pointer;
     }
 
+    /* Local Loader */
+    #page-content-spinner {
+      display: none;
+      padding: 100px 0;
+      text-align: center;
+    }
+    body.is-loading #page-content-spinner {
+      display: block;
+    }
+    body.is-loading #main-content-layout {
+      display: none !important;
+    }
+
     /* ── Mobile ── */
     @media (max-width: 960px) {
       .order-details-layout {
@@ -360,7 +373,12 @@
           </div>
         </div>
 
-        <div class="order-details-layout">
+        <!-- Local Spinner -->
+        <div id="page-content-spinner">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="main-content-layout" class="order-details-layout">
           <!-- EMPTY LEFT COLUMN OR REMOVE IF NOT NEEDED -->
           <!-- We keep it to maintain the grid structure but it can be used for other side info later -->
           <div>

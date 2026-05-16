@@ -918,20 +918,20 @@
       border-color: var(--primary-color);
     }
 
-    .gallery-item.selected::after {
-      content: "✓";
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      background: var(--primary-color);
-      color: #fff;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-size: 12px;
+    }
+
+    /* Local Loader */
+    #page-content-spinner {
+      display: none;
+      padding: 100px 0;
+      text-align: center;
+    }
+    body.is-loading #page-content-spinner {
+      display: block;
+    }
+    body.is-loading #main-content-layout {
+      display: none !important;
     }
   </style>
 
@@ -1044,7 +1044,13 @@
 
     <main class="admin-main">
       <div style="max-width:800px">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+        <!-- Local Spinner -->
+        <div id="page-content-spinner">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="main-content-layout">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
           <h1 class="page-title" style="margin:0; display:flex; align-items:center; gap:8px">
             <a href="products.html"
               style="font-size:1.1rem; color:var(--text-main); text-decoration:none; font-weight:700; display:flex; align-items:center; gap:6px">
@@ -1201,6 +1207,7 @@
 
 
         </form>
+        </div> <!-- End main-content-layout -->
       </div>
     </main>
   </div>
