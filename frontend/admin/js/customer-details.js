@@ -68,6 +68,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (err) {
     showToast('فشل تحميل بيانات العميل', 'error');
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 });
 

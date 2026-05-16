@@ -9,7 +9,7 @@
   <title>Webhooks — Admin</title>
   <link rel="stylesheet" href="css/style.css?v=20260515_v2">
 </head>
-<body data-no-unsaved-bar="true">
+<body data-no-unsaved-bar="true" class="is-loading">
   <div class="admin-layout">
     
     <aside class="admin-sidebar">
@@ -67,7 +67,13 @@
     </aside>
     <main class="admin-main">
       <div style="max-width:900px">
-        <h1 class="page-title" style="margin-bottom:4px">Webhooks</h1>
+        <!-- Local Spinner -->
+        <div id="page-content-spinner">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="main-content-layout">
+          <h1 class="page-title" style="margin-bottom:4px">Webhooks</h1>
         <p class="page-subtitle">استقبال إشعارات فورية عند حدوث أحداث في المتجر</p>
 
         <!-- Add Form -->
@@ -121,6 +127,8 @@
           </table>
         </div>
       </div>
+        </div>
+      </div> <!-- End main-content-layout -->
     </main>
   </div>
 
@@ -129,7 +137,11 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       if (!requireAdmin()) return;
-      loadWebhooks();
+      try {
+        await loadWebhooks();
+      } finally {
+        document.body.classList.remove('is-loading');
+      }
     });
 
     window.handleGlobalDiscard = () => {

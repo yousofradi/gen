@@ -42,13 +42,11 @@ async function loadProducts() {
     if (!products.length) {
       tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:40px">لا توجد منتجات مطابقة للبحث</td></tr>';
       updatePaginationInfo(0);
-      document.body.classList.remove('is-loading');
       return;
     }
 
     allProducts = products;
     renderProducts(collections);
-    document.body.classList.remove('is-loading');
     
     // Fetch total counts for specific tabs
     const [activeRes, draftRes] = await Promise.all([

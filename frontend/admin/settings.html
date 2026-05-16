@@ -9,7 +9,7 @@
   <title>إعدادات المتجر — Admin</title>
   <link rel="stylesheet" href="css/style.css?v=20260515_v2">
 </head>
-<body>
+<body class="is-loading">
   <div class="admin-layout">
     
     <aside class="admin-sidebar">
@@ -67,7 +67,13 @@
     </aside>
 
     <main class="admin-main">
-      <div class="flex-between mb-24">
+      <!-- Local Spinner -->
+      <div id="page-content-spinner">
+        <div class="spinner"></div>
+      </div>
+
+      <div id="main-content-layout">
+        <div class="flex-between mb-24">
         <div>
           <h1 class="page-title">إعدادات المتجر</h1>
           <p class="page-subtitle">إدارة هوية المتجر والروابط الاجتماعية</p>
@@ -195,6 +201,7 @@
 
         <button class="btn btn-secondary" onclick="addPaymentMethod()" style="width:100%; border-style:dashed; border-width:2px; padding:12px; font-weight:700;">+ أضف وسيلة دفع</button>
       </div>
+    </div> <!-- End main-content-layout -->
     </main>
   </div>
 

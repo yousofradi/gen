@@ -15,10 +15,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       api.getCollections().catch(() => []),
       api.getProducts(null, null, true).then(r => r.products || r).catch(() => [])
     ]);
-  } catch (e) { }
 
-  await loadSections();
-  renderSections();
+    await loadSections();
+    renderSections();
+  } catch (err) {
+    console.error('Failed to init homepage builder:', err);
+  } finally {
+    document.body.classList.remove('is-loading');
+  }
 });
 
 async function loadSections() {

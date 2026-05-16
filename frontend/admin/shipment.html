@@ -45,7 +45,7 @@
     }
   </style>
 </head>
-<body>
+<body class="is-loading">
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <div class="admin-brand-header">
@@ -94,7 +94,13 @@
 
     <main class="admin-main">
       <div style="max-width:900px">
-        <div class="mb-24" style="display:flex; justify-content:space-between; align-items:flex-end;">
+        <!-- Local Spinner -->
+        <div id="page-content-spinner">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="main-content-layout">
+          <div class="mb-24" style="display:flex; justify-content:space-between; align-items:flex-end;">
           <div>
             <h1 class="page-title">رسوم الشحن</h1>
             <p class="page-subtitle">تحديد تكلفة الشحن لكل محافظة ومنطقة</p>
@@ -168,7 +174,7 @@
             </table>
           </div>
         </div>
-      </div>
+      </div> <!-- End main-content-layout -->
     </main>
   </div>
 
@@ -264,9 +270,12 @@
     let currentEditingCity = null;
     let tempZones = [];
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadShipping();
-      loadBostaSettings();
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await Promise.all([loadShipping(), loadBostaSettings()]);
+      } finally {
+        document.body.classList.remove('is-loading');
+      }
     });
 
     async function loadBostaSettings() {

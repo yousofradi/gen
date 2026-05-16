@@ -148,7 +148,7 @@
     }
   </style>
 </head>
-<body>
+<body class="is-loading">
   <div class="admin-layout">
     
     <aside class="admin-sidebar">
@@ -211,7 +211,13 @@
 
     <main class="admin-main">
       <div style="max-width:900px">
-        <div class="flex-between mb-24" style="flex-wrap:wrap; gap:12px;">
+        <!-- Local Spinner -->
+        <div id="page-content-spinner">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="main-content-layout">
+          <div class="flex-between mb-24" style="flex-wrap:wrap; gap:12px;">
           <div>
             <h1 class="page-title" style="margin-bottom:4px">ميّز الصفحة الرئيسية لمتجرك</h1>
             <p class="page-subtitle" style="margin-bottom:0">ميّز صفحة متجرك الرئيسية بالأقسام المختلفة</p>
@@ -246,7 +252,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> <!-- End main-content-layout -->
     </main>
   </div>
 

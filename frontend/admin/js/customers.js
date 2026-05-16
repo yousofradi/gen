@@ -14,6 +14,8 @@ async function loadCustomers() {
     document.getElementById('count-all').textContent = allCustomers.length;
   } catch (err) {
     showToast('فشل تحميل قائمة العملاء', 'error');
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 }
 
@@ -45,6 +47,7 @@ function renderCustomers(customers) {
         </td>
         <td class="hide-mobile">
           <div style="color:#1e293b;">${c.government || '—'}</div>
+          <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">${c.zone || ''}</div>
         </td>
         <td class="hide-mobile">${c.orderCount} طلب</td>
         <td class="hide-mobile" style="color:#64748b;">${lastOrderDate}</td>

@@ -126,7 +126,7 @@
   </style>
 </head>
 
-<body>
+<body class="is-loading">
   <div class="admin-layout">
 
     <aside class="admin-sidebar">
@@ -230,7 +230,12 @@
 
     <main class="admin-main">
       <div style="max-width:1300px">
+        <!-- Local Spinner -->
+        <div id="page-content-spinner">
+          <div class="spinner"></div>
+        </div>
 
+        <div id="main-content-layout">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
           <h1 class="page-title" style="margin:0; display:flex; align-items:center; gap:8px">
             <a href="customers.html"
@@ -287,7 +292,9 @@
                 <div style="margin-bottom:20px;">
                   <h4 style="font-size:0.85rem; color:#64748b; margin-bottom:8px;">عنوان الشحن</h4>
                   <div style="font-size:0.95rem; color:#1e293b;" id="view-c-address">—</div>
-                  <div style="font-size:0.95rem; color:#64748b; margin-top:4px;" id="view-c-gov">—</div>
+                  <div style="font-size:0.95rem; color:#64748b; margin-top:4px;">
+                    <span id="view-c-gov">—</span>، <span id="view-c-zone">—</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -343,6 +350,7 @@
             </div>
           </div>
         </div>
+        </div> <!-- End main-content-layout -->
       </div>
     </main>
   </div>

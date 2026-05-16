@@ -47,7 +47,7 @@
   </style>
 </head>
 
-<body data-no-unsaved-bar="true">
+<body data-no-unsaved-bar="true" class="is-loading">
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <div class="admin-brand-header">
@@ -129,7 +129,13 @@
 
     <main class="admin-main">
       <div style="max-width:900px">
-        <h1 class="page-title" style="margin-bottom:4px">إعدادات WhatsApp</h1>
+        <!-- Local Spinner -->
+        <div id="page-content-spinner">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="main-content-layout">
+          <h1 class="page-title" style="margin-bottom:4px">إعدادات WhatsApp</h1>
         <p class="page-subtitle">ربط متجرك بـ WhatsApp لإرسال إشعارات فورية عند كل طلب جديد أو عملية دفع</p>
 
         <!-- Add Form -->
@@ -191,6 +197,8 @@
            </table>
         </div>
       </div>
+        </div>
+      </div> <!-- End main-content-layout -->
     </main>
   </div>
 
@@ -201,7 +209,11 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       if (!requireAdmin()) return;
-      loadConfigs();
+      try {
+        await loadConfigs();
+      } finally {
+        document.body.classList.remove('is-loading');
+      }
     });
 
     async function loadConfigs() {

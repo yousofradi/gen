@@ -58,7 +58,7 @@
     }
   </style>
 </head>
-<body>
+<body class="is-loading">
   <div class="admin-layout">
     
     <aside class="admin-sidebar">
@@ -127,7 +127,13 @@
           </div>
         </div>
 
-        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
+        <!-- Local Spinner -->
+        <div id="page-content-spinner">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="main-content-layout">
+          <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
           <div id="filter-bar" style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #f1f5f9; flex-wrap:wrap; gap:16px;">
             <div style="display:flex; gap:24px; align-items:center;">
               <span style="font-size: 0.95rem; font-weight: 600; color: #0f766e;">الجميع <span class="tab-badge" id="count-all">250</span></span>
@@ -157,7 +163,8 @@
               </tbody>
             </table>
           </div>
-        </div>
+          </div>
+        </div> <!-- End main-content-layout -->
       </div>
     </main>
   </div>

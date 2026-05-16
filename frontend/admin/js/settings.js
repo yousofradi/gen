@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (err) {
     showToast('فشل تحميل الإعدادات', 'error');
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 
   window.handleGlobalSave = async () => {
