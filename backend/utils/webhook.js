@@ -124,31 +124,44 @@ ${remainingText}
             }
             const whatsappLink = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(customerMessage)}`;
 
-            // 3. Shorten the Link using is.gd
-            let shortLink = whatsappLink;
+            // 3. Shorten the Link
+            const simpleWaLink = `https://wa.me/${cleanCustomerPhone}`;
+            let shortLink = '';
+
             try {
               // Try is.gd first
               const isgdRes = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(whatsappLink)}`, {
-                signal: AbortSignal.timeout(5000)
-              });
-              if (isgdRes.ok) {
+                signal: AbortSignal.timeout(8000)
+              }).catch(() => null);
+
+              if (isgdRes && isgdRes.ok) {
                 const text = await isgdRes.text();
                 if (text && text.startsWith('http')) {
                   shortLink = text;
                 }
-              } else {
-                // Fallback to TinyURL if is.gd fails
+              }
+
+              if (!shortLink) {
+                // Try TinyURL fallback
                 const tinyRes = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(whatsappLink)}`, {
-                  signal: AbortSignal.timeout(5000)
-                });
-                if (tinyRes.ok) {
+                  signal: AbortSignal.timeout(8000)
+                }).catch(() => null);
+
+                if (tinyRes && tinyRes.ok) {
                   const text = await tinyRes.text();
-                  if (text && text.startsWith('http')) shortLink = text;
+                  if (text && text.startsWith('http')) {
+                    shortLink = text;
+                  }
                 }
               }
             } catch (e) {
-              console.warn('[WhatsApp] Link shortening failed:', e.message);
-              // Fallback to original long link
+              console.warn('[WhatsApp] Link shortening system error:', e.message);
+            }
+
+            // Final fallback: if shortening failed, use the SIMPLE wa.me link instead of the LONG ugly one
+            if (!shortLink) {
+              shortLink = simpleWaLink;
+              console.log('[WhatsApp] All shorteners failed, using simple wa.me link');
             }
 
             // 4. Prepare Owner Message
@@ -166,10 +179,10 @@ ${remainingText}
 
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
-إجمالي المبلغ: ${data.totalPrice} EGP
+اجمالي الطلب: EGP ${data.totalPrice}
 ${remainingText}
 
-لينك للعميل:
+رابط واتساب للعميل:
 ${shortLink}`;
             } else {
               ownerMessage = `إشعار طلب: ${event}\nرقم الطلب: ${data.orderId}\nالعميل: ${data.customer.name}`;
