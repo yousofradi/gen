@@ -192,21 +192,28 @@ function initUnsavedChangesBar() {
       gap: 12px;
     }
     .unsaved-btn {
-      padding: 8px 24px;
-      border-radius: 20px;
+      padding: 10px 28px;
+      border-radius: 24px;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       cursor: pointer;
       border: none;
       transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-width: 140px;
     }
     .btn-save-changes {
       background: #10b981;
       color: #fff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
     }
     .btn-save-changes:hover {
       background: #059669;
       transform: translateY(-1px);
+      box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
     }
     .btn-discard-changes {
       background: #475569;
@@ -321,7 +328,7 @@ function initUnsavedChangesBar() {
 
     const oldText = btn.textContent;
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الحفظ...';
+    btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2.5px;margin:0;"></span> جاري الحفظ...';
 
     try {
       if (window.handleGlobalSave) {

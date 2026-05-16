@@ -929,7 +929,7 @@ async function saveProduct(e) {
   const btn = document.querySelector('button[type="submit"]');
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'جاري الحفظ...';
+    btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2.5px;margin:0;"></span> جاري الحفظ...';
   }
 
   const salePriceVal = document.getElementById('p-sale-price').value;

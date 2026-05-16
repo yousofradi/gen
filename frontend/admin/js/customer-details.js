@@ -213,7 +213,7 @@ function closeEditModal() {
 async function applyChanges(btn) {
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جاري الحفظ...';
+    btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2.5px;margin:0;"></span> جاري الحفظ...';
   }
 
   const name = document.getElementById('modal-c-name').value.trim();

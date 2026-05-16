@@ -652,7 +652,7 @@ window.submitOrder = async function () {
   const btn = document.getElementById('submit-btn');
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;display:inline-block;vertical-align:middle;"></span> جارٍ الحفظ...';
+    btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2.5px;margin:0;"></span> جارٍ الحفظ...';
   }
 
   const finalItems = cartItems.map(c => ({
