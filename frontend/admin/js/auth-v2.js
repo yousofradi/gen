@@ -186,10 +186,12 @@ function initUnsavedChangesBar() {
       display: flex;
       gap: 10px;
       width: 100%;
+      align-items: center;
     }
     .unsaved-btn {
       flex: 1;
-      padding: 8px 16px;
+      height: 38px;
+      padding: 0 16px;
       border-radius: 10px;
       font-weight: 700;
       font-size: 0.85rem;
@@ -197,6 +199,9 @@ function initUnsavedChangesBar() {
       border: none;
       transition: all 0.2s;
       white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .btn-save-changes {
       background: #10b981;
