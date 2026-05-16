@@ -458,14 +458,12 @@ window.renderModalZoneDropdown = function () {
 
   // Exact match logic (still useful for persistence)
   const isExactMatch = window._modalZones.some(z => {
-    const label = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+    const label = api.formatZoneName(z);
     return label.toLowerCase() === query.toLowerCase();
   });
 
   const filtered = isExactMatch ? window._modalZones : window._modalZones.filter(z =>
-    smartMatch(z.name, query) ||
-    (z.otherName && smartMatch(z.otherName, query)) ||
-    (z.districtOtherName && smartMatch(z.districtOtherName, query))
+    smartMatch(api.formatZoneName(z), query)
   );
 
   dropdown.style.display = 'block';
@@ -473,7 +471,7 @@ window.renderModalZoneDropdown = function () {
     dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
   } else {
     dropdown.innerHTML = filtered.map(z => {
-      const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+      const zoneLabel = api.formatZoneName(z);
       return `
         <div class="dropdown-item" onclick="selectModalZone('${zoneLabel.replace(/'/g, "\\'")}')" 
           style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"

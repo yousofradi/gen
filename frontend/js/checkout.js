@@ -204,7 +204,7 @@ function renderZoneDropdown() {
   }
 
   const isExactMatch = window._currentZones.some(z => {
-    const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+    const zoneLabel = api.formatZoneName(z);
     return zoneLabel.toLowerCase().trim() === query.toLowerCase().trim();
   });
 
@@ -219,7 +219,7 @@ function renderZoneDropdown() {
   } else {
     const displayList = filtered.length > 0 ? filtered : window._currentZones;
     dropdown.innerHTML = displayList.map(z => {
-      const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+      const zoneLabel = api.formatZoneName(z);
       return `
         <div class="dropdown-item" onclick="selectZone('${zoneLabel.replace(/'/g, "\\'")}')" 
           style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
@@ -384,7 +384,7 @@ function setupForm() {
     setTimeout(() => {
       const zoneGroup = document.getElementById('zone-form-group');
       if (zoneGroup && zoneGroup.style.display !== 'none') {
-        const zoneOptions = (window._currentZones || []).map(z => `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`);
+        const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
         if (!zoneInput.value || !zoneOptions.includes(zoneInput.value)) {
           setError(zoneInput, 'من فضلك اختر من القائمه');
         } else {
@@ -415,7 +415,7 @@ function setupForm() {
     
     const zoneGroup = document.getElementById('zone-form-group');
     if (zoneGroup && zoneGroup.style.display !== 'none') {
-        const zoneOptions = (window._currentZones || []).map(z => `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`);
+        const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
         if (!zone || !zoneOptions.includes(zone)) {
           setError(zoneInput, 'من فضلك اختر من القائمه');
           hasError = true;

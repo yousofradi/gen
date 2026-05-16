@@ -180,7 +180,7 @@ window.renderModalZoneDropdown = function () {
     dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
   } else {
     dropdown.innerHTML = filtered.map(z => {
-      const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+      const zoneLabel = api.formatZoneName(z);
       return `
         <div class="dropdown-item" onclick="selectModalZone('${zoneLabel.replace(/'/g, "\\'")}')" 
           style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"

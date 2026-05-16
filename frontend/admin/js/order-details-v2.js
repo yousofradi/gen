@@ -459,7 +459,7 @@ window.renderModalZoneDropdown = function () {
 
   // Exact match logic (still useful for persistence)
   const isExactMatch = window._modalZones.some(z => {
-    const label = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+    const label = api.formatZoneName(z);
     return label.toLowerCase() === query.toLowerCase();
   });
 
@@ -474,7 +474,7 @@ window.renderModalZoneDropdown = function () {
     dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
   } else {
     dropdown.innerHTML = filtered.map(z => {
-      const zoneLabel = `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`;
+      const zoneLabel = api.formatZoneName(z);
       return `
         <div class="dropdown-item" onclick="selectModalZone('${zoneLabel.replace(/'/g, "\\'")}')" 
           style="padding: 10px 16px; cursor: pointer; transition: background 0.2s;"
@@ -754,7 +754,7 @@ window.saveOrderChanges = async function (silent = false) {
   // Zone validation
   if (currentOrder.customer.zone && window._modalZones && window._modalZones.length > 0) {
     const zoneOptions = window._modalZones.map(z => 
-      `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`
+      api.formatZoneName(z)
     );
     if (!zoneOptions.includes(currentOrder.customer.zone)) {
       showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');

@@ -211,6 +211,14 @@ const api = {
       formData.append('deleteAll', deleteAll);
       xhr.send(formData);
     });
+  },
+
+  formatZoneName(z) {
+    if (!z) return '';
+    const main = z.otherName || z.name;
+    const dist = z.districtOtherName || '';
+    if (dist && dist !== main) return `${main} - ${dist}`;
+    return main;
   }
 };
 

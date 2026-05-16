@@ -592,9 +592,7 @@ window.handleCityChange = async function() {
       }
     }
     
-    window._currentCityZones = zones.map(z => 
-      `${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}`
-    );
+    window._currentCityZones = zones.map(z => api.formatZoneName(z));
     renderZoneDropdown(window._currentCityZones);
   }
   recalcSummary();
