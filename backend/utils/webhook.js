@@ -105,13 +105,12 @@ ${settings.paymentNotes || ''}
 
 شكراً لثقتك بنا ♡`;
             } else {
-              // Default/Paid message
-              customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
+                customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
 
 رقم الأوردر : ${data.orderId}
 المبلغ الاجمالي : ${data.totalPrice} EGP
 تم الدفع : ${data.paidAmount || 0} EGP
-${remainingTextCustomer}
+${remainingText}
 
 شكراً لثقتك بنا ♡`;
             }
@@ -129,15 +128,28 @@ ${remainingTextCustomer}
             // 3. Shorten the Link using is.gd
             let shortLink = whatsappLink;
             try {
+              // Try is.gd first
               const isgdRes = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(whatsappLink)}`, {
                 signal: AbortSignal.timeout(5000)
               });
               if (isgdRes.ok) {
                 const text = await isgdRes.text();
-                if (text && text.startsWith('http')) shortLink = text;
+                if (text && text.startsWith('http')) {
+                  shortLink = text;
+                }
+              } else {
+                // Fallback to TinyURL if is.gd fails
+                const tinyRes = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(whatsappLink)}`, {
+                  signal: AbortSignal.timeout(5000)
+                });
+                if (tinyRes.ok) {
+                  const text = await tinyRes.text();
+                  if (text && text.startsWith('http')) shortLink = text;
+                }
               }
             } catch (e) {
               console.warn('[WhatsApp] Link shortening failed:', e.message);
+              // Fallback to original long link
             }
 
             // 4. Prepare Owner Message
@@ -146,8 +158,7 @@ ${remainingTextCustomer}
               ownerMessage = `🔔 طلب جديد
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
-إجمالي المبلغ: ${data.totalPrice} EGP
-${remainingText}`;
+اجمالي الطلب: EGP ${data.totalPrice}`;
 
               if (data.customer.notes) ownerMessage += `\nملاحظات: ${data.customer.notes}`;
               ownerMessage += `\n\nرابط واتساب:\n${shortLink}`;
