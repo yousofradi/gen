@@ -95,7 +95,6 @@ async function sendWebhook(event, data) {
 
 رقم الطلب: ${data.orderId}
 إجمالي المبلغ: ${data.totalPrice} EGP
-${remainingText}
 
 طرق الدفع:
 ${paymentMethodsText}
@@ -105,7 +104,7 @@ ${settings.paymentNotes || ''}
 
 شكراً لثقتك بنا ♡`;
             } else {
-                customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
+              customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
 
 رقم الأوردر : ${data.orderId}
 المبلغ الاجمالي : ${data.totalPrice} EGP
