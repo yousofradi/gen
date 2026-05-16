@@ -1060,6 +1060,19 @@ tr:hover td {
   margin: 40px auto;
 }
 
+/* Local Content Loader System */
+#page-content-spinner {
+  display: none;
+  padding: 100px 0;
+  text-align: center;
+}
+body.is-loading #page-content-spinner {
+  display: block !important;
+}
+body.is-loading #main-content-layout {
+  display: none !important;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

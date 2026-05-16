@@ -235,22 +235,10 @@
       }
     }
 
-    /* Local Loader */
-    #page-content-spinner {
-      display: none;
-      padding: 100px 0;
-      text-align: center;
-    }
-    body.is-loading #page-content-spinner {
-      display: block;
-    }
-    body.is-loading #main-content-layout {
-      display: none !important;
-    }
   </style>
 </head>
 
-<body>
+<body class="is-loading">
   <div class="admin-layout">
 
     <aside class="admin-sidebar">
