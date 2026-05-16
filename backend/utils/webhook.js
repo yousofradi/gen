@@ -81,7 +81,8 @@ async function sendWebhook(event, data) {
 
             const baseRemaining = data.totalPrice - (data.paidAmount || 0);
             const displayRemaining = baseRemaining > 0 ? (baseRemaining + 10) : 0;
-            const remainingText = baseRemaining > 0 ? `المتبقي: ${displayRemaining} EGP` : `الحالة: مدفوع بالكامل`;
+            // Removed the word 'المتبقي' as requested
+            const remainingText = baseRemaining > 0 ? `${displayRemaining} EGP` : `مدفوع بالكامل`;
 
             // 1. Prepare Customer Message (for the wa.me link)
             let customerMessage = '';

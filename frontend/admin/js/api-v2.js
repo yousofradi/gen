@@ -42,16 +42,24 @@ const api = {
   _adminKey() { return localStorage.getItem('adminKey') || ''; },
 
   async _request(path, opts = {}) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
     const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
     if (opts.admin) headers['x-admin-key'] = this._adminKey();
     if (API_BASE === 'API_URL' + '_PLACEHOLDER') {
+      clearTimeout(id);
       console.error(`CRITICAL: API URL is not configured (Value: ${API_BASE})`);
       throw new Error('خطأ في تهيئة الاتصال بالخادم. يرجى مراجعة الإعدادات.');
     }
-    const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-    return data;
+    try {
+      const res = await fetch(`${API_BASE}${path}`, { ...opts, headers, signal: controller.signal });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data;
+    } finally {
+      clearTimeout(id);
+    }
   },
 
   // Products
