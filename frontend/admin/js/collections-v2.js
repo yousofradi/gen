@@ -3,6 +3,7 @@ let collectionsSortable = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAdmin()) return;
+  document.body.classList.add('is-loading');
   loadCollections();
 
   const searchInput = document.getElementById('search-input');
@@ -100,9 +101,8 @@ async function loadCollections() {
     }
 
     unselectAll();
-  } catch (e) {
-    console.error(e);
-    list.innerHTML = '<div style="padding:40px;text-align:center;color:red">فشل تحميل التصنيفات</div>';
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 }
 

@@ -44,7 +44,7 @@ const orderSchema = new mongoose.Schema({
   },
   paid: { type: Boolean, default: false },
   paidAmount: { type: Number, default: 0, min: 0 },
-  archived: { type: Boolean, default: false },
+  archived: { type: Boolean, default: false, index: true },
   status: { type: String, enum: ['pending', 'cancelled', 'ready'], default: 'pending' },
   bostaDeliveryId: { type: String },
   bostaTrackingNumber: { type: String },

@@ -230,10 +230,43 @@ function initUnsavedChangesBar() {
         font-size: 0.8rem;
       }
     }
+
+    /* Global Page Loader */
+    .page-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+    body.is-loading .page-loader {
+      opacity: 1;
+      visibility: visible;
+    }
+    .loader-spinner {
+      width: 45px;
+      height: 45px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #916C4F;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   `;
   document.head.appendChild(style);
 
-  // Inject HTML
+  // Inject Unsaved Bar HTML
   const bar = document.createElement('div');
   bar.className = 'unsaved-bar';
   bar.id = 'unsaved-changes-bar';
@@ -244,6 +277,12 @@ function initUnsavedChangesBar() {
     </div>
   `;
   document.body.appendChild(bar);
+
+  // Inject Global Page Loader HTML
+  const loader = document.createElement('div');
+  loader.className = 'page-loader';
+  loader.innerHTML = '<div class="loader-spinner"></div>';
+  document.body.appendChild(loader);
 
   let hasChanges = false;
 

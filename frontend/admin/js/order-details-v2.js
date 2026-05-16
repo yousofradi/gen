@@ -128,9 +128,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     renderOrder();
-    document.body.classList.remove('is-loading');
   } catch (err) {
     showToast('فشل تحميل بيانات الطلب', 'error');
+  } finally {
     document.body.classList.remove('is-loading');
   }
 

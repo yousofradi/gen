@@ -14,19 +14,27 @@ if (typeof Sortable !== 'undefined' && typeof MultiDrag !== 'undefined') {
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAdmin()) return;
 
-  await loadAllProducts();
+  document.body.classList.add('is-loading');
+  try {
+    await loadAllProducts();
 
-  if (collectionId) {
-    document.title = 'تعديل التصنيف — Admin';
-    const formTitle = document.getElementById('form-page-title');
-    if (formTitle) formTitle.textContent = 'تعديل التصنيف';
-    await loadCollection(collectionId);
-  } else {
-    document.title = 'إضافة تصنيف — Admin';
-    const formTitle = document.getElementById('form-page-title');
-    if (formTitle) formTitle.textContent = 'إضافة تصنيف';
-    originalCollection = null;
-    populateCollectionForm(null);
+    if (collectionId) {
+      document.title = 'تعديل التصنيف — Admin';
+      const formTitle = document.getElementById('form-page-title');
+      if (formTitle) formTitle.textContent = 'تعديل التصنيف';
+      await loadCollection(collectionId);
+    } else {
+      document.title = 'إضافة تصنيف — Admin';
+      const formTitle = document.getElementById('form-page-title');
+      if (formTitle) formTitle.textContent = 'إضافة تصنيف';
+      originalCollection = null;
+      populateCollectionForm(null);
+    }
+  } catch (err) {
+    console.error('Error loading collection form:', err);
+    showToast('فشل تحميل البيانات', 'error');
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 
   document.getElementById('collection-form').addEventListener('submit', saveCollection);

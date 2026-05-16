@@ -3,6 +3,7 @@ let showingArchived = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!requireAdmin()) return;
+  document.body.classList.add('is-loading');
   loadOrders();
 });
 
@@ -25,6 +26,8 @@ async function loadOrders() {
     filterOrdersClient();
   } catch (err) {
     tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">فشل تحميل الطلبات</td></tr>';
+  } finally {
+    document.body.classList.remove('is-loading');
   }
 }
 

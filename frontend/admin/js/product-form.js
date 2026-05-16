@@ -39,10 +39,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       populateProductForm(null);
     }
     isPopulating = false;
-    document.body.classList.remove('is-loading');
   } catch (err) {
     console.error('Error loading page data:', err);
     showToast('فشل تحميل البيانات', 'error');
+  } finally {
     document.body.classList.remove('is-loading');
   }
 
