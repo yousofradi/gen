@@ -1161,7 +1161,7 @@ window.markAsReady = function () {
             </div>
           </div>
           
-          <div style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 4px; border-radius: 12px; border: 1px solid #f1f5f9;">
+          <div style="display: flex; align-items: center; gap: 0; background: #f8fafc; padding: 4px; border-radius: 12px; border: 1px solid #f1f5f9;">
             <button onclick="updateFulfillment(${idx}, 1)" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">+</button>
             <div style="display: flex; align-items: center; gap: 4px; padding: 0 4px; min-width: 65px; justify-content: center;">
                <span style="font-weight: 800; color: #1e293b; font-size: 0.95rem;">${item.current}</span>
