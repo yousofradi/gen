@@ -511,7 +511,8 @@ router.post('/cancel/batch', adminAuth, async (req, res) => {
     for (const id of orderIds) {
       const order = await Order.findOne({ orderId: id });
       if (order) {
-        await sendWebhook('order.cancelled', order.toObject());
+        // Fire and forget
+        sendWebhook('order.cancelled', order.toObject());
       }
     }
 
@@ -558,7 +559,8 @@ router.post('/:orderId/cancel', adminAuth, async (req, res) => {
       }
       order.status = 'cancelled';
       await order.save();
-      await sendWebhook('order.cancelled', order.toObject());
+      // Fire and forget
+      sendWebhook('order.cancelled', order.toObject());
     }
 
     res.json({ message: 'Order cancelled', order });
@@ -666,7 +668,8 @@ router.put('/:orderId', adminAuth, async (req, res) => {
       // If paidAmount > 0, trigger order.paid (Paid confirmation message)
       const event = (updatedOrder.paidAmount > 0) ? 'order.paid' : 'order.created';
       console.log(`[Webhook] Force triggering ${event} for order ${updatedOrder.orderId}`);
-      await sendWebhook(event, updatedOrder.toObject());
+      // Fire and forget - don't block the API response
+      sendWebhook(event, updatedOrder.toObject());
     }
 
     res.json(updatedOrder);
