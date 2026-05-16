@@ -510,13 +510,19 @@ router.post('/cancel/batch', adminAuth, async (req, res) => {
     // Trigger webhooks for each cancelled order
     res.json({ message: 'Orders cancelled successfully' });
 
-    for (const id of orderIds) {
-      const order = await Order.findOne({ orderId: id });
-      if (order) {
-        // Fire and forget
-        sendWebhook('order.cancelled', order.toObject());
+    // Background notifications
+    (async () => {
+      for (const id of orderIds) {
+        try {
+          const order = await Order.findOne({ orderId: id });
+          if (order) {
+            await sendWebhook('order.cancelled', order.toObject());
+          }
+        } catch (whErr) {
+          console.error(`[Webhook] Cancel background fail for ${id}:`, whErr.message);
+        }
       }
-    }
+    })();
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel orders' });
   }
@@ -561,8 +567,14 @@ router.post('/:orderId/cancel', adminAuth, async (req, res) => {
       await order.save();
       res.json({ message: 'Order cancelled', order });
 
-      // Fire and forget
-      sendWebhook('order.cancelled', order.toObject());
+      // Background notification
+      (async () => {
+        try {
+          await sendWebhook('order.cancelled', order.toObject());
+        } catch (whErr) {
+          console.error('[Webhook] Cancel background fail:', whErr.message);
+        }
+      })();
     }
   } catch (err) {
     res.status(500).json({ error: 'Failed to cancel order' });
@@ -663,13 +675,17 @@ router.put('/:orderId', adminAuth, async (req, res) => {
     res.json(updatedOrder);
 
     // 4. Trigger Webhooks (WhatsApp, etc.) - Background
-    if (updates.forcePaymentWebhook || (!order.paid && updatedOrder.paid)) {
-      // If paidAmount is 0, trigger order.created (New Order message)
-      // If paidAmount > 0, trigger order.paid (Paid confirmation message)
-      const event = (updatedOrder.paidAmount > 0) ? 'order.paid' : 'order.created';
-      console.log(`[Webhook] Force triggering ${event} for order ${updatedOrder.orderId}`);
-      // Fire and forget
-      sendWebhook(event, updatedOrder.toObject());
+    if (updatedOrder && (updates.forcePaymentWebhook || (!order.paid && updatedOrder.paid))) {
+      // Fire and forget, but with its own error handling to avoid "headers already sent"
+      (async () => {
+        try {
+          const event = (updatedOrder.paidAmount > 0) ? 'order.paid' : 'order.created';
+          console.log(`[Webhook] Force triggering ${event} for order ${updatedOrder.orderId}`);
+          await sendWebhook(event, updatedOrder.toObject());
+        } catch (whErr) {
+          console.error('[Webhook] Background trigger failed:', whErr.message);
+        }
+      })();
     }
   } catch (err) {
     console.error('Order update error:', err);
