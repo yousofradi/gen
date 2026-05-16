@@ -164,14 +164,13 @@ function initUnsavedChangesBar() {
     .unsaved-bar {
       position: fixed;
       top: -100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 600px;
+      left: 20px;
+      width: auto;
+      min-width: 280px;
       background: #1e293b;
       color: #fff;
-      padding: 12px 24px;
-      border-radius: 40px;
+      padding: 10px 20px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -183,22 +182,21 @@ function initUnsavedChangesBar() {
     .unsaved-bar.visible {
       top: 20px;
     }
-    .unsaved-bar span {
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
     .unsaved-actions {
       display: flex;
-      gap: 12px;
+      gap: 10px;
+      width: 100%;
     }
     .unsaved-btn {
-      padding: 8px 24px;
-      border-radius: 20px;
+      flex: 1;
+      padding: 8px 16px;
+      border-radius: 10px;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
       border: none;
       transition: all 0.2s;
+      white-space: nowrap;
     }
     .btn-save-changes {
       background: #10b981;
@@ -206,7 +204,6 @@ function initUnsavedChangesBar() {
     }
     .btn-save-changes:hover {
       background: #059669;
-      transform: translateY(-1px);
     }
     .btn-discard-changes {
       background: #475569;
@@ -217,24 +214,15 @@ function initUnsavedChangesBar() {
     }
     @media (max-width: 600px) {
       .unsaved-bar {
-        width: 95%;
-        padding: 10px 16px;
-        flex-direction: column;
-        gap: 12px;
-        border-radius: 16px;
-        top: -150px;
-      }
-      .unsaved-bar.visible {
-        top: 10px;
-      }
-      .unsaved-actions {
-        width: 100%;
-        justify-content: center;
+        width: calc(100% - 32px);
+        left: 16px;
+        max-width: 400px;
+        padding: 8px 12px;
+        border-radius: 12px;
       }
       .unsaved-btn {
-        flex: initial;
-        padding: 10px 24px;
-        min-width: 120px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
       }
     }
   `;
