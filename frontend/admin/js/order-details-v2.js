@@ -555,14 +555,13 @@ window.applyCustomerChanges = async function (btn) {
   currentOrder.customer.notes = document.getElementById('modal-c-notes').value.trim();
 
   updateTotals();
+  closeModal('customer-modal');
+  if (window.hideBar) window.hideBar();
 
-  // Save immediately
-  const success = await saveOrderChanges(true);
-  if (success) {
-    closeModal('customer-modal');
-    if (window.hideBar) window.hideBar();
-    showToast('تم تحديث بيانات العميل بنجاح');
-  }
+  // Save immediately in background
+  saveOrderChanges(true).then(success => {
+    if (success) showToast('تم تحديث بيانات العميل بنجاح');
+  });
 };
 
 window.openPaymentModal = function () {
@@ -578,11 +577,10 @@ window.applyPaymentChanges = async function (btn) {
 
   renderOrder();
   closeModal('payment-modal');
-
-  // Save immediately as requested
-  await saveOrderChanges(true);
-
   if (window.hideBar) window.hideBar();
+
+  // Save immediately in background
+  saveOrderChanges(true);
 };
 
 
@@ -661,13 +659,13 @@ window.applyItemQty = async function (btn) {
   if (qty >= 1 && currentOrder.items[idx]) {
     currentOrder.items[idx].quantity = qty;
     updateTotals();
+    closeModal('item-qty-modal');
+    if (window.hideBar) window.hideBar();
     
-    const success = await saveOrderChanges(true);
-    if (success) {
-      closeModal('item-qty-modal');
-      if (window.hideBar) window.hideBar();
+    // Save in background
+    saveOrderChanges(true).then(() => {
       if (document.getElementById('ready-confirm-modal').style.display === 'flex') markAsReady();
-    }
+    });
   }
 };
 
@@ -685,13 +683,13 @@ window.applyItemDiscount = async function (btn) {
   if (currentOrder.items[idx]) {
     currentOrder.items[idx].discount = discount;
     updateTotals();
+    closeModal('item-discount-modal');
+    if (window.hideBar) window.hideBar();
 
-    const success = await saveOrderChanges(true);
-    if (success) {
-      closeModal('item-discount-modal');
-      if (window.hideBar) window.hideBar();
+    // Save in background
+    saveOrderChanges(true).then(() => {
       if (document.getElementById('ready-confirm-modal').style.display === 'flex') markAsReady();
-    }
+    });
   }
 };
 
@@ -729,21 +727,13 @@ window.applyOrderDiscount = async function (btn) {
   const val = document.getElementById('modal-order-discount').value;
   currentOrder.discount = parseFloat(val) || 0;
   updateTotals();
+  closeModal('order-discount-modal');
+  if (window.hideBar) window.hideBar();
 
-  const success = await saveOrderChanges(true);
-  if (success) {
-    closeModal('order-discount-modal');
-    if (window.hideBar) window.hideBar();
-    // Refresh ready modal if open
-    if (document.getElementById('ready-confirm-modal').style.display === 'flex') {
-      markAsReady();
-    }
-  } else {
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'تطبيق';
-    }
-  }
+  // Save in background
+  saveOrderChanges(true).then(() => {
+    if (document.getElementById('ready-confirm-modal').style.display === 'flex') markAsReady();
+  });
 };
 
 
@@ -1101,14 +1091,11 @@ window.addSelectedProducts = async function (btn) {
   });
 
   updateTotals();
+  closeProductsModal();
+  if (window.hideBar) window.hideBar();
   
-  // Save immediately
-  const success = await saveOrderChanges(true);
-
-  if (success) {
-    closeProductsModal();
-    if (window.hideBar) window.hideBar();
-  }
+  // Save immediately in background
+  saveOrderChanges(true);
 };
 
 window.toggleDetailsMenu = function (e) {
