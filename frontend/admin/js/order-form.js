@@ -542,7 +542,10 @@ function renderCart() {
             <div style="text-align: right; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
               <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b; line-height: 1.2; word-break: break-word;">${p.name}</div>
               ${optText ? `<div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${optText}</div>` : ''}
-              ${c.discount ? `<div style="font-size:0.75rem; color:#dc2626; margin-top:4px; font-weight:600;">خصم: ${formatPrice(c.discount)}</div>` : ''}
+              ${c.discount ? (c.discount > 0 
+                ? `<div style="font-size:0.75rem; color:#dc2626; margin-top:4px; font-weight:600;">خصم: ${formatPrice(c.discount)}</div>` 
+                : `<div style="font-size:0.75rem; color:#10b981; margin-top:4px; font-weight:600;">زياده ${Math.abs(c.discount)} ج.م</div>`
+              ) : ''}
               ${lowStock ? `<div style="font-size:0.75rem; color:#ef4444; margin-top:4px; font-weight:600; background:#fee2e2; padding:2px 8px; border-radius:4px; display:inline-block;">عذراً، يتوفر ${available} قطعة فقط</div>` : ''}
             </div>
           </div>

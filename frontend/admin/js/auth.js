@@ -356,8 +356,8 @@ function initUnsavedChangesBar() {
   // Enforce numbers only on type="number" fields
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
-      // Allow: backspace, delete, tab, escape, enter, . (190, 110)
-      if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+      // Allow: backspace, delete, tab, escape, enter, . (190, 110), - (189, 109)
+      if ([46, 8, 9, 27, 13, 110, 190, 189, 109].indexOf(e.keyCode) !== -1 ||
          (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
          (e.keyCode >= 35 && e.keyCode <= 40)) {
              return;

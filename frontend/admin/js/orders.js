@@ -200,7 +200,10 @@ function renderOrders(orders) {
         <td>${payBadge}</td>
         <td>
           <div style="font-weight:700; color:#0ea5e9; white-space:nowrap;">${formatPrice(o.totalPrice)}</div>
-          ${o.discount ? `<div style="font-size:0.8rem; color:#dc2626;">خصم: ${formatPrice(o.discount)}</div>` : ''}
+          ${o.discount ? (o.discount > 0 
+            ? `<div style="font-size:0.8rem; color:#dc2626;">خصم: ${formatPrice(o.discount)}</div>` 
+            : `<div style="font-size:0.8rem; color:#10b981;">زياده ${Math.abs(o.discount)} ج.م</div>`
+          ) : ''}
         </td>
         <td style="color:#64748b; font-size:0.85rem;">${dateStr}</td>
       </tr>
