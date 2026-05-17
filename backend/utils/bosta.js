@@ -38,7 +38,7 @@ async function generateBostaPayload(order, bostaConfig) {
       }
     },
     goodsInfo: {
-      amount: order.totalPrice
+      amount: Math.max(0, order.totalPrice - (order.shippingFee || 0))
     },
     pickupAddress: storeAddress,
     returnAddress: storeAddress,
