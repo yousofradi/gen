@@ -72,6 +72,49 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/shipping/egyptpost — return all Egypt Post governorates & fees
+router.get('/egyptpost', async (req, res) => {
+  try {
+    const Setting = require('../models/Setting');
+    const Shipping = require('../models/Shipping');
+    
+    // 1. Fetch governorates from DB
+    const fees = await Shipping.find({}, 'city cityOtherName fee');
+
+    // 2. Resolve Egypt Post options
+    const shippingOptionsRecord = await Setting.findOne({ key: 'shipping_options' });
+    const shippingOptions = shippingOptionsRecord ? shippingOptionsRecord.value : [];
+    const postOption = shippingOptions.find(o => 
+      o.name.includes('البريد') || o.name.toLowerCase().includes('post')
+    ) || shippingOptions[0];
+
+    const isCityEqual = (a, b) => {
+      if (!a || !b) return false;
+      const norm = (s) => s.replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, '').toLowerCase().trim();
+      return norm(a) === norm(b);
+    };
+
+    const egyptPostFees = fees.map(record => {
+      const cityObj = postOption ? (postOption.cities || []).find(c => 
+        isCityEqual(c.city, record.city) || isCityEqual(c.city, record.cityOtherName)
+      ) : null;
+      
+      const resolvedFee = cityObj ? Number(cityObj.fee) : (postOption ? postOption.cost : 80);
+      
+      return {
+        _id: record._id,
+        city: record.city,
+        cityOtherName: record.cityOtherName,
+        fee: isNaN(resolvedFee) ? 80 : resolvedFee
+      };
+    });
+
+    res.json(egyptPostFees);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/shipping/zones/:cityId — return zones for a gov
 router.get('/zones/:cityId', async (req, res) => {
   try {
