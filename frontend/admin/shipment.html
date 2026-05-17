@@ -26,22 +26,163 @@
 
     .bulk-bar { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:12px 24px; border-radius:12px; display:flex; align-items:center; gap:20px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); z-index:1000; }
     
-    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:10000; }
-    .modal-content { background:#fff; border-radius:16px; width:90%; max-width:500px; overflow:hidden; }
-    .modal-header { padding:16px 24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
-    .modal-body { padding:24px; }
-    .modal-footer { padding:16px 24px; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; gap:12px; }
-    .close-btn { background:none; border:none; font-size:1.5rem; cursor:pointer; color:#64748b; }
+    /* Premium Modals with transitions */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      transform: scale(0.95);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal.open .modal-content {
+      transform: scale(1);
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+    }
+    .modal-header h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #1e293b;
+      margin: 0;
+    }
+    .modal-body {
+      padding: 24px;
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      background: #f8fafc;
+    }
+    .close-btn {
+      background: #f1f5f9;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #64748b;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .close-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Modal Form Styling */
+    .modal-body .form-group {
+      margin-bottom: 18px;
+    }
+    .modal-body label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+    .modal-body input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: #0f172a;
+      transition: all 0.2s ease;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .modal-body input:focus {
+      border-color: #00bfa5;
+      box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.1);
+    }
 
     .admin-sidebar svg { width: 24px; height: 24px; flex-shrink: 0; }
     .admin-brand-header img { max-height: 40px; }
 
-    /* Larger checkboxes */
-    input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
+    /* Custom Checkbox Styles */
+    .custom-cb-label {
+      display: inline-flex;
+      align-items: center;
       cursor: pointer;
-      accent-color: #00bfa5;
+      position: relative;
+      user-select: none;
+      vertical-align: middle;
+    }
+    .custom-cb-label input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+    .custom-checkmark {
+      height: 22px;
+      width: 22px;
+      background-color: #fff;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .custom-cb-label:hover input[type="checkbox"] ~ .custom-checkmark {
+      border-color: #00bfa5;
+      background-color: #f0fdfa;
+    }
+    .custom-cb-label input[type="checkbox"]:checked ~ .custom-checkmark {
+      background-color: #00bfa5;
+      border-color: #00bfa5;
+      box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.15);
+    }
+    .custom-checkmark svg {
+      width: 14px;
+      height: 14px;
+      stroke: #fff;
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transform: scale(0);
+      transition: transform 0.15s ease-in-out;
+    }
+    .custom-cb-label input[type="checkbox"]:checked ~ .custom-checkmark svg {
+      transform: scale(1);
     }
   </style>
 </head>
@@ -162,7 +303,14 @@
             <table class="shipping-table">
               <thead>
                 <tr>
-                  <th style="width: 50px; text-align: center;"><input type="checkbox" id="select-all" onchange="toggleSelectAll()"></th>
+                  <th style="width: 50px; text-align: center;">
+                    <label class="custom-cb-label">
+                      <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                      <span class="custom-checkmark">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </span>
+                    </label>
+                  </th>
                   <th style="text-align: right;">المدينة</th>
                   <th style="text-align: center;">العمليات</th>
                   <th style="text-align: left;">الرسوم</th>
@@ -182,8 +330,31 @@
   <div id="bulk-actions-bar" class="bulk-bar" style="display:none;">
     <span>مختار: <span id="selected-count-badge">0</span></span>
     <div style="display:flex; gap:8px;">
-      <button class="btn btn-primary btn-sm" onclick="bulkUpdateFee()">تحديث السعر</button>
+      <button class="btn btn-primary btn-sm" onclick="openBulkFeeModal()">تحديث السعر</button>
       <button class="btn btn-danger btn-sm" onclick="bulkDeleteShipping()">حذف</button>
+    </div>
+  </div>
+
+  <!-- Bulk Update Fee Modal -->
+  <div id="bulk-fee-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:400px;">
+      <div class="modal-header">
+        <h3>تحديث الأسعار دفعة واحدة</h3>
+        <button class="close-btn" onclick="closeBulkFeeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px; font-weight:600; color:#475569; font-size:0.95rem;" id="bulk-fee-modal-message">
+          تحديث رسوم الشحن لـ 0 مدينة.
+        </div>
+        <div class="form-group">
+          <label>السعر الجديد (EGP)</label>
+          <input type="number" id="bulk-fee-input" class="form-control" placeholder="65">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeBulkFeeModal()">إلغاء</button>
+        <button class="btn btn-primary" onclick="confirmBulkUpdateFee()">حفظ التعديل</button>
+      </div>
     </div>
   </div>
 
@@ -197,19 +368,19 @@
       <div class="modal-body">
         <div class="form-group">
           <label>الاسم (عربي)</label>
-          <input type="text" id="ship-city-other">
+          <input type="text" id="ship-city-other" class="form-control">
         </div>
         <div class="form-group">
           <label>الاسم (English)</label>
-          <input type="text" id="ship-city">
+          <input type="text" id="ship-city" class="form-control">
         </div>
         <div class="form-group">
           <label>رسوم الشحن</label>
-          <input type="number" id="ship-fee">
+          <input type="number" id="ship-fee" class="form-control">
         </div>
         <div class="form-group">
           <label>Bosta City ID</label>
-          <input type="text" id="ship-bosta-id">
+          <input type="text" id="ship-bosta-id" class="form-control">
         </div>
       </div>
       <div class="modal-footer">
@@ -231,7 +402,7 @@
         <div id="zones-selection-list" style="max-height:400px; overflow-y:auto;">
           <!-- List of zones -->
         </div>
-        <div style="padding:16px; border-top:1px solid #eee;">
+        <div style="padding:16px; border-top:1px solid #f1f5f9; background:#f8fafc;">
           <button class="btn btn-secondary" onclick="openCustomZonesModal()" style="width:100%; border:none; background:#e0f2f1; color:#00bfa5; font-weight:700;">+ أضف أو احذف مدن مخصصة</button>
         </div>
       </div>
@@ -251,7 +422,7 @@
       </div>
       <div class="modal-body">
         <div style="display:flex; gap:8px; margin-bottom:16px;">
-          <input type="text" id="new-custom-zone" placeholder="اسم المدينة الجديدة" style="flex:1;">
+          <input type="text" id="new-custom-zone" placeholder="اسم المدينة الجديدة" class="form-control" style="flex:1;">
           <button class="btn btn-primary" onclick="addCustomZone()">إضافة</button>
         </div>
         <div id="custom-zones-list" style="display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto;"></div>
@@ -269,6 +440,7 @@
     let selectedIds = new Set();
     let currentEditingCity = null;
     let tempZones = [];
+    let pendingFeeChanges = {};
 
     document.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -277,6 +449,29 @@
         document.body.classList.remove('is-loading');
       }
     });
+
+    // Unsaved Changes Global Hooks
+    window.handleGlobalSave = async () => {
+      const ids = Object.keys(pendingFeeChanges);
+      if (ids.length === 0) return true;
+      try {
+        await Promise.all(ids.map(id => api.updateShipping(id, { fee: pendingFeeChanges[id] })));
+        showToast('تم حفظ تغييرات الرسوم بنجاح');
+        pendingFeeChanges = {};
+        window.hideBar();
+        await loadShipping();
+        return true;
+      } catch (e) {
+        showToast('فشل حفظ تغييرات الرسوم', 'error');
+        return false;
+      }
+    };
+
+    window.handleGlobalDiscard = () => {
+      pendingFeeChanges = {};
+      window.hideBar();
+      loadShipping();
+    };
 
     async function loadBostaSettings() {
       try {
@@ -303,15 +498,30 @@
       const apartment = document.getElementById('bosta-apartment').value.trim();
       try {
         await api.updateSetting('bosta_config', { apiKey, city, districtId, firstLine, buildingNumber, floor, apartment });
-        showToast('تم الحفظ');
-      } catch (e) { showToast('فشل الحفظ', 'error'); }
+        showToast('تم حفظ إعدادات Bosta');
+      } catch (e) { showToast('فشل حفظ إعدادات Bosta', 'error'); }
     }
 
-    async function updateCityFee(id, fee) {
-      try {
-        await api.updateShipping(id, { fee: parseFloat(fee) });
-        showToast('تم تحديث الرسوم');
-      } catch (e) { showToast('فشل التحديث', 'error'); }
+    function handleFeeInput(id, value) {
+      const val = parseFloat(value);
+      if (isNaN(val) || val < 0) return;
+      pendingFeeChanges[id] = val;
+      
+      // Visually indicate the edited state in real time
+      const row = document.querySelector(`tr[data-id="${id}"]`);
+      if (row) {
+        const box = row.querySelector('.price-box');
+        const cur = row.querySelector('.currency');
+        if (box) {
+          box.style.borderColor = '#00bfa5';
+          box.style.backgroundColor = '#f0fdfa';
+        }
+        if (cur) {
+          cur.style.color = '#00bfa5';
+        }
+      }
+      
+      window.markAsModified();
     }
 
     async function loadShipping() {
@@ -322,28 +532,56 @@
         shippingList = list;
         let html = '';
         list.forEach(s => {
+          const hasPending = pendingFeeChanges[s._id] !== undefined;
+          const displayFee = hasPending ? pendingFeeChanges[s._id] : s.fee;
           html += `
             <tr data-id="${s._id}" class="city-row">
-              <td style="text-align:center;"><input type="checkbox" class="row-checkbox" onchange="toggleRowSelection('${s._id}', this)" ${selectedIds.has(s._id) ? 'checked' : ''}></td>
+              <td style="text-align:center;">
+                <label class="custom-cb-label">
+                  <input type="checkbox" class="row-checkbox" onchange="toggleRowSelection('${s._id}', this)" ${selectedIds.has(s._id) ? 'checked' : ''}>
+                  <span class="custom-checkmark">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </span>
+                </label>
+              </td>
               <td style="text-align:right;">
-                <div style="font-weight:700;">${s.cityOtherName || s.city}</div>
+                <div style="font-weight:700; color:#1e293b; font-size:0.95rem;">${s.cityOtherName || s.city}</div>
                 <div style="font-size:0.75rem; color:#94a3b8;">${s.zones?.length || 0} منطقة</div>
               </td>
               <td style="text-align:center;">
                 <button class="btn-edit-rounded" onclick="openZonesModal('${s._id}')">تعديل</button>
               </td>
               <td style="text-align:left;">
-                <div class="price-box" style="padding:0; overflow:hidden;">
-                  <input type="number" value="${s.fee}" 
-                    style="width:60px; border:none; background:transparent; padding:6px 8px; font-weight:700; text-align:center; outline:none;" 
-                    onchange="updateCityFee('${s._id}', this.value)">
-                  <span class="currency" style="padding-right:8px;">EGP</span>
+                <div class="price-box" style="padding:0; overflow:hidden; border: 1.5px solid ${hasPending ? '#00bfa5' : '#cbd5e1'}; background: ${hasPending ? '#f0fdfa' : '#fff'}; transition: all 0.2s;">
+                  <input type="number" value="${displayFee}" 
+                    style="width:60px; border:none; background:transparent; padding:6px 8px; font-weight:700; text-align:center; outline:none; color:#1e293b;" 
+                    oninput="handleFeeInput('${s._id}', this.value)">
+                  <span class="currency" style="padding-right:8px; font-weight:700; color:${hasPending ? '#00bfa5' : '#94a3b8'};">EGP</span>
                 </div>
               </td>
             </tr>
           `;
         });
         tbody.innerHTML = html || '<tr><td colspan="4" class="text-center">لا توجد بيانات</td></tr>';
+        
+        // Reset select-all state
+        document.getElementById('select-all').checked = false;
+        
+        // Apply pending highlights to any rendered rows
+        Object.keys(pendingFeeChanges).forEach(id => {
+          const row = document.querySelector(`tr[data-id="${id}"]`);
+          if (row) {
+            const box = row.querySelector('.price-box');
+            const cur = row.querySelector('.currency');
+            if (box) {
+              box.style.borderColor = '#00bfa5';
+              box.style.backgroundColor = '#f0fdfa';
+            }
+            if (cur) {
+              cur.style.color = '#00bfa5';
+            }
+          }
+        });
       } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center">خطأ في التحميل</td></tr>'; }
     }
 
@@ -373,7 +611,9 @@
     }
 
     function showAddForm() {
-      document.getElementById('add-modal').style.display = 'flex';
+      const modal = document.getElementById('add-modal');
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('open'), 10);
       document.body.style.overflow = 'hidden';
       document.getElementById('modal-title').textContent = 'إضافة مدينة';
       document.getElementById('ship-edit-id').value = '';
@@ -384,7 +624,9 @@
     }
 
     function hideAddForm() { 
-      document.getElementById('add-modal').style.display = 'none'; 
+      const modal = document.getElementById('add-modal');
+      modal.classList.remove('open');
+      setTimeout(() => modal.style.display = 'none', 250); 
       document.body.style.overflow = '';
     }
 
@@ -399,7 +641,7 @@
       try {
         if (id) await api.updateShipping(id, data);
         else await api.createShipping({ ...data, zones: [] });
-        showToast('تم الحفظ');
+        showToast('تم الحفظ بنجاح');
         hideAddForm();
         loadShipping();
       } catch (e) { showToast('فشل الحفظ', 'error'); }
@@ -409,56 +651,88 @@
       currentEditingCity = shippingList.find(s => s._id === id);
       if (!currentEditingCity) return;
       document.getElementById('zones-modal-title').textContent = `تحديث اختيار ${currentEditingCity.cityOtherName || currentEditingCity.city}`;
-      tempZones = [...(currentEditingCity.zones || [])];
+      tempZones = [...(currentEditingCity.zones || [])].map(z => ({ ...z, inactive: false }));
       renderZonesList();
-      document.getElementById('zones-modal').style.display = 'flex';
+      const modal = document.getElementById('zones-modal');
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('open'), 10);
       document.body.style.overflow = 'hidden';
     }
 
     function renderZonesList() {
       const list = document.getElementById('zones-selection-list');
+      const activeZones = tempZones.filter(z => !z.inactive);
       list.innerHTML = `
-        <div style="padding:16px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:#fff;">
-          <span style="font-weight:700;">${currentEditingCity.cityOtherName || currentEditingCity.city} (${tempZones.length} مختارة)</span>
-          <input type="checkbox" checked style="width:18px; height:18px; accent-color:#00bfa5;">
+        <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; background:#fff;">
+          <span style="font-weight:700; color:#1e293b; font-size:1rem;">${currentEditingCity.cityOtherName || currentEditingCity.city} (${activeZones.length} مختارة)</span>
+          <label class="custom-cb-label">
+            <input type="checkbox" ${activeZones.length === tempZones.length ? 'checked' : ''} onchange="toggleAllZones(this.checked)">
+            <span class="custom-checkmark">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </span>
+          </label>
         </div>
       ` + tempZones.map((z, idx) => `
-        <div style="padding:12px 24px; border-bottom:1px solid #f8fafc; display:flex; justify-content:space-between; align-items:center; background:#fff;">
-          <span style="font-weight:600;">${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}</span>
-          <input type="checkbox" checked onchange="toggleZoneSelection(${idx}, this.checked)" style="width:16px; height:16px; accent-color:#00bfa5;">
+        <div style="padding:14px 24px; border-bottom:1px solid #f8fafc; display:flex; justify-content:space-between; align-items:center; background:#fff;">
+          <span style="font-weight:600; color:#334155; font-size:0.95rem;">${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}</span>
+          <label class="custom-cb-label">
+            <input type="checkbox" class="zone-row-checkbox" ${!z.inactive ? 'checked' : ''} onchange="toggleZoneSelection(${idx}, this.checked)">
+            <span class="custom-checkmark">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </span>
+          </label>
         </div>
       `).join('');
     }
 
     function toggleZoneSelection(idx, checked) {
-      // Logic for toggling zones if we had a master list
+      if (tempZones[idx]) {
+        tempZones[idx].inactive = !checked;
+      }
+      const activeZones = tempZones.filter(z => !z.inactive);
+      const span = document.querySelector('#zones-selection-list span');
+      if (span) {
+        span.textContent = `${currentEditingCity.cityOtherName || currentEditingCity.city} (${activeZones.length} مختارة)`;
+      }
+    }
+
+    function toggleAllZones(checked) {
+      document.querySelectorAll('.zone-row-checkbox').forEach((cb, idx) => {
+        cb.checked = checked;
+        toggleZoneSelection(idx, checked);
+      });
     }
 
     async function saveZonesSelection() {
       try {
-        await api.updateShipping(currentEditingCity._id, { zones: tempZones });
-        showToast('تم الحفظ');
+        const finalZones = tempZones.filter(z => !z.inactive);
+        await api.updateShipping(currentEditingCity._id, { zones: finalZones });
+        showToast('تم حفظ اختيار المناطق');
         closeZonesModal();
         loadShipping();
       } catch (e) { showToast('فشل الحفظ', 'error'); }
     }
 
     function closeZonesModal() {
-      document.getElementById('zones-modal').style.display = 'none';
+      const modal = document.getElementById('zones-modal');
+      modal.classList.remove('open');
+      setTimeout(() => modal.style.display = 'none', 250);
       document.body.style.overflow = '';
     }
 
     function openCustomZonesModal() {
       renderCustomZonesList();
-      document.getElementById('custom-zones-modal').style.display = 'flex';
+      const modal = document.getElementById('custom-zones-modal');
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('open'), 10);
     }
 
     function renderCustomZonesList() {
       const list = document.getElementById('custom-zones-list');
       list.innerHTML = tempZones.map((z, idx) => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f1f5f9; border-radius:8px;">
-          <span>${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}</span>
-          <button onclick="removeCustomZone(${idx})" style="background:none; border:none; color:red; cursor:pointer;">×</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:#f1f5f9; border-radius:10px;">
+          <span style="font-weight:600; color:#334155;">${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}</span>
+          <button onclick="removeCustomZone(${idx})" style="background:none; border:none; color:#ef4444; font-size:1.3rem; cursor:pointer; font-weight:700;">×</button>
         </div>
       `).join('');
     }
@@ -466,7 +740,7 @@
     function addCustomZone() {
       const val = document.getElementById('new-custom-zone').value.trim();
       if (!val) return;
-      tempZones.push({ name: val, otherName: val });
+      tempZones.push({ name: val, otherName: val, inactive: false });
       document.getElementById('new-custom-zone').value = '';
       renderCustomZonesList();
     }
@@ -477,40 +751,84 @@
     }
 
     function closeCustomZonesModal() {
-      document.getElementById('custom-zones-modal').style.display = 'none';
+      const modal = document.getElementById('custom-zones-modal');
+      modal.classList.remove('open');
+      setTimeout(() => modal.style.display = 'none', 250);
       renderZonesList();
     }
 
     async function seedShippingData() {
-      if (!confirm('سيتم استبدال البيانات الحالية. هل أنت متأكد؟')) return;
+      if (!confirm('سيتم استبدال البيانات الحالية ببيانات تجريبية افتراضية. هل أنت متأكد؟')) return;
       try {
         await api.seedShipping();
-        showToast('تم التحديث بنجاح');
+        showToast('تم إعادة تهيئة البيانات الافتراضية بنجاح');
         loadShipping();
-      } catch (e) { showToast('فشل التحديث', 'error'); }
+      } catch (e) { showToast('فشل إعادة تهيئة البيانات', 'error'); }
     }
 
-    async function bulkUpdateFee() {
+    function openBulkFeeModal() {
       if (selectedIds.size === 0) return;
-      const newFee = prompt(`تحديث رسوم الشحن لـ ${selectedIds.size} مدينة. ادخل السعر الجديد:`, "65");
-      if (newFee === null || isNaN(parseFloat(newFee))) return;
+      document.getElementById('bulk-fee-modal-message').textContent = `تحديث رسوم الشحن لـ ${selectedIds.size} مدينة مختارة. ادخل السعر الجديد:`;
+      document.getElementById('bulk-fee-input').value = '65';
+      
+      const modal = document.getElementById('bulk-fee-modal');
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modal.classList.add('open');
+        document.getElementById('bulk-fee-input').focus();
+      }, 10);
+    }
 
-      try {
-        await Promise.all([...selectedIds].map(id => api.updateShipping(id, { fee: parseFloat(newFee) })));
-        showToast('تم تحديث الرسوم بنجاح');
-        selectedIds.clear();
-        updateBulkBar();
-        loadShipping();
-      } catch (e) {
-        showToast('فشل التحديث', 'error');
+    function closeBulkFeeModal() {
+      const modal = document.getElementById('bulk-fee-modal');
+      modal.classList.remove('open');
+      setTimeout(() => modal.style.display = 'none', 250);
+    }
+
+    function confirmBulkUpdateFee() {
+      const input = document.getElementById('bulk-fee-input');
+      const val = parseFloat(input.value);
+      if (isNaN(val) || val < 0) {
+        showToast('يرجى إدخال سعر صحيح', 'error');
+        return;
       }
+
+      // Record changes locally
+      for (const id of selectedIds) {
+        pendingFeeChanges[id] = val;
+        
+        // Visually update in the table
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        if (row) {
+          const feeInput = row.querySelector('.price-box input');
+          const box = row.querySelector('.price-box');
+          const cur = row.querySelector('.currency');
+          if (feeInput) feeInput.value = val;
+          if (box) {
+            box.style.borderColor = '#00bfa5';
+            box.style.backgroundColor = '#f0fdfa';
+          }
+          if (cur) {
+            cur.style.color = '#00bfa5';
+          }
+        }
+      }
+
+      window.markAsModified();
+      closeBulkFeeModal();
+      
+      // Clear selection after action
+      selectedIds.clear();
+      updateBulkBar();
+      
+      showToast('تم تطبيق التعديلات المؤقتة. اضغط على حفظ التغييرات لحفظها نهائياً');
     }
 
     async function bulkDeleteShipping() {
-      if (!confirm(`حذف ${selectedIds.size} مدينة؟`)) return;
+      if (!confirm(`حذف ${selectedIds.size} مدينة نهائياً؟`)) return;
       try {
         await Promise.all([...selectedIds].map(id => api.deleteShipping(id)));
-        showToast('تم الحذف');
+        showToast('تم الحذف بنجاح');
         selectedIds.clear();
         updateBulkBar();
         loadShipping();
