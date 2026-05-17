@@ -192,10 +192,12 @@ function renderOrders(orders) {
         <td style="color:#0ea5e9; font-weight:600; font-size:0.95rem;" dir="ltr">#${displayId}</td>
         <td>
           <div style="font-weight:600; color:#1e293b;">${o.customer?.name || 'بدون اسم'}</div>
-          <div style="font-size:0.85rem; color:#64748b;">${o.customer?.phone || ''}</div>
-          <div style="font-size:0.85rem; color:#64748b;">
-            ${o.customer?.government || ''}
-            ${o.carrier === 'egyptpost' ? ` <span style="display:inline-block; padding:2px 8px; border-radius:12px; background:#fee2e2; color:#dc2626; font-size:0.75rem; font-weight:700; margin-right:4px;">البريد المصري</span>` : ''}
+          <div style="font-size:0.85rem; color:#64748b; margin-top:2px;">${o.customer?.government || ''}</div>
+          <div style="font-size:0.85rem; margin-top:4px;">
+            ${o.carrier === 'egyptpost' 
+              ? `<span style="display:inline-block; padding:3px 8px; border-radius:6px; background:#fee2e2; color:#dc2626; font-size:0.75rem; font-weight:700;">البريد المصري</span>`
+              : `<span style="display:inline-block; padding:3px 8px; border-radius:6px; background:#e0f2fe; color:#0369a1; font-size:0.75rem; font-weight:700;">بوسطة${o.bostaTrackingNumber ? ` (#${o.bostaTrackingNumber})` : ''}</span>`
+            }
           </div>
         </td>
         <td style="font-size:0.95rem; color:#475569;">${o.items?.length || 0} منتج</td>

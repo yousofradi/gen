@@ -668,6 +668,7 @@
     ];
 
     document.addEventListener('DOMContentLoaded', async () => {
+      if (!requireAdmin()) return;
       try {
         const globalSettings = await api.getSetting('sundura_global_settings');
         if (globalSettings && globalSettings.primaryColor) {
