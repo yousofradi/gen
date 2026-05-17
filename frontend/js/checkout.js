@@ -334,25 +334,7 @@ function getSelectedZoneObject() {
 }
 
 function updateShippingMethodNotice(isEgyptPost) {
-  const zoneInput = document.getElementById('zone');
-  if (!zoneInput) return;
-  const group = zoneInput.closest('.form-group');
-  if (!group) return;
-
-  let noticeEl = group.querySelector('.shipping-notice');
-  if (!noticeEl) {
-    noticeEl = document.createElement('div');
-    noticeEl.className = 'shipping-notice';
-    noticeEl.style.cssText = 'color:#b84a20; font-size:0.8rem; font-weight:bold; margin-top:6px; direction:rtl; text-align:right;';
-    group.appendChild(noticeEl);
-  }
-
-  if (isEgyptPost && window._enableZones) {
-    noticeEl.textContent = '⚠️ هذه المنطقة خارج تغطية بوسطة. سيتم الشحن عبر البريد المصري بسعر مخفض.';
-    noticeEl.style.display = 'block';
-  } else {
-    noticeEl.style.display = 'none';
-  }
+  // Removed notice alert per user request
 }
 
 function updatePriceSummary() {
