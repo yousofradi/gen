@@ -289,10 +289,24 @@ router.post('/shipping', adminAuth, async (req, res) => {
 
     const egyptPostOpt = options.find(o => o.name.includes('البريد') || o.name.toLowerCase().includes('post'));
     if (egyptPostOpt) {
+      const normalizeCityName = (str) => {
+        if (!str) return '';
+        return str
+          .replace(/[أإآا]/g, 'ا')
+          .replace(/ة/g, 'ه')
+          .replace(/ى/g, 'ي')
+          .replace(/\s+/g, '')
+          .toLowerCase()
+          .trim();
+      };
+
       newData.forEach(c => {
-        const matchingEgyptPostCity = egyptPostOpt.cities.find(ec => 
-          ec.city === c.city || ec.city === c.cityOtherName
-        );
+        const matchingEgyptPostCity = egyptPostOpt.cities.find(ec => {
+          const ecNorm = normalizeCityName(ec.city);
+          const cNorm = normalizeCityName(c.city);
+          const cOtherNorm = normalizeCityName(c.cityOtherName);
+          return ecNorm === cNorm || ecNorm === cOtherNorm;
+        });
 
         if (matchingEgyptPostCity) {
           const dropoffFalseZones = c.zones

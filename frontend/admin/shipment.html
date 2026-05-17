@@ -1124,7 +1124,7 @@
       const modal = document.getElementById('custom-zones-modal');
       modal.classList.remove('open');
       setTimeout(() => modal.style.display = 'none', 250);
-      document.body.classList.add('modal-open');
+      document.body.classList.remove('modal-open');
     }
 
     function renderCustomZonesTempList() {
