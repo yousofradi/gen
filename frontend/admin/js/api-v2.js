@@ -151,9 +151,8 @@ const api = {
   updateWebhook(id, d) { return this._request(`/webhooks/${id}`, { method: 'PUT', body: JSON.stringify(d), admin: true }); },
   deleteWebhook(id) { return this._request(`/webhooks/${id}`, { method: 'DELETE', admin: true }); },
 
-  // Settings
   getSetting(key, useCache = false) { 
-    return this._request(`/settings/${key}`, { useCache }); 
+    return this._request(`/settings/${key}?t=${Date.now()}`, { useCache }); 
   },
   async updateSetting(key, value) {
     const res = await this._request(`/settings/${key}`, { method: 'POST', body: JSON.stringify({ value }), admin: true });

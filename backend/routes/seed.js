@@ -224,8 +224,8 @@ router.post('/shipping', adminAuth, async (req, res) => {
         bostaCityId: c.cityId || c.cityCode,
         fee: 85,
         zones: districts.map(d => ({
-          name: d.zoneName || d.districtName,
-          otherName: d.zoneOtherName || d.districtOtherName,
+          name: d.districtName || d.zoneName,
+          otherName: d.districtOtherName || d.zoneOtherName,
           districtOtherName: d.districtOtherName,
           bostaZoneId: d.zoneId,
           bostaAvailable: d.dropOffAvailability !== false,
