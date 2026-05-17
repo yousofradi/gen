@@ -1060,6 +1060,15 @@ tr:hover td {
   margin: 40px auto;
 }
 
+/* Override margins for spinners nested inside interactive controls to prevent layout bloating */
+button .spinner,
+.btn .spinner,
+a .spinner {
+  margin: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 /* Local Content Loader System */
 #page-content-spinner {
   display: none;

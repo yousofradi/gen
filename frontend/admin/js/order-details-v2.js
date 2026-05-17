@@ -748,7 +748,7 @@ window.applyOrderDiscount = async function (btn) {
 window.resendPaymentConfirmationDirect = async function (btn) {
   if (!currentOrder) return;
   
-  const confirmed = await window.showConfirmModal('إرسال تأكيد', 'هل تريد إرسال تأكيد الطلب/الدفع للعميل الآن؟');
+  const confirmed = await window.showConfirmModal('ارسال تأكيد واتساب', 'هل تريد إرسال تأكيد الطلب/الدفع للعميل الآن؟', true);
   if (!confirmed) return;
 
   if (btn) {
