@@ -955,10 +955,11 @@
       if (isNaN(cost) || cost < 0) { showToast('يرجى إدخال تكلفة شحن صحيحة', 'error'); return; }
       
       if (editingOptionIdx !== null) {
+        const oldCost = shippingOptions[editingOptionIdx].cost;
         shippingOptions[editingOptionIdx].name = name;
         shippingOptions[editingOptionIdx].cost = cost;
         shippingOptions[editingOptionIdx].cities.forEach(c => {
-          if (c.fee === undefined || c.fee === null) {
+          if (c.fee === undefined || c.fee === null || parseFloat(c.fee) === parseFloat(oldCost)) {
             c.fee = cost;
           }
         });
