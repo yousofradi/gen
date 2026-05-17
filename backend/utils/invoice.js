@@ -12,14 +12,60 @@ function num(val) {
 
 async function generateInvoiceInnerHtml(order, settings) {
   const brandName = settings.storeNameAr || settings.storeName || 'سندورة';
+  const Product = require('../models/Product');
+
+  function getVariantImageUrl(product, selectedOptions) {
+    if (!product || !product.variants || !selectedOptions || selectedOptions.length === 0) {
+      return null;
+    }
+    const matchingVariant = product.variants.find((v) => {
+      if (!v.combination) return false;
+      return selectedOptions.every((opt) => {
+        let val;
+        if (typeof v.combination.get === 'function') {
+          val = v.combination.get(opt.groupName);
+        } else {
+          val = v.combination[opt.groupName];
+        }
+        return val === opt.label;
+      });
+    });
+    return (matchingVariant && matchingVariant.imageUrl) ? matchingVariant.imageUrl : null;
+  }
+
+  // Fetch all products in parallel
+  const itemsWithProducts = await Promise.all(
+    order.items.map(async (p) => {
+      try {
+        const product = await Product.findById(p.productId);
+        return { item: p, product };
+      } catch (err) {
+        console.error('Failed to fetch product for invoice:', err);
+        return { item: p, product: null };
+      }
+    })
+  );
 
   // ================== PRODUCTS ==================
-  const productsHtml = order.items.map((p) => {
+  const productsHtml = itemsWithProducts.map(({ item: p, product }) => {
     const unitPrice = Number(p.unitPrice) || Number(p.price) || Number(p.basePrice) || 0;
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
     const lineTotal = p.finalPrice;
+
+    // 1. Try selected option's image url
+    let finalImageUrl = getVariantImageUrl(product, p.selectedOptions);
     
-    const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px; flex-shrink: 0;" />` : `
+    // 2. If not found, use base product image url
+    if (!finalImageUrl && product) {
+      finalImageUrl = product.imageUrl;
+    }
+
+    // 3. Fallback to order item's original imageUrl
+    if (!finalImageUrl) {
+      finalImageUrl = p.imageUrl;
+    }
+    
+    const imgHtml = finalImageUrl ? `<img src="${finalImageUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px; flex-shrink: 0;" />` : `
       <div style="width: 32px; height: 32px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
