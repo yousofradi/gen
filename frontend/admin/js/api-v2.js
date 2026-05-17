@@ -687,3 +687,45 @@ document.addEventListener('wheel', (e) => {
     document.activeElement.blur();
   }
 }, { passive: true });
+
+// ── Global Number Input Caret Positioning to the End ──────────────
+function moveCaretToEnd(input) {
+  if (!input) return;
+  const val = input.value;
+  try {
+    input.value = '';
+    input.value = val;
+    if (input.type !== 'number' && input.setSelectionRange) {
+      input.setSelectionRange(val.length, val.length);
+    }
+  } catch (err) {}
+}
+
+document.addEventListener('focusin', function(e) {
+  if (e.target && e.target.tagName === 'INPUT') {
+    const type = e.target.type;
+    const value = e.target.value || '';
+    if (type === 'number' || /^\d+$/.test(value)) {
+      moveCaretToEnd(e.target);
+    }
+  }
+});
+
+document.addEventListener('mouseup', function(e) {
+  if (e.target && e.target.tagName === 'INPUT') {
+    const type = e.target.type;
+    const value = e.target.value || '';
+    if (type === 'number' || /^\d+$/.test(value)) {
+      if (!e.target._clickedAfterFocus) {
+        e.target._clickedAfterFocus = true;
+        moveCaretToEnd(e.target);
+      }
+    }
+  }
+});
+
+document.addEventListener('focusout', function(e) {
+  if (e.target && e.target.tagName === 'INPUT') {
+    e.target._clickedAfterFocus = false;
+  }
+});
