@@ -171,6 +171,13 @@ window.renderModalZoneDropdown = function () {
     return;
   }
 
+  // Prevent dropdown from opening if the zone input field is not currently focused by the user
+  const zoneInput = document.getElementById('modal-c-zone');
+  if (document.activeElement !== zoneInput) {
+    dropdown.style.display = 'none';
+    return;
+  }
+
   const filtered = window._modalZones.filter(z => 
     z.name.toLowerCase().includes(query) || (z.otherName && z.otherName.toLowerCase().includes(query))
   );

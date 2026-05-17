@@ -421,7 +421,7 @@ window.closeModal = function (modalId) {
   }
 };
 
-window.openCustomerModal = async function () {
+window.openCustomerModal = function () {
   document.getElementById('modal-c-name').value = currentOrder.customer.name || '';
   document.getElementById('modal-c-phone').value = currentOrder.customer.phone || '';
   document.getElementById('modal-c-phone2').value = currentOrder.customer.secondPhone || '';
@@ -440,12 +440,16 @@ window.openCustomerModal = async function () {
     searchGov.value = govName;
   }
 
-  await handleModalCityChange(true); // Populates zones and toggles field visibility
-
   document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
   document.getElementById('modal-c-address').value = currentOrder.customer.address || '';
   document.getElementById('modal-c-notes').value = currentOrder.customer.notes || '';
+  
   openModal('customer-modal');
+
+  // Load the zones in the background without blocking the UI
+  handleModalCityChange(true).then(() => {
+    document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
+  });
 };
 
 window.handleModalCityChange = async function (skipZoneClear = false) {
@@ -486,6 +490,13 @@ window.renderModalZoneDropdown = function () {
   const query = document.getElementById('modal-c-zone').value.trim();
 
   if (!window._modalZones || window._modalZones.length === 0) {
+    dropdown.style.display = 'none';
+    return;
+  }
+
+  // Prevent dropdown from opening if the zone input field is not currently focused by the user
+  const zoneInput = document.getElementById('modal-c-zone');
+  if (document.activeElement !== zoneInput) {
     dropdown.style.display = 'none';
     return;
   }
