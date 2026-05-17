@@ -18,10 +18,22 @@ async function generateInvoiceInnerHtml(order, settings) {
     const unitPrice = Number(p.unitPrice) || Number(p.price) || Number(p.basePrice) || 0;
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
     const lineTotal = p.finalPrice;
+    
+    const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px; flex-shrink: 0;" />` : `
+      <div style="width: 32px; height: 32px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>`;
 
     return `
     <tr>
-      <td>${safe(p.name)} ${optionsText ? `(${safe(optionsText)})` : ''}</td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 8px; text-align: right;">
+          ${imgHtml}
+          <span>${safe(p.name)} ${optionsText ? `<span style="font-size: 10px; color: #64748b;">(${safe(optionsText)})</span>` : ''}</span>
+        </div>
+      </td>
       <td>${safe(p.quantity)}</td>
       <td>${num(unitPrice)}</td>
       <td>${num(lineTotal)} ج</td>

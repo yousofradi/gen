@@ -91,10 +91,13 @@ async function sendWebhook(event, data) {
               const paymentMethodsText = (settings.paymentMethods || [])
                 .map(m => `* ${m.label}`)
                 .join('\n');
+              const subtotal = data.totalPrice - data.shippingFee;
 
               customerMessage = `مرحباً ${data.customer.name}
 
 رقم الطلب: ${data.orderId}
+المبلغ الفرعي: ${subtotal} EGP
+مصاريف الشحن: ${data.shippingFee} EGP
 إجمالي المبلغ: ${data.totalPrice} EGP
 
 طرق الدفع:
@@ -105,9 +108,12 @@ ${settings.paymentNotes || ''}
 
 شكراً لثقتك بنا ♡`;
             } else {
+              const subtotal = data.totalPrice - data.shippingFee;
               customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
 
 رقم الأوردر : ${data.orderId}
+المبلغ الفرعي: ${subtotal} EGP
+مصاريف الشحن: ${data.shippingFee} EGP
 المبلغ الاجمالي : ${data.totalPrice} EGP
 تم الدفع : ${data.paidAmount || 0} EGP
 ${remainingText}

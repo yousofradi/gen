@@ -400,7 +400,7 @@ window.closeModal = function (modalId) {
   }
 };
 
-window.openCustomerModal = function () {
+window.openCustomerModal = async function () {
   document.getElementById('modal-c-name').value = currentOrder.customer.name || '';
   document.getElementById('modal-c-phone').value = currentOrder.customer.phone || '';
   document.getElementById('modal-c-phone2').value = currentOrder.customer.secondPhone || '';
@@ -418,6 +418,8 @@ window.openCustomerModal = function () {
     hiddenGov.value = '';
     searchGov.value = govName;
   }
+
+  await handleModalCityChange(true); // Populates zones and toggles field visibility
 
   document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
   document.getElementById('modal-c-address').value = currentOrder.customer.address || '';
@@ -442,6 +444,16 @@ window.handleModalCityChange = async function (skipZoneClear = false) {
     } catch (err) {
       console.error('Failed to fetch modal zones:', err);
       window._modalZones = [];
+    }
+  }
+
+  const zoneContainer = document.getElementById('modal-c-zone-container');
+  if (zoneContainer) {
+    if (window._modalZones && window._modalZones.length > 0) {
+      zoneContainer.style.display = 'block';
+    } else {
+      zoneContainer.style.display = 'none';
+      zoneInput.value = '';
     }
   }
 
@@ -516,9 +528,9 @@ window.applyCustomerChanges = async function (btn) {
   let govData = (window._fullShippingData || []).find(s => s._id === cityId);
   const cityName = govData ? (govData.cityOtherName || govData.city) : cityNameFromSearch;
 
-  // Validation logic remains
-  if (!name || !phone || !cityName || !zone) {
-    showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');
+  const hasZones = window._modalZones && window._modalZones.length > 0;
+  if (!name || !phone || !cityName || (hasZones && !zone)) {
+    showToast(hasZones ? 'الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة' : 'الاسم ورقم الهاتف والمدينة مطلوبة', 'error');
     return;
   }
 
@@ -770,10 +782,17 @@ window.saveOrderChanges = async function (silent = false) {
   isSaving = true;
 
   // Zone validation
-  if (currentOrder.customer.zone && window._modalZones && window._modalZones.length > 0) {
-    const zoneOptions = window._modalZones.map(z => 
-      api.formatZoneName(z)
-    );
+  const hasZones = window._modalZones && window._modalZones.length > 0;
+  if (hasZones) {
+    if (!currentOrder.customer.zone) {
+      showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
+      if (!silent && btn) {
+        btn.disabled = false;
+        btn.textContent = 'حفظ التغييرات';
+      }
+      return false;
+    }
+    const zoneOptions = window._modalZones.map(z => api.formatZoneName(z));
     if (!zoneOptions.includes(currentOrder.customer.zone)) {
       showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
       if (!silent && btn) {

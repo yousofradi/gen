@@ -140,10 +140,16 @@
         // I'll check api.js
         
         // Prepare WhatsApp message
-        let waMessage = `لقد قمت بطلب اوردر برقم : ${currentOrder.orderId}\n`;
-        waMessage += `المبلغ المطلوب : ${currentOrder.totalPrice} ج.م\n`;
+        const subtotal = (currentOrder.items || []).reduce((acc, item) => acc + (item.finalPrice || 0), 0) || (currentOrder.totalPrice - (currentOrder.shippingFee || 0));
+        const shipping = currentOrder.shippingFee || 0;
+        const total = currentOrder.totalPrice || 0;
+
+        let waMessage = `لقد قمت بطلب اوردر برقم : ${currentOrder.orderId}\n\n`;
+        waMessage += `المبلغ الفرعي : ${subtotal} ج.م\n`;
+        waMessage += `مصاريف الشحن : ${shipping} ج.م\n`;
+        waMessage += `المبلغ المطلوب (الإجمالي) : ${total} ج.م\n\n`;
         if (notes) {
-          waMessage += `ملاحظات التحويل : ${notes}\n`;
+          waMessage += `ملاحظات التحويل : ${notes}\n\n`;
         }
         waMessage += `يرجى مراجعة التحويل وتأكيد الطلب`;
         

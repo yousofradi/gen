@@ -595,6 +595,18 @@ window.handleCityChange = async function() {
     window._currentCityZones = zones.map(z => api.formatZoneName(z));
     renderZoneDropdown(window._currentCityZones);
   }
+  
+  const zoneContainer = document.getElementById('c-zone-container');
+  if (zoneContainer) {
+    if (window._currentCityZones && window._currentCityZones.length > 0) {
+      zoneContainer.style.display = 'block';
+      zoneInput.required = true;
+    } else {
+      zoneContainer.style.display = 'none';
+      zoneInput.required = false;
+    }
+  }
+  
   recalcSummary();
 };
 
@@ -628,7 +640,8 @@ window.submitOrder = async function () {
   const govData = (window._fullShippingData || []).find(s => s._id === cityId);
   const cityName = govData ? (govData.cityOtherName || govData.city) : '';
 
-  if (!name || !phone || !address || !cityName || !zone) return showToast('يرجى ملء جميع الحقول المطلوبة للعميل', 'error');
+  const hasZones = window._currentCityZones && window._currentCityZones.length > 0;
+  if (!name || !phone || !address || !cityName || (hasZones && !zone)) return showToast('يرجى ملء جميع الحقول المطلوبة للعميل', 'error');
 
   // Arabic-only name validation
   if (!/^[\u0600-\u06FF\s]+$/.test(name)) {
@@ -812,7 +825,7 @@ function renderCustomerDropdown(customers) {
   }).join('');
 }
 
-window.selectCustomer = function (phone) {
+window.selectCustomer = async function (phone) {
   const customer = allCustomers.find(c => c.phone === phone);
   if (!customer) return;
 
@@ -825,7 +838,7 @@ window.selectCustomer = function (phone) {
   const govData = (window._fullShippingData || []).find(s => s.city === govName || s.cityOtherName === govName);
   document.getElementById('c-gov').value = govData ? govData._id : '';
 
-  handleCityChange(); // Populates zones
+  await handleCityChange(); // Populates zones
   document.getElementById('c-zone').value = customer.zone || '';
   document.getElementById('c-address').value = customer.address || '';
   
