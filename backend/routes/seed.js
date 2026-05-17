@@ -288,7 +288,9 @@ router.post('/shipping', adminAuth, async (req, res) => {
     }
 
     const egyptPostOpt = options.find(o => o.name.includes('البريد') || o.name.toLowerCase().includes('post'));
+    console.log('[Seed] Found Egypt Post option:', egyptPostOpt ? egyptPostOpt.name : 'NOT FOUND');
     if (egyptPostOpt) {
+      console.log('[Seed] Egypt Post cities count:', egyptPostOpt.cities ? egyptPostOpt.cities.length : 0);
       const normalizeCityName = (str) => {
         if (!str) return '';
         return str
@@ -313,8 +315,11 @@ router.post('/shipping', adminAuth, async (req, res) => {
             .filter(z => z.dropOffAvailability === false)
             .map(z => z.otherName || z.name);
 
+          console.log(`[Seed] Matched City: ${c.city} (${c.cityOtherName}) -> ${matchingEgyptPostCity.city}. Found ${dropoffFalseZones.length} dropoff-false zones.`);
           // Unique zones to avoid duplication
           matchingEgyptPostCity.zones = Array.from(new Set(dropoffFalseZones));
+        } else {
+          console.log(`[Seed] FAILED to match City: ${c.city} (${c.cityOtherName})`);
         }
       });
     }
