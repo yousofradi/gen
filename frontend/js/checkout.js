@@ -412,6 +412,7 @@ function updatePriceSummary() {
   updateShippingMethodNotice(isEgyptPost);
 
   const total = subtotal + shippingFee;
+  window._currentShippingFee = shippingFee;
 
   // Update Header Price
   const headerTotal = document.getElementById('header-total-price');
@@ -615,7 +616,8 @@ function setupForm() {
       },
       items,
       paymentMethod: payment.value,
-      carrier: window._selectedCarrier || 'bosta'
+      carrier: window._selectedCarrier || 'bosta',
+      shippingFee: window._currentShippingFee !== undefined ? window._currentShippingFee : 0
     };
 
     try {

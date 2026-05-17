@@ -65,6 +65,18 @@ router.post('/', async (req, res) => {
       const shippingOptionsRecord = await Setting.findOne({ key: 'shipping_options' });
       const shippingOptions = shippingOptionsRecord ? shippingOptionsRecord.value : [];
 
+      const isCityEqual = (a, b) => {
+        if (!a || !b) return false;
+        const norm = (s) => s.replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, '').toLowerCase().trim();
+        return norm(a) === norm(b);
+      };
+
+      const formatZoneName = (z) => {
+        const zName = z.zoneOtherName || z.name || '';
+        const dName = z.districtOtherName || z.districtName || '';
+        return zName === dName ? zName : `${zName} - ${dName}`;
+      };
+
       const Shipping = require('../models/Shipping');
       const record = await Shipping.findOne({ $or: [{ city: customer.government }, { cityOtherName: customer.government }] });
       
@@ -72,7 +84,10 @@ router.post('/', async (req, res) => {
         let resolvedCarrier = 'bosta';
         
         if (enableZones && customer.zone && record.zones && record.zones.length > 0) {
-          const zoneRecord = record.zones.find(z => z.name === customer.zone || z.otherName === customer.zone);
+          const zoneRecord = record.zones.find(z => {
+            const compound = formatZoneName(z);
+            return compound === customer.zone || z.name === customer.zone || z.otherName === customer.zone;
+          });
           if (zoneRecord && (zoneRecord.dropOffAvailability === false || zoneRecord.bostaAvailable === false)) {
             resolvedCarrier = 'egyptpost';
           } else {
@@ -98,14 +113,22 @@ router.post('/', async (req, res) => {
               o.name.includes('البريد') || o.name.toLowerCase().includes('post')
             ) || (shippingOptions || [])[0];
             
-            const cityObj = postOption ? (postOption.cities || []).find(c => c.city === cityName || c.city === record.city || c.city === record.cityOtherName) : null;
+            const cityObj = postOption ? (postOption.cities || []).find(c => 
+              isCityEqual(c.city, cityName) || 
+              isCityEqual(c.city, record.city) || 
+              isCityEqual(c.city, record.cityOtherName)
+            ) : null;
             shippingFee = cityObj ? cityObj.fee : (postOption ? postOption.cost : 80);
           } else {
             const bostaOption = (shippingOptions || []).find(o => 
               o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
             ) || (shippingOptions || [])[1] || (shippingOptions || [])[0];
             
-            const cityObj = bostaOption ? (bostaOption.cities || []).find(c => c.city === cityName || c.city === record.city || c.city === record.cityOtherName) : null;
+            const cityObj = bostaOption ? (bostaOption.cities || []).find(c => 
+              isCityEqual(c.city, cityName) || 
+              isCityEqual(c.city, record.city) || 
+              isCityEqual(c.city, record.cityOtherName)
+            ) : null;
             shippingFee = cityObj ? cityObj.fee : (bostaOption ? bostaOption.cost : 150);
           }
         }

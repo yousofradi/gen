@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           dropdown.innerHTML = filtered.map(s => `
             <div class="dropdown-item" style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f1f5f9; text-align:right;" 
                  onclick="selectModalGov('${s._id}', '${s.cityOtherName || s.city}')">
-              ${s.cityOtherName || s.city} (${formatPrice(s.fee)})
+              ${s.cityOtherName || s.city}
             </div>
           `).join('');
         }
