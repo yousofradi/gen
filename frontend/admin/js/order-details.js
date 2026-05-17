@@ -6,6 +6,53 @@ let allProducts = [];
 let collectionsMap = {};
 let shippingMap = {};
 
+function getShippingFeeForCityAndZone(cityName, zoneName) {
+  if (!window._shippingOptions || window._shippingOptions.length === 0) {
+    const govData = (window._fullShippingData || []).find(s => 
+      isCityEqual(s.city, cityName) || isCityEqual(s.cityOtherName, cityName)
+    );
+    return govData ? (govData.fee || 0) : 0;
+  }
+
+  const isCityEqual = (a, b) => {
+    if (!a || !b) return false;
+    const norm = (s) => s.replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, '').toLowerCase().trim();
+    return norm(a) === norm(b);
+  };
+
+  let carrier = 'bosta';
+  let govData = (window._fullShippingData || []).find(s => 
+    isCityEqual(s.city, cityName) || isCityEqual(s.cityOtherName, cityName)
+  );
+
+  if (zoneName && govData && govData.zones) {
+    const selectedZoneObj = govData.zones.find(z => api.formatZoneName(z) === zoneName);
+    if (selectedZoneObj && (selectedZoneObj.bostaAvailable === false || selectedZoneObj.dropOffAvailability === false)) {
+      carrier = 'egyptpost';
+    }
+  }
+
+  if (carrier === 'egyptpost') {
+    const postOption = window._shippingOptions.find(o => 
+      o.name.includes('البريد') || o.name.toLowerCase().includes('post')
+    ) || window._shippingOptions[0];
+    
+    const cityObj = postOption ? (postOption.cities || []).find(c => 
+      isCityEqual(c.city, cityName)
+    ) : null;
+    return cityObj ? cityObj.fee : (postOption ? postOption.cost : 80);
+  } else {
+    const bostaOption = window._shippingOptions.find(o => 
+      o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
+    ) || window._shippingOptions[1] || window._shippingOptions[0];
+    
+    const cityObj = bostaOption ? (bostaOption.cities || []).find(c => 
+      isCityEqual(c.city, cityName)
+    ) : null;
+    return cityObj ? cityObj.fee : (bostaOption ? bostaOption.cost : 150);
+  }
+}
+
 // Smart Search helper for Arabic
 function smartMatch(text, query) {
   if (!query) return true; // Show all if no query
@@ -66,15 +113,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.classList.add('is-loading');
 
   try {
-    const [order, shipping, settings] = await Promise.all([
+    const [order, shipping, settings, shippingOptions] = await Promise.all([
       api.getOrder(orderId),
       api.getShippingList().catch(() => []),
-      api.getSetting('sundura_global_settings').catch(() => ({}))
+      api.getSetting('sundura_global_settings').catch(() => ({})),
+      api.getSetting('shipping_options').catch(() => [])
     ]);
 
     currentOrder = order;
     originalOrder = JSON.parse(JSON.stringify(order));
     window._fullShippingData = shipping;
+    window._shippingOptions = shippingOptions || [];
 
     const searchInput = document.getElementById('modal-c-gov-search');
     const dropdown = document.getElementById('modal-c-gov-dropdown');
@@ -580,7 +629,7 @@ window.applyCustomerChanges = async function (btn) {
   currentOrder.customer.zone = zone;
 
   // Update shipping fee based on city automatically (Ensure it is a number)
-  const newFee = govData ? parseFloat(govData.fee) : 0;
+  const newFee = getShippingFeeForCityAndZone(cityName, zone);
   currentOrder.shippingFee = isNaN(newFee) ? 0 : newFee;
 
   currentOrder.customer.address = document.getElementById('modal-c-address').value.trim();
