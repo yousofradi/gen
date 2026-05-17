@@ -330,6 +330,7 @@ router.post('/shipping', adminAuth, async (req, res) => {
     const redis = require('../utils/redis');
     const fees = await Shipping.find({}, 'city cityOtherName fee');
     await redis.set('storefront:shipping:list', JSON.stringify(fees), 'EX', 86400);
+    await redis.del('storefront:settings:shipping_options');
 
     res.json({ message: `Successfully seeded ${newData.length} cities and ${totalZones} zones from Shipment.txt` });
   } catch (err) {
