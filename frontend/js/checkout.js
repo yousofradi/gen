@@ -424,15 +424,22 @@ function updatePriceSummary() {
   const totalEl = document.getElementById('summary-total-final');
 
   if (subEl) subEl.textContent = formatPrice(subtotal);
+  const shipLabelEl = document.getElementById('summary-shipping-label');
   if (shipEl) {
     if (cityId) {
-      if (isEgyptPost) {
-        shipEl.innerHTML = `${formatPrice(shippingFee)} <span style="color:#b84a20; font-size:0.8rem; font-weight:bold;">(البريد المصري)</span>`;
-      } else {
-        shipEl.innerHTML = `${formatPrice(shippingFee)} <span style="color:#00bfa5; font-size:0.8rem; font-weight:bold;">(بوسطة)</span>`;
+      shipEl.textContent = formatPrice(shippingFee);
+      if (shipLabelEl) {
+        if (isEgyptPost) {
+          shipLabelEl.innerHTML = `الشحن <span style="color:#b84a20; font-size:0.85rem; font-weight:bold;">(البريد المصري)</span>`;
+        } else {
+          shipLabelEl.innerHTML = `الشحن <span style="color:#00bfa5; font-size:0.85rem; font-weight:bold;">(بوسطة)</span>`;
+        }
       }
     } else {
       shipEl.textContent = '—';
+      if (shipLabelEl) {
+        shipLabelEl.textContent = 'الشحن';
+      }
     }
   }
   if (totalEl) totalEl.textContent = formatPrice(total);

@@ -91,10 +91,13 @@ async function sendWebhook(event, data) {
                 .map(m => `* ${m.label}`)
                 .join('\n');
               const subtotal = data.totalPrice - data.shippingFee;
+              const carrierName = data.carrier === 'egyptpost' ? 'البريد المصري' : 'بوسطة';
 
               customerMessage = `مرحباً ${data.customer.name}
 
 رقم الطلب: ${data.orderId}
+المجموع الفرعي: ${subtotal} EGP
+الشحن (${carrierName}): ${data.shippingFee} EGP
 إجمالي المبلغ: ${data.totalPrice} EGP
 
 طرق الدفع:
@@ -106,9 +109,12 @@ ${settings.paymentNotes || ''}
 شكراً لثقتك بنا ♡`;
             } else {
               const subtotal = data.totalPrice - data.shippingFee;
+              const carrierName = data.carrier === 'egyptpost' ? 'البريد المصري' : 'بوسطة';
               customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
 
 رقم الأوردر : ${data.orderId}
+المجموع الفرعي: ${subtotal} EGP
+الشحن (${carrierName}): ${data.shippingFee} EGP
 المبلغ الاجمالي : ${data.totalPrice} EGP
 تم الدفع : ${data.paidAmount || 0} EGP
 ${remainingText}
@@ -168,10 +174,13 @@ ${remainingText}
 
             // 4. Prepare Owner Message
             let ownerMessage = '';
+            const carrierName = data.carrier === 'egyptpost' ? 'البريد المصري' : 'بوسطة';
             if (event === 'order.created') {
               ownerMessage = `🔔 طلب جديد
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
+المجموع الفرعي: EGP ${data.totalPrice - data.shippingFee}
+الشحن (${carrierName}): EGP ${data.shippingFee}
 اجمالي الطلب: EGP ${data.totalPrice}`;
 
               if (data.customer.notes) ownerMessage += `\nملاحظات: ${data.customer.notes}`;
@@ -181,6 +190,8 @@ ${remainingText}
 
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
+المجموع الفرعي: EGP ${data.totalPrice - data.shippingFee}
+الشحن (${carrierName}): EGP ${data.shippingFee}
 اجمالي الطلب: EGP ${data.totalPrice}
 ${remainingText}
 

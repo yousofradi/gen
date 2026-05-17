@@ -172,7 +172,7 @@ ${productsHtml}
 </div>
 
 <div class="row">
-<span>مصاريف الشحن (${safe(order.customer.government)})</span>
+<span>مصاريف الشحن (${safe(order.carrier === 'egyptpost' ? 'البريد المصري' : 'بوسطة')} - ${safe(order.customer.government)})</span>
 <span>${shipping} ج</span>
 </div>
 
