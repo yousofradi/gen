@@ -37,6 +37,9 @@ async function generateBostaPayload(order, bostaConfig) {
         description: order.items.map(i => `${i.name}  ( ${i.quantity} )`).join(' , ')
       }
     },
+    goodsInfo: {
+      amount: order.totalPrice
+    },
     pickupAddress: storeAddress,
     returnAddress: storeAddress,
     dropOffAddress: {
