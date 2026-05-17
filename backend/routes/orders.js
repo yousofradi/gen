@@ -47,6 +47,7 @@ router.post('/', async (req, res) => {
     }
 
     // Shipping fee and Carrier resolution:
+    // Shipping fee and Carrier resolution:
     // Respect explicitly provided carrier, or check if the selected zone is a non-Bosta zone (Egyptpost)
     let carrier = req.body.carrier || 'bosta';
     let shippingFee = providedShippingFee !== undefined ? Number(providedShippingFee) : 0;
@@ -61,6 +62,9 @@ router.post('/', async (req, res) => {
       const enableZones = settingsVal.enableZones !== false;
       const egyptPostFeeSetting = settingsVal.egyptPostFee !== undefined ? Number(settingsVal.egyptPostFee) : 60;
 
+      const shippingOptionsRecord = await Setting.findOne({ key: 'shipping_options' });
+      const shippingOptions = shippingOptionsRecord ? shippingOptionsRecord.value : [];
+
       const Shipping = require('../models/Shipping');
       const record = await Shipping.findOne({ $or: [{ city: customer.government }, { cityOtherName: customer.government }] });
       
@@ -69,7 +73,7 @@ router.post('/', async (req, res) => {
         
         if (enableZones && customer.zone && record.zones && record.zones.length > 0) {
           const zoneRecord = record.zones.find(z => z.name === customer.zone || z.otherName === customer.zone);
-          if (zoneRecord && zoneRecord.bostaAvailable === false) {
+          if (zoneRecord && (zoneRecord.dropOffAvailability === false || zoneRecord.bostaAvailable === false)) {
             resolvedCarrier = 'egyptpost';
           } else {
             resolvedCarrier = 'bosta';
@@ -78,19 +82,32 @@ router.post('/', async (req, res) => {
           // If zones are disabled, resolve based on global carrier switches
           if (!enableBosta) {
             resolvedCarrier = 'egyptpost';
-          } else if (!enableEgyptPost) {
-            resolvedCarrier = 'bosta';
           } else {
-            resolvedCarrier = carrier; // Fallback to provided carrier
+            resolvedCarrier = carrier || 'bosta';
           }
         }
         
         carrier = resolvedCarrier;
 
-        if (carrier === 'egyptpost') {
-          shippingFee = egyptPostFeeSetting;
-        } else if (providedShippingFee === undefined) {
-          shippingFee = record.fee;
+        if (providedShippingFee === undefined) {
+          const isEgyptPost = carrier === 'egyptpost';
+          const cityName = record.cityOtherName || record.city;
+
+          if (isEgyptPost) {
+            const postOption = (shippingOptions || []).find(o => 
+              o.name.includes('البريد') || o.name.toLowerCase().includes('post')
+            ) || (shippingOptions || [])[0];
+            
+            const cityObj = postOption ? (postOption.cities || []).find(c => c.city === cityName || c.city === record.city || c.city === record.cityOtherName) : null;
+            shippingFee = cityObj ? cityObj.fee : (postOption ? postOption.cost : 80);
+          } else {
+            const bostaOption = (shippingOptions || []).find(o => 
+              o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
+            ) || (shippingOptions || [])[1] || (shippingOptions || [])[0];
+            
+            const cityObj = bostaOption ? (bostaOption.cities || []).find(c => c.city === cityName || c.city === record.city || c.city === record.cityOtherName) : null;
+            shippingFee = cityObj ? cityObj.fee : (bostaOption ? bostaOption.cost : 150);
+          }
         }
       } else if (providedShippingFee === undefined) {
         const defaultFees = require('../config/shipping');

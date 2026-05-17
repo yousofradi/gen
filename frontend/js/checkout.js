@@ -34,12 +34,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       window._enableZones = true;
       window._egyptPostFee = 60;
     }
+
+    // Load active shipping options
+    const options = await api.getSetting('shipping_options');
+    window._shippingOptions = options || [];
   } catch (err) {
     console.warn('Failed to load global settings, using defaults', err);
     window._enableBosta = true;
     window._enableEgyptPost = true;
     window._enableZones = true;
     window._egyptPostFee = 60;
+    window._shippingOptions = [];
   }
 
   // Hide zone field if zones are globally disabled
@@ -354,36 +359,50 @@ function updatePriceSummary() {
   const items = Cart.getItems();
   const subtotal = Cart.getTotal();
   const cityId = document.getElementById('government').value;
-  const data = (window._fullShippingData || []).find(s => s._id === cityId);
-  let shippingFee = data ? (data.fee || 0) : 0;
+  const govData = (window._fullShippingData || []).find(s => s._id === cityId);
+  const cityName = govData ? (govData.cityOtherName || govData.city) : '';
 
-  // Check if explicitly selected Egypt Post or if zone has only Egypt Post coverage
+  let shippingFee = 0;
+  let resolvedCarrier = 'bosta';
+
+  // Check if zone is selected
   const selectedZone = getSelectedZoneObject();
   
-  // Resolve carrier dynamically
-  let resolvedCarrier = 'bosta';
   if (window._enableZones && selectedZone) {
-    if (selectedZone.bostaAvailable === false) {
+    if (selectedZone.dropOffAvailability === false || selectedZone.bostaAvailable === false) {
       resolvedCarrier = 'egyptpost';
     } else {
       resolvedCarrier = 'bosta';
     }
   } else {
-    // Zones disabled or no zone selected
     if (window._enableBosta === false) {
       resolvedCarrier = 'egyptpost';
-    } else if (window._enableEgyptPost === false) {
-      resolvedCarrier = 'bosta';
     } else {
-      resolvedCarrier = 'bosta'; // Default to bosta if both enabled
+      resolvedCarrier = 'bosta';
     }
   }
   
   window._selectedCarrier = resolvedCarrier;
   const isEgyptPost = resolvedCarrier === 'egyptpost';
-  
-  if (isEgyptPost) {
-    shippingFee = window._egyptPostFee || 60;
+
+  if (cityName) {
+    if (isEgyptPost) {
+      const postOption = (window._shippingOptions || []).find(o => 
+        o.name.includes('البريد') || o.name.toLowerCase().includes('post')
+      ) || (window._shippingOptions || [])[0];
+      
+      const cityObj = postOption ? (postOption.cities || []).find(c => c.city === cityName || c.city === govData.city || c.city === govData.cityOtherName) : null;
+      shippingFee = cityObj ? cityObj.fee : (postOption ? postOption.cost : 80);
+    } else {
+      const bostaOption = (window._shippingOptions || []).find(o => 
+        o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
+      ) || (window._shippingOptions || [])[1] || (window._shippingOptions || [])[0];
+      
+      const cityObj = bostaOption ? (bostaOption.cities || []).find(c => c.city === cityName || c.city === govData.city || c.city === govData.cityOtherName) : null;
+      shippingFee = cityObj ? cityObj.fee : (bostaOption ? bostaOption.cost : 150);
+    }
+  } else {
+    shippingFee = 0;
   }
 
   // Update Shipping Notice under the zone dropdown
@@ -410,7 +429,7 @@ function updatePriceSummary() {
       if (isEgyptPost) {
         shipEl.innerHTML = `${formatPrice(shippingFee)} <span style="color:#b84a20; font-size:0.8rem; font-weight:bold;">(البريد المصري)</span>`;
       } else {
-        shipEl.textContent = formatPrice(shippingFee);
+        shipEl.innerHTML = `${formatPrice(shippingFee)} <span style="color:#00bfa5; font-size:0.8rem; font-weight:bold;">(بوسطة)</span>`;
       }
     } else {
       shipEl.textContent = '—';
