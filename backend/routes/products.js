@@ -200,8 +200,8 @@ router.get('/:id', async (req, res) => {
     // 1. ADMIN BYPASS
     if (admin !== 'true') {
       try {
-        const cached = await redis.get(cacheKey);
-        if (cached) return res.json(JSON.parse(cached));
+        const cached = await cache.get(cacheKey);
+        if (cached) return res.json(cached);
       } catch (err) {
         console.error('[Redis] Cache get failed:', err.message);
       }

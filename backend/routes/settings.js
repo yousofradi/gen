@@ -27,15 +27,20 @@ router.get('/paymentMethods', async (req, res) => {
 router.get('/:key', async (req, res) => {
   try {
     const { key } = req.params;
+    const bypassCache = req.query.admin === 'true' || req.query.bypassCache === 'true' || req.query.t !== undefined;
     const cacheKey = `storefront:settings:${key}`;
     
-    const cached = await cache.get(cacheKey);
-    if (cached) return res.json(cached);
+    if (!bypassCache) {
+      const cached = await cache.get(cacheKey);
+      if (cached) return res.json(cached);
+    }
 
     const setting = await Setting.findOne({ key });
     const value = setting ? setting.value : null;
     
-    await cache.set(cacheKey, value);
+    if (!bypassCache) {
+      await cache.set(cacheKey, value);
+    }
     res.json(value);
   } catch (err) {
     res.status(500).json({ error: err.message });

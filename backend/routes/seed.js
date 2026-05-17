@@ -287,21 +287,20 @@ router.post('/shipping', adminAuth, async (req, res) => {
       ];
     }
 
-    const egyptPostOpt = options.find(o => o.name.includes('البريد') || o.name.toLowerCase().includes('post'));
-    console.log('[Seed] Found Egypt Post option:', egyptPostOpt ? egyptPostOpt.name : 'NOT FOUND');
-    if (egyptPostOpt) {
-      console.log('[Seed] Egypt Post cities count:', egyptPostOpt.cities ? egyptPostOpt.cities.length : 0);
-      const normalizeCityName = (str) => {
-        if (!str) return '';
-        return str
-          .replace(/[أإآا]/g, 'ا')
-          .replace(/ة/g, 'ه')
-          .replace(/ى/g, 'ي')
-          .replace(/\s+/g, '')
-          .toLowerCase()
-          .trim();
-      };
+    const normalizeCityName = (str) => {
+      if (!str) return '';
+      return str
+        .replace(/[أإآا]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/\s+/g, '')
+        .toLowerCase()
+        .trim();
+    };
 
+    // 1. Seed Egypt Post (dropoff-false zones where Bosta doesn't deliver)
+    const egyptPostOpt = options.find(o => o.name.includes('البريد') || o.name.toLowerCase().includes('post'));
+    if (egyptPostOpt) {
       newData.forEach(c => {
         const matchingEgyptPostCity = egyptPostOpt.cities.find(ec => {
           const ecNorm = normalizeCityName(ec.city);
@@ -315,11 +314,28 @@ router.post('/shipping', adminAuth, async (req, res) => {
             .filter(z => z.dropOffAvailability === false)
             .map(z => z.otherName || z.name);
 
-          console.log(`[Seed] Matched City: ${c.city} (${c.cityOtherName}) -> ${matchingEgyptPostCity.city}. Found ${dropoffFalseZones.length} dropoff-false zones.`);
-          // Unique zones to avoid duplication
           matchingEgyptPostCity.zones = Array.from(new Set(dropoffFalseZones));
-        } else {
-          console.log(`[Seed] FAILED to match City: ${c.city} (${c.cityOtherName})`);
+        }
+      });
+    }
+
+    // 2. Seed Bosta (dropoff-true zones where Bosta delivers)
+    const bostaOpt = options.find(o => o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta'));
+    if (bostaOpt) {
+      newData.forEach(c => {
+        const matchingBostaCity = bostaOpt.cities.find(ec => {
+          const ecNorm = normalizeCityName(ec.city);
+          const cNorm = normalizeCityName(c.city);
+          const cOtherNorm = normalizeCityName(c.cityOtherName);
+          return ecNorm === cNorm || ecNorm === cOtherNorm;
+        });
+
+        if (matchingBostaCity) {
+          const dropoffTrueZones = c.zones
+            .filter(z => z.dropOffAvailability === true)
+            .map(z => z.otherName || z.name);
+
+          matchingBostaCity.zones = Array.from(new Set(dropoffTrueZones));
         }
       });
     }
@@ -329,7 +345,7 @@ router.post('/shipping', adminAuth, async (req, res) => {
       { value: options },
       { upsert: true }
     );
-    console.log('Successfully injected dropoff-false zones into Egypt Post shipping options');
+    console.log('Successfully injected zones into Egypt Post and Bosta shipping options');
 
     // Refresh cache
     const redis = require('../utils/redis');
