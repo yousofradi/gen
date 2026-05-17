@@ -1,0 +1,13 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/collection/:path*",
+      "destination": "/collection.html"
+    },
+    {
+      "source": "/product/:path*",
+      "destination": "/product.html"
+    }
+  ]
+}
