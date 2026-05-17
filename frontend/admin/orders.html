@@ -336,13 +336,18 @@
       <div style="max-width:1300px">
         <div class="flex-between mb-24 align-center">
           <div>
-            <h1 class="page-title" style="margin-bottom:0; font-size: 1.5rem; color:#1e293b; font-weight:700;">الطلبات
+            <h1 class="page-title" style="margin-bottom:0; font-size: 1.5rem; color:#1e293b; font-weight:700; padding-right: 15px;">الطلبات
             </h1>
           </div>
-          <div class="page-actions-container" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <a href="order-form.html" class="btn btn-primary"
-              style="gap:6px; background:var(--primary, var(--primary)); border:none; border-radius:20px; padding:8px 20px; font-weight:600;">+
-              أنشئ طلب</a>
+          <div class="page-actions-container" style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="printInvoices()" class="btn btn-secondary"
+              style="gap:6px; border-radius:20px; padding:8px 20px; background:#fff; border:1px solid #e2e8f0; color:#475569; font-weight:600;"
+              id="print-invoices-btn">الفواتير <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg></button>
             <button onclick="shipOrders()" class="btn btn-primary"
               style="gap:6px; background:var(--primary, var(--primary)); border:none; border-radius:20px; padding:8px 20px; font-weight:600;"
               id="ship-orders-btn">شحن الطلبات <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -352,14 +357,9 @@
                 <circle cx="5.5" cy="18.5" r="2.5"></circle>
                 <circle cx="18.5" cy="18.5" r="2.5"></circle>
               </svg></button>
-            <button onclick="printInvoices()" class="btn btn-secondary"
-              style="gap:6px; border-radius:20px; padding:8px 20px; background:#fff; border:1px solid #e2e8f0; color:#475569; font-weight:600;"
-              id="print-invoices-btn">الفواتير <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg></button>
+            <a href="order-form.html" class="btn btn-primary"
+              style="gap:6px; background:var(--primary, var(--primary)); border:none; border-radius:20px; padding:8px 20px; font-weight:600;">+
+              أنشئ طلب</a>
           </div>
         </div>
 
