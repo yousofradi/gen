@@ -304,20 +304,27 @@ router.post('/shipping', adminAuth, async (req, res) => {
     const egyptPostOpt = options.find(o => o.name.includes('البريد') || o.name.toLowerCase().includes('post'));
     if (egyptPostOpt) {
       newData.forEach(c => {
-        const matchingEgyptPostCity = egyptPostOpt.cities.find(ec => {
+        let matchingEgyptPostCity = egyptPostOpt.cities.find(ec => {
           const ecNorm = normalizeCityName(ec.city);
           const cNorm = normalizeCityName(c.city);
           const cOtherNorm = normalizeCityName(c.cityOtherName);
           return ecNorm === cNorm || ecNorm === cOtherNorm;
         });
 
-        if (matchingEgyptPostCity) {
-          const dropoffFalseZones = c.zones
-            .filter(z => z.dropOffAvailability === false)
-            .map(z => z.otherName || z.name);
-
-          matchingEgyptPostCity.zones = Array.from(new Set(dropoffFalseZones));
+        if (!matchingEgyptPostCity) {
+          matchingEgyptPostCity = {
+            city: c.cityOtherName || c.city,
+            fee: egyptPostOpt.cost || 80,
+            zones: []
+          };
+          egyptPostOpt.cities.push(matchingEgyptPostCity);
         }
+
+        const dropoffFalseZones = c.zones
+          .filter(z => z.dropOffAvailability === false)
+          .map(z => z.otherName || z.name);
+
+        matchingEgyptPostCity.zones = Array.from(new Set(dropoffFalseZones));
       });
     }
 
@@ -325,20 +332,27 @@ router.post('/shipping', adminAuth, async (req, res) => {
     const bostaOpt = options.find(o => o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta'));
     if (bostaOpt) {
       newData.forEach(c => {
-        const matchingBostaCity = bostaOpt.cities.find(ec => {
+        let matchingBostaCity = bostaOpt.cities.find(ec => {
           const ecNorm = normalizeCityName(ec.city);
           const cNorm = normalizeCityName(c.city);
           const cOtherNorm = normalizeCityName(c.cityOtherName);
           return ecNorm === cNorm || ecNorm === cOtherNorm;
         });
 
-        if (matchingBostaCity) {
-          const dropoffTrueZones = c.zones
-            .filter(z => z.dropOffAvailability === true)
-            .map(z => z.otherName || z.name);
-
-          matchingBostaCity.zones = Array.from(new Set(dropoffTrueZones));
+        if (!matchingBostaCity) {
+          matchingBostaCity = {
+            city: c.cityOtherName || c.city,
+            fee: bostaOpt.cost || 150,
+            zones: []
+          };
+          bostaOpt.cities.push(matchingBostaCity);
         }
+
+        const dropoffTrueZones = c.zones
+          .filter(z => z.dropOffAvailability === true)
+          .map(z => z.otherName || z.name);
+
+        matchingBostaCity.zones = Array.from(new Set(dropoffTrueZones));
       });
     }
 
