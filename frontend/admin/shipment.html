@@ -273,11 +273,11 @@
       width: 0;
     }
     .custom-checkmark {
-      height: 22px;
-      width: 22px;
+      height: 18px;
+      width: 18px;
       background-color: #fff;
-      border: 2px solid #cbd5e1;
-      border-radius: 6px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 5px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -293,8 +293,8 @@
       box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.15);
     }
     .custom-checkmark svg {
-      width: 14px;
-      height: 14px;
+      width: 11px;
+      height: 11px;
       stroke: #fff;
       stroke-width: 3.5;
       stroke-linecap: round;
@@ -564,8 +564,14 @@
         </div>
         
         <!-- Checkboxes list in a grid -->
-        <div id="gov-selector-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; max-height:350px; overflow-y:auto; padding:16px; background:#fff; border:1px solid #e2e8f0; border-radius:16px;">
+        <div id="gov-selector-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:0; max-height:350px; overflow-y:auto; padding:0; background:#fff; border:1px solid #e2e8f0; border-radius:16px;">
           <!-- checkboxes injected here -->
+        </div>
+
+        <!-- Add Custom Governorate Inline Form -->
+        <div style="margin-top:16px; display:flex; gap:8px;">
+          <input type="text" id="new-gov-name" placeholder="اسم المحافظة الجديد" style="flex:1; padding:10px 14px; border:1.5px solid #cbd5e1; border-radius:12px; outline:none; font-size:0.9rem; box-sizing:border-box;">
+          <button type="button" onclick="addNewGovToList()" style="background:#00bfa5; color:#fff; border:none; border-radius:12px; padding:0 20px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#00a68f'" onmouseout="this.style.background='#00bfa5'">إضافة محافظة</button>
         </div>
       </div>
       <div class="modal-footer">
@@ -958,7 +964,7 @@
     function renderGovSelectorGrid() {
       const grid = document.getElementById('gov-selector-grid');
       grid.innerHTML = EGYPT_GOVERNORATES.map(gov => `
-        <div class="gov-select-item" style="padding:10px 16px; display:flex; align-items:center; gap:8px;">
+        <div class="gov-select-item" style="padding:8px 12px; display:flex; align-items:center; gap:5px; border-bottom:1px solid #f1f5f9; box-sizing:border-box;">
           <label class="custom-cb-label">
             <input type="checkbox" value="${gov}" ${tempSelectedGovs.has(gov) ? 'checked' : ''} onchange="toggleSelectorGov('${gov}', this.checked)">
             <span class="custom-checkmark">
@@ -973,6 +979,24 @@
     function toggleSelectorGov(gov, checked) {
       if (checked) tempSelectedGovs.add(gov);
       else tempSelectedGovs.delete(gov);
+    }
+
+    function addNewGovToList() {
+      const input = document.getElementById('new-gov-name');
+      const val = input.value.trim();
+      if (!val) { showToast('يرجى إدخال اسم المحافظة الجديد', 'error'); return; }
+      if (EGYPT_GOVERNORATES.includes(val)) { showToast('هذه المحافظة موجودة بالفعل', 'error'); return; }
+      
+      EGYPT_GOVERNORATES.push(val);
+      tempSelectedGovs.add(val);
+      input.value = '';
+      renderGovSelectorGrid();
+      showToast('تمت إضافة المحافظة بنجاح');
+      
+      setTimeout(() => {
+        const grid = document.getElementById('gov-selector-grid');
+        grid.scrollTop = grid.scrollHeight;
+      }, 50);
     }
 
     function filterSelectorGovs(query) {
