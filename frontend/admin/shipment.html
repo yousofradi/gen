@@ -204,33 +204,13 @@
       box-shadow: 0 0 0 4px rgba(0, 191, 165, 0.1);
     }
 
-    /* Media query to take the full screen on mobile */
+    /* Responsive inner list heights for small screens */
     @media (max-width: 600px) {
-      .modal-content {
-        width: 100% !important;
-        height: 100% !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-        border-radius: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        margin: 0 !important;
-      }
-      .modal-body {
-        flex: 1 !important;
-        overflow-y: auto !important;
-        padding: 20px !important;
-      }
-      .modal-footer {
-        padding: 16px 20px !important;
-        background: #fff !important;
-        border-top: 1px solid #f1f5f9 !important;
-      }
       #gov-selector-grid {
-        max-height: calc(100vh - 220px) !important;
+        max-height: 280px !important;
       }
       #custom-zones-temp-list {
-        max-height: calc(100vh - 350px) !important;
+        max-height: 200px !important;
       }
     }
 
