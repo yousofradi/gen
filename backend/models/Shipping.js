@@ -8,6 +8,8 @@ const shippingSchema = new mongoose.Schema({
   zones: [{
     name: { type: String },
     otherName: { type: String },
+    zoneName: { type: String },
+    zoneOtherName: { type: String },
     districtOtherName: { type: String },
     bostaZoneId: { type: String },
     bostaAvailable: { type: Boolean, default: true },

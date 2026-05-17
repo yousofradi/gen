@@ -27,6 +27,8 @@ async function run() {
       const zones = districts.map(d => ({
         name: d.zoneName,
         otherName: d.zoneOtherName,
+        zoneName: d.zoneName,
+        zoneOtherName: d.zoneOtherName,
         districtOtherName: d.districtOtherName,
         bostaZoneId: d.zoneId,
         bostaAvailable: d.dropOffAvailability !== false
