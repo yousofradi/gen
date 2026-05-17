@@ -215,9 +215,19 @@ const api = {
 
   formatZoneName(z) {
     if (!z) return '';
-    const main = z.otherName || z.name;
-    const dist = z.districtOtherName || '';
-    if (dist && dist !== main) return `${main} - ${dist}`;
+    const main = (z.zoneOtherName || z.otherName || z.name || '').trim();
+    const dist = (z.districtOtherName || z.districtName || '').trim();
+    
+    const normalize = (s) => s.toLowerCase()
+      .replace(/[أإآا]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/ى/g, 'ي')
+      .replace(/\s+/g, '')
+      .trim();
+
+    if (dist && normalize(dist) !== normalize(main)) {
+      return `${main} - ${dist}`;
+    }
     return main;
   }
 };

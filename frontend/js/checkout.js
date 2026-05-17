@@ -367,20 +367,41 @@ function updatePriceSummary() {
   window._selectedCarrier = resolvedCarrier;
   const isEgyptPost = resolvedCarrier === 'egyptpost';
 
+  const isCityEqual = (c1, c2) => {
+    if (!c1 || !c2) return false;
+    const norm = (s) => s.toLowerCase()
+      .replace(/[أإآا]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/ى/g, 'ي')
+      .replace(/^ال/, '')
+      .replace(/\sال/g, ' ')
+      .replace(/\s+/g, '')
+      .trim();
+    return norm(c1) === norm(c2);
+  };
+
   if (cityName) {
     if (isEgyptPost) {
       const postOption = (window._shippingOptions || []).find(o => 
         o.name.includes('البريد') || o.name.toLowerCase().includes('post')
       ) || (window._shippingOptions || [])[0];
       
-      const cityObj = postOption ? (postOption.cities || []).find(c => c.city === cityName || c.city === govData.city || c.city === govData.cityOtherName) : null;
+      const cityObj = postOption ? (postOption.cities || []).find(c => 
+        isCityEqual(c.city, cityName) || 
+        isCityEqual(c.city, govData.city) || 
+        isCityEqual(c.city, govData.cityOtherName)
+      ) : null;
       shippingFee = cityObj ? cityObj.fee : (postOption ? postOption.cost : 80);
     } else {
       const bostaOption = (window._shippingOptions || []).find(o => 
         o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
       ) || (window._shippingOptions || [])[1] || (window._shippingOptions || [])[0];
       
-      const cityObj = bostaOption ? (bostaOption.cities || []).find(c => c.city === cityName || c.city === govData.city || c.city === govData.cityOtherName) : null;
+      const cityObj = bostaOption ? (bostaOption.cities || []).find(c => 
+        isCityEqual(c.city, cityName) || 
+        isCityEqual(c.city, govData.city) || 
+        isCityEqual(c.city, govData.cityOtherName)
+      ) : null;
       shippingFee = cityObj ? cityObj.fee : (bostaOption ? bostaOption.cost : 150);
     }
   } else {
