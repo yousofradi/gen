@@ -265,16 +265,7 @@ function renderZoneDropdown() {
   );
 
   if (filtered.length === 0 && query !== '') {
-    if (window._selectedCarrier === 'bosta') {
-      dropdown.innerHTML = `
-        <div style="padding: 12px 10px; color: #94a3b8; text-align: center;">
-          <div style="font-size:0.85rem; font-weight:600;">⚠️ لا توجد مناطق مطابقة تحت شحن بوسطة</div>
-          <button type="button" onclick="window.setCarrier('egyptpost')" style="margin-top: 8px; padding: 6px 12px; background: var(--primary, #0f766e); color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 0.8rem; cursor: pointer; outline: none;">التحويل إلى البريد المصري</button>
-        </div>
-      `;
-    } else {
-      dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
-    }
+    dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
   } else {
     const displayList = filtered.length > 0 ? filtered : window._currentZones;
     dropdown.innerHTML = displayList.map(z => {
