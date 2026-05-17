@@ -29,9 +29,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   // Add change listeners to all static inputs
-  const inputs = document.querySelectorAll('.form-control, input[type="hidden"]');
+  const inputs = document.querySelectorAll('.form-control, input[type="hidden"], input[type="checkbox"]');
   inputs.forEach(input => {
-    input.addEventListener('input', () => {
+    const eventName = input.type === 'checkbox' ? 'change' : 'input';
+    input.addEventListener(eventName, () => {
       if (window.markAsModified) window.markAsModified();
       if (input.id === 'setting-store-name') {
         updateBranding(input.value);
@@ -83,6 +84,12 @@ function populateSettingsForm(s) {
   document.getElementById('setting-payment-notes').value = s.paymentNotes || '';
   document.getElementById('setting-primary-color').value = s.primaryColor || '#916C4F';
   document.getElementById('setting-primary-color-hex').value = (s.primaryColor || '#916C4F').toUpperCase();
+
+  // Populate Shipping Switches
+  document.getElementById('setting-enable-bosta').checked = s.enableBosta !== false;
+  document.getElementById('setting-enable-egypt-post').checked = s.enableEgyptPost !== false;
+  document.getElementById('setting-egypt-post-fee').value = s.egyptPostFee !== undefined ? s.egyptPostFee : 60;
+  document.getElementById('setting-enable-zones').checked = s.enableZones !== false;
 
   paymentMethods = s.paymentMethods || [];
   renderPaymentMethods();
@@ -215,7 +222,11 @@ async function saveSettings() {
     socialWa: document.getElementById('setting-social-wa').value.trim(),
     paymentNotes: document.getElementById('setting-payment-notes').value.trim(),
     primaryColor: document.getElementById('setting-primary-color').value,
-    paymentMethods: paymentMethods
+    paymentMethods: paymentMethods,
+    enableBosta: document.getElementById('setting-enable-bosta').checked,
+    enableEgyptPost: document.getElementById('setting-enable-egypt-post').checked,
+    egyptPostFee: parseFloat(document.getElementById('setting-egypt-post-fee').value) || 60,
+    enableZones: document.getElementById('setting-enable-zones').checked
   };
 
   try {

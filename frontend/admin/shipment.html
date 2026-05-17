@@ -408,42 +408,41 @@
 
   <!-- Zones Selection Modal -->
   <div id="zones-modal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width:95%; width:95%;">
+    <div class="modal-content" style="max-width:600px; width:95%;">
       <div class="modal-header">
-        <h3 id="zones-modal-title">تحديث المناطق</h3>
+        <h3 id="zones-modal-title">إدارة وتعديل المناطق</h3>
         <button class="close-btn" onclick="closeZonesModal()">×</button>
       </div>
-      <div class="modal-body" style="padding:0;">
-        <div id="zones-selection-list" style="max-height:400px; overflow-y:auto;">
+      <div class="modal-body" style="padding:20px; background:#f8fafc;">
+        <!-- Add New Zone Form -->
+        <div style="background:#fff; border:1px solid #e2e8f0; padding:16px; border-radius:12px; margin-bottom:20px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <span style="font-weight:800; color:#1e293b; font-size:0.95rem; border-right:3px solid var(--primary); padding-right:8px;">+ إضافة منطقة جديدة</span>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="form-group mb-0">
+              <input type="text" id="new-zone-other-name" placeholder="اسم المنطقة (عربي)" class="form-control" style="padding:8px 12px; font-size:0.85rem; border-radius:8px;">
+            </div>
+            <div class="form-group mb-0">
+              <select id="new-zone-carrier" class="form-control" style="padding:8px 12px; font-size:0.85rem; border-radius:8px; height:auto; -webkit-appearance:auto;">
+                <option value="bosta" selected>شحن عبر بوسطا (Bosta)</option>
+                <option value="egyptpost">شحن عبر البريد المصري (Egypt Post)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:12px; align-items: center;">
+            <input type="text" id="new-zone-name" placeholder="الاسم بالانجليزي (English Name)" class="form-control" style="padding:8px 12px; font-size:0.85rem; border-radius:8px;">
+            <button onclick="addZoneToTemp()" class="btn btn-primary" style="padding:10px; font-size:0.85rem; font-weight:700; border-radius:8px; width:100%;">إضافة المنطقة</button>
+          </div>
+        </div>
+
+        <div style="font-weight:700; color:#475569; font-size:0.9rem; margin-bottom:12px;">المناطق الحالية:</div>
+        
+        <div id="zones-selection-list" style="max-height:350px; overflow-y:auto; padding-left:4px; padding-right:4px; display:flex; flex-direction:column; gap:12px;">
           <!-- List of zones -->
         </div>
-        <div style="padding:16px; border-top:1px solid #f1f5f9; background:#f8fafc;">
-          <button class="btn btn-secondary" onclick="openCustomZonesModal()" style="width:100%; border:none; background:#e0f2f1; color:#00bfa5; font-weight:700;">+ أضف أو احذف مدن مخصصة</button>
-        </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" onclick="saveZonesSelection()" style="background:#00bfa5; border-radius:30px;">حفظ التعديلات</button>
-        <button class="btn btn-link" onclick="closeZonesModal()">إلغاء</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Custom Zones Modal -->
-  <div id="custom-zones-modal" class="modal" style="display:none; z-index:11000;">
-    <div class="modal-content" style="max-width:450px;">
-      <div class="modal-header">
-        <h3>تعديل المدن المخصصة</h3>
-        <button class="close-btn" onclick="closeCustomZonesModal()">×</button>
-      </div>
-      <div class="modal-body">
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
-          <input type="text" id="new-custom-zone" placeholder="اسم المدينة الجديدة" class="form-control" style="flex:1;">
-          <button class="btn btn-primary" onclick="addCustomZone()">إضافة</button>
-        </div>
-        <div id="custom-zones-list" style="display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto;"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="closeCustomZonesModal()">تم</button>
+        <button class="btn btn-primary" onclick="saveZonesSelection()" style="background:#00bfa5; border-radius:30px; padding:8px 24px;">حفظ التعديلات</button>
+        <button class="btn btn-secondary" onclick="closeZonesModal()" style="border-radius:30px; padding:8px 24px;">إلغاء</button>
       </div>
     </div>
   </div>
@@ -564,13 +563,19 @@
                 <div style="font-size:0.75rem; color:#94a3b8;">${s.zones?.length || 0} منطقة</div>
               </td>
               <td style="text-align:center;">
-                <button class="btn-edit-rounded" onclick="openZonesModal('${s._id}')">تعديل</button>
+                <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
+                  <button class="btn btn-secondary btn-sm" onclick="editCity('${s._id}')" style="padding:4px 10px; font-size:0.8rem; font-weight:700; border-radius:6px; background:#f1f5f9; color:#475569; border:1.5px solid #cbd5e1; cursor:pointer;">تعديل الاسم</button>
+                  <button class="btn btn-primary btn-sm" onclick="openZonesModal('${s._id}')" style="padding:4px 10px; font-size:0.8rem; font-weight:700; border-radius:6px; background:#e0f2f1; color:#00bfa5; border:1.5px solid #00bfa5; cursor:pointer;">المناطق (${s.zones?.length || 0})</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteCity('${s._id}')" style="padding:4px; font-size:0.8rem; border-radius:6px; background:#fee2e2; border:1.5px solid #ef4444; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="حذف المدينة">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                </div>
               </td>
               <td style="text-align:left;">
                 <div class="price-box" style="padding:0; overflow:hidden; border: 1.5px solid ${hasPending ? '#00bfa5' : '#cbd5e1'}; background: ${hasPending ? '#f0fdfa' : '#fff'}; transition: all 0.2s;">
                   <input type="number" value="${displayFee}" 
-                    style="width:60px; border:none; background:transparent; padding:6px 8px; font-weight:700; text-align:center; outline:none; color:#1e293b;" 
-                    oninput="handleFeeInput('${s._id}', this.value)">
+                     style="width:60px; border:none; background:transparent; padding:6px 8px; font-weight:700; text-align:center; outline:none; color:#1e293b;" 
+                     oninput="handleFeeInput('${s._id}', this.value)">
                   <span class="currency" style="padding-right:8px; font-weight:700; color:${hasPending ? '#00bfa5' : '#94a3b8'};">EGP</span>
                 </div>
               </td>
@@ -598,6 +603,34 @@
           }
         });
       } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center">خطأ في التحميل</td></tr>'; }
+    }
+
+    function editCity(id) {
+      const s = shippingList.find(item => item._id === id);
+      if (!s) return;
+      const modal = document.getElementById('add-modal');
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('open'), 10);
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
+      document.getElementById('modal-title').textContent = 'تعديل مدينة';
+      document.getElementById('ship-edit-id').value = s._id;
+      document.getElementById('ship-city').value = s.city || '';
+      document.getElementById('ship-city-other').value = s.cityOtherName || '';
+      document.getElementById('ship-fee').value = s.fee !== undefined ? s.fee : '';
+      document.getElementById('ship-bosta-id').value = s.bostaCityId || '';
+    }
+
+    async function deleteCity(id) {
+      const s = shippingList.find(item => item._id === id);
+      if (!s) return;
+      const confirmed = await window.showConfirmModal('حذف مدينة', `هل تريد حذف مدينة ${s.cityOtherName || s.city} نهائياً؟`, false);
+      if (!confirmed) return;
+      try {
+        await api.deleteShipping(id);
+        showToast('تم الحذف بنجاح');
+        loadShipping();
+      } catch (e) { showToast('فشل الحذف', 'error'); }
     }
 
     function toggleRowSelection(id, cb) {
@@ -667,68 +700,123 @@
     function openZonesModal(id) {
       currentEditingCity = shippingList.find(s => s._id === id);
       if (!currentEditingCity) return;
-      document.getElementById('zones-modal-title').textContent = `تحديث اختيار ${currentEditingCity.cityOtherName || currentEditingCity.city}`;
-      tempZones = [...(currentEditingCity.zones || [])].map(z => ({ ...z, inactive: false }));
+      document.getElementById('zones-modal-title').textContent = `إدارة وتعديل مناطق ${currentEditingCity.cityOtherName || currentEditingCity.city}`;
+      
+      // Load current zones, cloning objects so changes are temporary until saved
+      tempZones = [...(currentEditingCity.zones || [])].map(z => ({ ...z }));
       renderZonesList();
+      
       const modal = document.getElementById('zones-modal');
       modal.style.display = 'flex';
       setTimeout(() => modal.classList.add('open'), 10);
       document.body.style.overflow = 'hidden';
       document.body.classList.add('modal-open');
+      
+      // Clear new zone form
+      document.getElementById('new-zone-name').value = '';
+      document.getElementById('new-zone-other-name').value = '';
+      document.getElementById('new-zone-carrier').value = 'bosta';
     }
 
     function renderZonesList() {
       const list = document.getElementById('zones-selection-list');
-      const activeZones = tempZones.filter(z => !z.inactive);
-      list.innerHTML = `
-        <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; background:#fff;">
-          <span style="font-weight:700; color:#1e293b; font-size:1rem;">${currentEditingCity.cityOtherName || currentEditingCity.city} (${activeZones.length} مختارة)</span>
-          <label class="custom-cb-label">
-            <input type="checkbox" ${activeZones.length === tempZones.length ? 'checked' : ''} onchange="toggleAllZones(this.checked)">
-            <span class="custom-checkmark">
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            </span>
-          </label>
-        </div>
-      ` + tempZones.map((z, idx) => `
-        <div style="padding:14px 24px; border-bottom:1px solid #f8fafc; display:flex; justify-content:space-between; align-items:center; background:#fff;">
-          <span style="font-weight:600; color:#334155; font-size:0.95rem;">${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}</span>
-          <label class="custom-cb-label">
-            <input type="checkbox" class="zone-row-checkbox" ${!z.inactive ? 'checked' : ''} onchange="toggleZoneSelection(${idx}, this.checked)">
-            <span class="custom-checkmark">
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            </span>
-          </label>
+      if (tempZones.length === 0) {
+        list.innerHTML = `<div style="text-align:center; padding:30px; font-weight:600; color:#64748b; background:#fff; border-radius:12px;">لا توجد مناطق حالياً. أضف منطقة جديدة في الأعلى.</div>`;
+        return;
+      }
+
+      list.innerHTML = tempZones.map((z, idx) => `
+        <div style="background:#fff; border:1px solid #e2e8f0; padding:16px; border-radius:12px; display:flex; flex-direction:column; gap:12px; position:relative; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:800; color:var(--primary); font-size:0.9rem;">منطقة #${idx + 1}</span>
+            <button onclick="removeZone(${idx})" style="background:#fee2e2; border:1px solid #ef4444; border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="حذف المنطقة">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:0.75rem; color:#64748b; font-weight:700; margin-bottom:4px; display:block;">الاسم (عربي)</label>
+              <input type="text" value="${z.otherName || ''}" oninput="updateZoneField(${idx}, 'otherName', this.value)" class="form-control" style="padding:8px 12px; font-size:0.85rem; border-radius:8px;" placeholder="مثال: التجمع الخامس">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:0.75rem; color:#64748b; font-weight:700; margin-bottom:4px; display:block;">الشركة الناقلة (Carrier)</label>
+              <select onchange="updateZoneField(${idx}, 'bostaAvailable', this.value === 'bosta')" class="form-control" style="padding:8px 12px; font-size:0.85rem; border-radius:8px; height:auto; -webkit-appearance:auto; background:#fff;">
+                <option value="bosta" ${z.bostaAvailable !== false ? 'selected' : ''}>شحن عبر بوسطا (Bosta)</option>
+                <option value="egyptpost" ${z.bostaAvailable === false ? 'selected' : ''}>شحن عبر البريد المصري (Egypt Post)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:0.75rem; color:#64748b; font-weight:700; margin-bottom:4px; display:block;">الاسم بالانجليزي (English Name)</label>
+              <input type="text" value="${z.name || ''}" oninput="updateZoneField(${idx}, 'name', this.value)" class="form-control" style="padding:8px 12px; font-size:0.85rem; border-radius:8px;" placeholder="e.g. Fifth Settlement">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:0.75rem; color:#64748b; font-weight:700; margin-bottom:4px; display:block;">المحافظة / الحي (District)</label>
+              <input type="text" value="${z.districtOtherName || ''}" oninput="updateZoneField(${idx}, 'districtOtherName', this.value)" class="form-control" style="padding:8px 12px; font-size:0.85rem; border-radius:8px;" placeholder="مثال: القاهرة الجديدة">
+            </div>
+          </div>
         </div>
       `).join('');
     }
 
-    function toggleZoneSelection(idx, checked) {
+    function updateZoneField(idx, field, value) {
       if (tempZones[idx]) {
-        tempZones[idx].inactive = !checked;
-      }
-      const activeZones = tempZones.filter(z => !z.inactive);
-      const span = document.querySelector('#zones-selection-list span');
-      if (span) {
-        span.textContent = `${currentEditingCity.cityOtherName || currentEditingCity.city} (${activeZones.length} مختارة)`;
+        tempZones[idx][field] = value;
       }
     }
 
-    function toggleAllZones(checked) {
-      document.querySelectorAll('.zone-row-checkbox').forEach((cb, idx) => {
-        cb.checked = checked;
-        toggleZoneSelection(idx, checked);
-      });
+    function removeZone(idx) {
+      tempZones.splice(idx, 1);
+      renderZonesList();
+    }
+
+    function addZoneToTemp() {
+      const otherName = document.getElementById('new-zone-other-name').value.trim();
+      const carrier = document.getElementById('new-zone-carrier').value;
+      const name = document.getElementById('new-zone-name').value.trim();
+      
+      if (!otherName) {
+        showToast('يرجى إدخال اسم المنطقة بالعربي', 'error');
+        return;
+      }
+
+      const newZone = {
+        otherName: otherName,
+        name: name || otherName,
+        bostaAvailable: carrier === 'bosta',
+        districtOtherName: currentEditingCity.cityOtherName || currentEditingCity.city,
+        bostaZoneId: ''
+      };
+
+      tempZones.push(newZone);
+      renderZonesList();
+
+      // Clear new zone form fields
+      document.getElementById('new-zone-name').value = '';
+      document.getElementById('new-zone-other-name').value = '';
+      document.getElementById('new-zone-carrier').value = 'bosta';
+      
+      showToast('تمت إضافة المنطقة بنجاح');
     }
 
     async function saveZonesSelection() {
       try {
-        const finalZones = tempZones.filter(z => !z.inactive);
-        await api.updateShipping(currentEditingCity._id, { zones: finalZones });
-        showToast('تم حفظ اختيار المناطق');
+        // Validate all zones have arabic names
+        for (const z of tempZones) {
+          if (!z.otherName?.trim()) {
+            showToast('جميع المناطق يجب أن تحتوي على اسم عربي صحيح', 'error');
+            return;
+          }
+        }
+
+        await api.updateShipping(currentEditingCity._id, { zones: tempZones });
+        showToast('تم حفظ المناطق والتغييرات بنجاح');
         closeZonesModal();
         loadShipping();
-      } catch (e) { showToast('فشل الحفظ', 'error'); }
+      } catch (e) { 
+        showToast('فشل حفظ المناطق والتغييرات', 'error'); 
+      }
     }
 
     function closeZonesModal() {
@@ -736,43 +824,7 @@
       modal.classList.remove('open');
       setTimeout(() => modal.style.display = 'none', 250);
       document.body.style.overflow = '';
-    }
-
-    function openCustomZonesModal() {
-      renderCustomZonesList();
-      const modal = document.getElementById('custom-zones-modal');
-      modal.style.display = 'flex';
-      setTimeout(() => modal.classList.add('open'), 10);
-    }
-
-    function renderCustomZonesList() {
-      const list = document.getElementById('custom-zones-list');
-      list.innerHTML = tempZones.map((z, idx) => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:#f1f5f9; border-radius:10px;">
-          <span style="font-weight:600; color:#334155;">${z.otherName || z.name}${z.districtOtherName ? ` - ${z.districtOtherName}` : ''}</span>
-          <button onclick="removeCustomZone(${idx})" style="background:none; border:none; color:#ef4444; font-size:1.3rem; cursor:pointer; font-weight:700;">×</button>
-        </div>
-      `).join('');
-    }
-
-    function addCustomZone() {
-      const val = document.getElementById('new-custom-zone').value.trim();
-      if (!val) return;
-      tempZones.push({ name: val, otherName: val, inactive: false });
-      document.getElementById('new-custom-zone').value = '';
-      renderCustomZonesList();
-    }
-
-    function removeCustomZone(idx) {
-      tempZones.splice(idx, 1);
-      renderCustomZonesList();
-    }
-
-    function closeCustomZonesModal() {
-      const modal = document.getElementById('custom-zones-modal');
-      modal.classList.remove('open');
-      setTimeout(() => modal.style.display = 'none', 250);
-      renderZonesList();
+      document.body.classList.remove('modal-open');
     }
 
     async function seedShippingData() {

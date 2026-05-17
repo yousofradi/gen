@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentOrder = order;
     originalOrder = JSON.parse(JSON.stringify(order));
     window._fullShippingData = shipping;
+    window._globalSettings = settings || {};
 
     const searchInput = document.getElementById('modal-c-gov-search');
     const dropdown = document.getElementById('modal-c-gov-dropdown');
@@ -225,7 +226,13 @@ function renderOrder() {
 
   // Shipping Info
   document.getElementById('view-c-address').textContent = o.customer.address || 'لا يوجد عنوان';
-  document.getElementById('view-c-gov').textContent = o.customer.government || 'لا يوجد محافظة';
+  
+  const govEl = document.getElementById('view-c-gov');
+  govEl.textContent = o.customer.government || 'لا يوجد محافظة';
+  if (o.carrier === 'egyptpost') {
+    govEl.innerHTML += ' <span class="badge badge-danger" style="background:#fee2e2; color:#dc2626; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-right:8px; font-weight:700;">البريد المصري</span>';
+  }
+
   document.getElementById('view-c-zone').textContent = o.customer.zone || 'لا توجد منطقة';
 
   const notesEl = document.getElementById('view-c-notes');
@@ -594,9 +601,26 @@ window.applyCustomerChanges = async function (btn) {
   currentOrder.customer.government = cityName;
   currentOrder.customer.zone = zone;
 
-  // Update shipping fee based on city automatically
-  const newFee = govData ? parseFloat(govData.fee) : 0;
-  currentOrder.shippingFee = isNaN(newFee) ? 0 : newFee;
+  // Determine carrier and override shipping fee based on selected zone
+  let carrier = 'bosta';
+  if (zone && window._modalZones) {
+    const selectedZoneObj = window._modalZones.find(z => api.formatZoneName(z) === zone);
+    if (selectedZoneObj && selectedZoneObj.bostaAvailable === false) {
+      carrier = 'egyptpost';
+    }
+  }
+
+  currentOrder.carrier = carrier;
+
+  if (carrier === 'egyptpost') {
+    const egyptPostFee = (window._globalSettings && window._globalSettings.egyptPostFee !== undefined)
+      ? Number(window._globalSettings.egyptPostFee)
+      : 60;
+    currentOrder.shippingFee = egyptPostFee;
+  } else {
+    const newFee = govData ? parseFloat(govData.fee) : 0;
+    currentOrder.shippingFee = isNaN(newFee) ? 0 : newFee;
+  }
 
   currentOrder.customer.address = document.getElementById('modal-c-address').value.trim();
   currentOrder.customer.notes = document.getElementById('modal-c-notes').value.trim();

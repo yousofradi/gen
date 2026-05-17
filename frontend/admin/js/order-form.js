@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const products = (productsRes.products || productsRes).filter(p => p.status !== 'draft');
     allCustomers = customersRes || [];
     let shipping = shippingRes;
+    window._globalSettings = settings || {};
 
     allProducts = products;
 
@@ -596,6 +597,7 @@ window.handleCityChange = async function() {
   zoneInput.value = '';
   zoneDropdown.innerHTML = '';
   window._currentCityZones = [];
+  window._currentCityZonesList = [];
 
   if (cityId) {
     // 1. Try local data first (highly reliable)
@@ -612,7 +614,8 @@ window.handleCityChange = async function() {
       }
     }
     
-    window._currentCityZones = zones.map(z => api.formatZoneName(z));
+    window._currentCityZonesList = zones || [];
+    window._currentCityZones = (zones || []).map(z => api.formatZoneName(z));
     renderZoneDropdown(window._currentCityZones);
   }
   
@@ -635,7 +638,26 @@ window.recalcSummary = function () {
   cartItems.forEach(c => subtotal += itemTotal(c));
   const cityId = document.getElementById('c-gov').value;
   const data = (window._fullShippingData || []).find(s => s._id === cityId);
-  const shipping = data ? (data.fee || 0) : 0;
+  let shipping = data ? (data.fee || 0) : 0;
+
+  // Resolve carrier based on zone bostaAvailable
+  const zoneName = document.getElementById('c-zone').value;
+  let carrier = 'bosta';
+  if (zoneName && window._currentCityZonesList) {
+    const selectedZoneObj = window._currentCityZonesList.find(z => api.formatZoneName(z) === zoneName);
+    if (selectedZoneObj && selectedZoneObj.bostaAvailable === false) {
+      carrier = 'egyptpost';
+    }
+  }
+
+  if (carrier === 'egyptpost') {
+    // Override to Egypt Post fee
+    const egyptPostFee = (window._globalSettings && window._globalSettings.egyptPostFee !== undefined)
+      ? Number(window._globalSettings.egyptPostFee)
+      : 60;
+    shipping = egyptPostFee;
+  }
+
   const orderDiscount = parseFloat(document.getElementById('order-discount').value) || 0;
   const total = Math.max(0, subtotal + shipping - orderDiscount);
   document.getElementById('sum-subtotal').textContent = formatPrice(subtotal);
@@ -711,6 +733,22 @@ window.submitOrder = async function () {
     };
   });
 
+  // Resolve carrier and fee
+  let carrier = 'bosta';
+  let shippingFee = govData ? (govData.fee || 0) : 0;
+  if (zone && window._currentCityZonesList) {
+    const selectedZoneObj = window._currentCityZonesList.find(z => api.formatZoneName(z) === zone);
+    if (selectedZoneObj && selectedZoneObj.bostaAvailable === false) {
+      carrier = 'egyptpost';
+    }
+  }
+
+  if (carrier === 'egyptpost') {
+    shippingFee = (window._globalSettings && window._globalSettings.egyptPostFee !== undefined)
+      ? Number(window._globalSettings.egyptPostFee)
+      : 60;
+  }
+
   const payload = {
     customer: { 
       name, 
@@ -725,7 +763,8 @@ window.submitOrder = async function () {
     discount: parseFloat(document.getElementById('order-discount').value) || 0,
     paymentMethod: document.querySelector('input[name="payment"]:checked').value,
     paidAmount: Math.max(0, parseFloat(document.getElementById('paid-amount').value) || 0),
-    shippingFee: govData ? (govData.fee || 0) : 0
+    shippingFee: shippingFee,
+    carrier: carrier
   };
 
   try {
@@ -1003,6 +1042,8 @@ function renderZoneDropdown(zones) {
 window.selectZone = function (name) {
   document.getElementById('c-zone').value = name;
   document.getElementById('zone-dropdown').classList.remove('active');
+  
+  recalcSummary();
   if (window.markAsModified) window.markAsModified();
 };
 

@@ -20,6 +20,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   const items = Cart.getItems();
   if (!items.length) { window.location.href = 'cart'; return; }
 
+  // Fetch shipping global settings
+  try {
+    const settings = await api.getSetting('sundura_global_settings');
+    if (settings) {
+      window._enableBosta = settings.enableBosta !== false;
+      window._enableEgyptPost = settings.enableEgyptPost !== false;
+      window._enableZones = settings.enableZones !== false;
+      window._egyptPostFee = settings.egyptPostFee !== undefined ? Number(settings.egyptPostFee) : 60;
+    } else {
+      window._enableBosta = true;
+      window._enableEgyptPost = true;
+      window._enableZones = true;
+      window._egyptPostFee = 60;
+    }
+  } catch (err) {
+    console.warn('Failed to load global settings, using defaults', err);
+    window._enableBosta = true;
+    window._enableEgyptPost = true;
+    window._enableZones = true;
+    window._egyptPostFee = 60;
+  }
+
+  // Hide zone field if zones are globally disabled
+  if (window._enableZones === false) {
+    const zoneGroup = document.getElementById('zone-form-group');
+    const zoneInputEl = document.getElementById('zone');
+    if (zoneGroup && zoneInputEl) {
+      zoneGroup.style.display = 'none';
+      zoneInputEl.required = false;
+      zoneInputEl.value = '';
+    }
+  }
+
   renderOrderSummary(items);
   await loadCities();
   await loadPaymentMethods();
@@ -137,7 +170,7 @@ async function loadCities() {
         dropdown.innerHTML = filtered.map(s => `
           <div class="dropdown-item" style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f1f5f9;" 
                onclick="selectGov('${s._id}', '${s.cityOtherName || s.city}')">
-            ${s.cityOtherName || s.city} (${formatPrice(s.fee)})
+            ${s.cityOtherName || s.city}
           </div>
         `).join('');
       }
@@ -163,6 +196,18 @@ async function handleGovChange() {
   if (!zoneInput) return;
   
   zoneInput.value = ''; // Clear current selection
+
+  if (window._enableZones === false) {
+    const zoneGroup = document.getElementById('zone-form-group');
+    const zoneInputEl = document.getElementById('zone');
+    if (zoneGroup && zoneInputEl) {
+      zoneGroup.style.display = 'none';
+      zoneInputEl.required = false;
+      zoneInputEl.value = '';
+    }
+    updatePriceSummary();
+    return;
+  }
 
   if (cityId) {
     try {
@@ -215,7 +260,16 @@ function renderZoneDropdown() {
   );
 
   if (filtered.length === 0 && query !== '') {
-    dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
+    if (window._selectedCarrier === 'bosta') {
+      dropdown.innerHTML = `
+        <div style="padding: 12px 10px; color: #94a3b8; text-align: center;">
+          <div style="font-size:0.85rem; font-weight:600;">⚠️ لا توجد مناطق مطابقة تحت شحن بوسطة</div>
+          <button type="button" onclick="window.setCarrier('egyptpost')" style="margin-top: 8px; padding: 6px 12px; background: var(--primary, #0f766e); color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 0.8rem; cursor: pointer; outline: none;">التحويل إلى البريد المصري</button>
+        </div>
+      `;
+    } else {
+      dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';
+    }
   } else {
     const displayList = filtered.length > 0 ? filtered : window._currentZones;
     dropdown.innerHTML = displayList.map(z => {
@@ -268,12 +322,73 @@ document.getElementById('zone')?.addEventListener('input', () => {
   }
 });
 
+function getSelectedZoneObject() {
+  const zoneVal = document.getElementById('zone')?.value;
+  if (!zoneVal || !window._currentZones) return null;
+  return window._currentZones.find(z => api.formatZoneName(z) === zoneVal);
+}
+
+function updateShippingMethodNotice(isEgyptPost) {
+  const zoneInput = document.getElementById('zone');
+  if (!zoneInput) return;
+  const group = zoneInput.closest('.form-group');
+  if (!group) return;
+
+  let noticeEl = group.querySelector('.shipping-notice');
+  if (!noticeEl) {
+    noticeEl = document.createElement('div');
+    noticeEl.className = 'shipping-notice';
+    noticeEl.style.cssText = 'color:#b84a20; font-size:0.8rem; font-weight:bold; margin-top:6px; direction:rtl; text-align:right;';
+    group.appendChild(noticeEl);
+  }
+
+  if (isEgyptPost && window._enableZones) {
+    noticeEl.textContent = '⚠️ هذه المنطقة خارج تغطية بوسطة. سيتم الشحن عبر البريد المصري بسعر مخفض.';
+    noticeEl.style.display = 'block';
+  } else {
+    noticeEl.style.display = 'none';
+  }
+}
+
 function updatePriceSummary() {
   const items = Cart.getItems();
   const subtotal = Cart.getTotal();
   const cityId = document.getElementById('government').value;
   const data = (window._fullShippingData || []).find(s => s._id === cityId);
-  const shippingFee = data ? (data.fee || 0) : 0;
+  let shippingFee = data ? (data.fee || 0) : 0;
+
+  // Check if explicitly selected Egypt Post or if zone has only Egypt Post coverage
+  const selectedZone = getSelectedZoneObject();
+  
+  // Resolve carrier dynamically
+  let resolvedCarrier = 'bosta';
+  if (window._enableZones && selectedZone) {
+    if (selectedZone.bostaAvailable === false) {
+      resolvedCarrier = 'egyptpost';
+    } else {
+      resolvedCarrier = 'bosta';
+    }
+  } else {
+    // Zones disabled or no zone selected
+    if (window._enableBosta === false) {
+      resolvedCarrier = 'egyptpost';
+    } else if (window._enableEgyptPost === false) {
+      resolvedCarrier = 'bosta';
+    } else {
+      resolvedCarrier = 'bosta'; // Default to bosta if both enabled
+    }
+  }
+  
+  window._selectedCarrier = resolvedCarrier;
+  const isEgyptPost = resolvedCarrier === 'egyptpost';
+  
+  if (isEgyptPost) {
+    shippingFee = window._egyptPostFee || 60;
+  }
+
+  // Update Shipping Notice under the zone dropdown
+  updateShippingMethodNotice(isEgyptPost);
+
   const total = subtotal + shippingFee;
 
   // Update Header Price
@@ -290,7 +405,17 @@ function updatePriceSummary() {
   const totalEl = document.getElementById('summary-total-final');
 
   if (subEl) subEl.textContent = formatPrice(subtotal);
-  if (shipEl) shipEl.textContent = cityId ? formatPrice(shippingFee) : '—';
+  if (shipEl) {
+    if (cityId) {
+      if (isEgyptPost) {
+        shipEl.innerHTML = `${formatPrice(shippingFee)} <span style="color:#b84a20; font-size:0.8rem; font-weight:bold;">(البريد المصري)</span>`;
+      } else {
+        shipEl.textContent = formatPrice(shippingFee);
+      }
+    } else {
+      shipEl.textContent = '—';
+    }
+  }
   if (totalEl) totalEl.textContent = formatPrice(total);
 
   // Render Items in Summary
@@ -460,7 +585,8 @@ function setupForm() {
         notes: document.getElementById('cust-notes').value.trim()
       },
       items,
-      paymentMethod: payment.value
+      paymentMethod: payment.value,
+      carrier: window._selectedCarrier || 'bosta'
     };
 
     try {

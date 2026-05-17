@@ -46,21 +46,58 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Valid payment method is required' });
     }
 
-    // Shipping fee: try provided, then DB, then fallback to static config
+    // Shipping fee and Carrier resolution:
+    // Respect explicitly provided carrier, or check if the selected zone is a non-Bosta zone (Egyptpost)
+    let carrier = req.body.carrier || 'bosta';
     let shippingFee = providedShippingFee !== undefined ? Number(providedShippingFee) : 0;
     
-    if (providedShippingFee === undefined) {
-      try {
-        const Shipping = require('../models/Shipping');
-        // Search by city or cityOtherName
-        const record = await Shipping.findOne({ $or: [{ city: customer.government }, { cityOtherName: customer.government }] });
-        if (record) {
-          shippingFee = record.fee;
+    try {
+      const Setting = require('../models/Setting');
+      const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
+      const settingsVal = globalSettings ? globalSettings.value : {};
+      
+      const enableBosta = settingsVal.enableBosta !== false;
+      const enableEgyptPost = settingsVal.enableEgyptPost !== false;
+      const enableZones = settingsVal.enableZones !== false;
+      const egyptPostFeeSetting = settingsVal.egyptPostFee !== undefined ? Number(settingsVal.egyptPostFee) : 60;
+
+      const Shipping = require('../models/Shipping');
+      const record = await Shipping.findOne({ $or: [{ city: customer.government }, { cityOtherName: customer.government }] });
+      
+      if (record) {
+        let resolvedCarrier = 'bosta';
+        
+        if (enableZones && customer.zone && record.zones && record.zones.length > 0) {
+          const zoneRecord = record.zones.find(z => z.name === customer.zone || z.otherName === customer.zone);
+          if (zoneRecord && zoneRecord.bostaAvailable === false) {
+            resolvedCarrier = 'egyptpost';
+          } else {
+            resolvedCarrier = 'bosta';
+          }
         } else {
-          const defaultFees = require('../config/shipping');
-          shippingFee = defaultFees[customer.government] || 0;
+          // If zones are disabled, resolve based on global carrier switches
+          if (!enableBosta) {
+            resolvedCarrier = 'egyptpost';
+          } else if (!enableEgyptPost) {
+            resolvedCarrier = 'bosta';
+          } else {
+            resolvedCarrier = carrier; // Fallback to provided carrier
+          }
         }
-      } catch (e) {
+        
+        carrier = resolvedCarrier;
+
+        if (carrier === 'egyptpost') {
+          shippingFee = egyptPostFeeSetting;
+        } else if (providedShippingFee === undefined) {
+          shippingFee = record.fee;
+        }
+      } else if (providedShippingFee === undefined) {
+        const defaultFees = require('../config/shipping');
+        shippingFee = defaultFees[customer.government] || 0;
+      }
+    } catch (e) {
+      if (providedShippingFee === undefined) {
         const defaultFees = require('../config/shipping');
         shippingFee = defaultFees[customer.government] || 0;
       }
@@ -88,6 +125,7 @@ router.post('/', async (req, res) => {
       totalPrice,
       shippingFee,
       paymentMethod,
+      carrier,
       paidAmount: Number(paidAmount) || 0,
       paid: (Number(paidAmount) || 0) >= totalPrice,
       processingStatus: 'pending'
@@ -587,8 +625,12 @@ router.post('/bulk/ship', adminAuth, async (req, res) => {
     const { orderIds } = req.body;
     if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
 
-    const orders = await Order.find({ orderId: { $in: orderIds }, bostaDeliveryId: { $exists: false } });
-    if (!orders.length) return res.json({ message: 'No eligible orders to ship', count: 0 });
+    const orders = await Order.find({ 
+      orderId: { $in: orderIds }, 
+      bostaDeliveryId: { $exists: false },
+      carrier: { $ne: 'egyptpost' }
+    });
+    if (!orders.length) return res.json({ message: 'No eligible orders to ship (Egyptpost orders are excluded)', count: 0 });
 
     const { createBulkBostaDeliveries } = require('../utils/bosta');
     const result = await createBulkBostaDeliveries(orders);

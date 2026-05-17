@@ -76,8 +76,11 @@ router.get('/list', adminAuth, async (req, res) => {
 // Admin: Update fee and zones
 router.put('/:id', adminAuth, async (req, res) => {
   try {
-    const { fee, zones } = req.body;
+    const { city, cityOtherName, bostaCityId, fee, zones } = req.body;
     const updateData = {};
+    if (city !== undefined) updateData.city = city;
+    if (cityOtherName !== undefined) updateData.cityOtherName = cityOtherName;
+    if (bostaCityId !== undefined) updateData.bostaCityId = bostaCityId;
     if (fee !== undefined) updateData.fee = fee;
     if (zones !== undefined) updateData.zones = zones;
 

@@ -223,14 +223,13 @@ router.post('/shipping', adminAuth, async (req, res) => {
         cityOtherName: c.cityOtherName,
         bostaCityId: c.cityId || c.cityCode,
         fee: 85,
-        zones: districts
-          .filter(d => d.dropOffAvailability === true)
-          .map(d => ({
-            name: d.zoneName || d.districtName,
-            otherName: d.zoneOtherName || d.districtOtherName,
-            districtOtherName: d.districtOtherName,
-            bostaZoneId: d.zoneId
-          }))
+        zones: districts.map(d => ({
+          name: d.zoneName || d.districtName,
+          otherName: d.zoneOtherName || d.districtOtherName,
+          districtOtherName: d.districtOtherName,
+          bostaZoneId: d.zoneId,
+          bostaAvailable: d.dropOffAvailability !== false
+        }))
       };
     });
 

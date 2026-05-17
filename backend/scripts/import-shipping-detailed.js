@@ -28,7 +28,8 @@ async function run() {
         name: d.zoneName,
         otherName: d.zoneOtherName,
         districtOtherName: d.districtOtherName,
-        bostaZoneId: d.zoneId
+        bostaZoneId: d.zoneId,
+        bostaAvailable: d.dropOffAvailability !== false
       }));
 
       // Try to find existing city to preserve fee
