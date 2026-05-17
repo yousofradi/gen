@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SunduraAdmin"
+rootProject.name = "StoreHub"
 include ':app'

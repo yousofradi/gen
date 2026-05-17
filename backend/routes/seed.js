@@ -5,7 +5,9 @@ const path = require('path');
 const Product = require('../models/Product');
 const Collection = require('../models/Collection');
 const Shipping = require('../models/Shipping');
+const Setting = require('../models/Setting');
 const adminAuth = require('../middleware/adminAuth');
+const { uploadToCloudinary, isCloudinaryConfigured } = require('../utils/cloudinary');
 
 // GET /api/seed/test — test endpoint
 router.get('/test', (req, res) => res.json({ message: 'Seed route is active' }));
@@ -297,5 +299,170 @@ function parseCSV(text) {
   }
   return rows;
 }
+
+// GET /api/seed/migrate-cloudinary — Migrates all images from assets.wuiltstore.com to Cloudinary
+router.get('/migrate-cloudinary', async (req, res) => {
+  try {
+    if (!isCloudinaryConfigured) {
+      return res.status(400).json({
+        error: 'Cloudinary is not configured! Please configure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your backend environment variables (on Render) before running this migration.'
+      });
+    }
+
+    console.log('🏁 Cloudinary migration started...');
+    const report = {
+      productsProcessed: 0,
+      productsUpdated: 0,
+      collectionsProcessed: 0,
+      collectionsUpdated: 0,
+      settingsUpdated: false,
+      errors: []
+    };
+
+    // 1. Migrate Products
+    const products = await Product.find({});
+    report.productsProcessed = products.length;
+
+    for (const product of products) {
+      let isUpdated = false;
+
+      // Migrate Main Image
+      if (product.imageUrl && product.imageUrl.includes('assets.wuiltstore.com')) {
+        try {
+          console.log(`Uploading product image for: ${product.name}`);
+          const newUrl = await uploadToCloudinary(product.imageUrl, 'ecommerce-products');
+          if (newUrl && newUrl !== product.imageUrl) {
+            product.imageUrl = newUrl;
+            isUpdated = true;
+          }
+        } catch (err) {
+          report.errors.push(`Product main image error (${product.name}): ${err.message}`);
+        }
+      }
+
+      // Migrate Images Gallery
+      if (product.images && product.images.length > 0) {
+        const newImages = [];
+        let galleryChanged = false;
+        for (const imgUrl of product.images) {
+          if (imgUrl && imgUrl.includes('assets.wuiltstore.com')) {
+            try {
+              console.log(`Uploading gallery image for product: ${product.name}`);
+              const newUrl = await uploadToCloudinary(imgUrl, 'ecommerce-products');
+              newImages.push(newUrl);
+              galleryChanged = true;
+            } catch (err) {
+              newImages.push(imgUrl); // Keep original on error
+              report.errors.push(`Product gallery image error (${product.name}): ${err.message}`);
+            }
+          } else {
+            newImages.push(imgUrl);
+          }
+        }
+        if (galleryChanged) {
+          product.images = newImages;
+          isUpdated = true;
+        }
+      }
+
+      if (isUpdated) {
+        await product.save();
+        report.productsUpdated++;
+      }
+    }
+
+    // 2. Migrate Collections
+    const collections = await Collection.find({});
+    report.collectionsProcessed = collections.length;
+
+    for (const collection of collections) {
+      if (collection.imageUrl && collection.imageUrl.includes('assets.wuiltstore.com')) {
+        try {
+          console.log(`Uploading collection image for: ${collection.name}`);
+          const newUrl = await uploadToCloudinary(collection.imageUrl, 'ecommerce-collections');
+          if (newUrl && newUrl !== collection.imageUrl) {
+            collection.imageUrl = newUrl;
+            await collection.save();
+            report.collectionsUpdated++;
+          }
+        } catch (err) {
+          report.errors.push(`Collection image error (${collection.name}): ${err.message}`);
+        }
+      }
+    }
+
+    // 3. Migrate Global Settings (Logo, Favicon, Preview)
+    const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
+    if (globalSettings && globalSettings.value) {
+      let settingsChanged = false;
+      const settingsVal = { ...globalSettings.value };
+
+      // Logo
+      if (settingsVal.storeLogo && settingsVal.storeLogo.includes('assets.wuiltstore.com')) {
+        try {
+          console.log('Uploading store logo to Cloudinary...');
+          const newUrl = await uploadToCloudinary(settingsVal.storeLogo, 'ecommerce-branding');
+          settingsVal.storeLogo = newUrl;
+          settingsChanged = true;
+        } catch (err) {
+          report.errors.push(`Logo upload error: ${err.message}`);
+        }
+      }
+
+      // Favicon
+      if (settingsVal.storeFavicon && settingsVal.storeFavicon.includes('assets.wuiltstore.com')) {
+        try {
+          console.log('Uploading store favicon to Cloudinary...');
+          const newUrl = await uploadToCloudinary(settingsVal.storeFavicon, 'ecommerce-branding');
+          settingsVal.storeFavicon = newUrl;
+          settingsChanged = true;
+        } catch (err) {
+          report.errors.push(`Favicon upload error: ${err.message}`);
+        }
+      }
+
+      // Preview Image
+      if (settingsVal.storePreview && settingsVal.storePreview.includes('assets.wuiltstore.com')) {
+        try {
+          console.log('Uploading store preview image to Cloudinary...');
+          const newUrl = await uploadToCloudinary(settingsVal.storePreview, 'ecommerce-branding');
+          settingsVal.storePreview = newUrl;
+          settingsChanged = true;
+        } catch (err) {
+          report.errors.push(`Preview image upload error: ${err.message}`);
+        }
+      }
+
+      if (settingsChanged) {
+        globalSettings.value = settingsVal;
+        globalSettings.markModified('value'); // Tell Mongoose that the mixed type value was modified
+        await globalSettings.save();
+        report.settingsUpdated = true;
+        
+        // Also clear Redis cache if it exists so settings refresh instantly!
+        try {
+          const redis = require('../utils/redis');
+          if (redis && typeof redis.del === 'function') {
+            await redis.del('setting:sundura_global_settings');
+            console.log('Cleared settings Redis cache');
+          }
+        } catch (e) {
+          console.log('No Redis or couldn\'t clear settings cache:', e.message);
+        }
+      }
+    }
+
+    console.log('🏁 Cloudinary migration complete!');
+    res.json({
+      success: true,
+      message: 'Cloudinary migration complete!',
+      report
+    });
+
+  } catch (err) {
+    console.error('❌ Cloudinary migration failed:', err);
+    res.status(500).json({ error: 'Migration failed: ' + err.message });
+  }
+});
 
 module.exports = router;
