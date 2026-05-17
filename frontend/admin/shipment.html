@@ -453,8 +453,7 @@
             <!-- Tab Panel Content -->
             <div style="padding:20px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-                <!-- 27 cities count, Egypt, select-all -->
-                <div style="display:flex; align-items:center; gap:16px;">
+                <div style="display:flex; align-items:center; gap:5px;">
                   <label class="custom-cb-label">
                     <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
                     <span class="custom-checkmark">
@@ -463,9 +462,6 @@
                   </label>
                   <div style="display:flex; align-items:center; gap:4px; font-weight:700; color:#1e293b; font-size:0.95rem;">
                     <span id="cities-count-label">0 مدينة/محافظة</span>
-                  </div>
-                  <div style="background:#f1f5f9; padding:6px 12px; border-radius:30px; font-size:0.8rem; font-weight:700; color:#475569; display:flex; align-items:center; gap:6px;">
-                    <span>Egypt</span>
                   </div>
                 </div>
                 
@@ -819,7 +815,7 @@
         const displayFee = cityObj.fee !== undefined ? cityObj.fee : opt.cost;
         return `
           <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.01); transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
-            <div style="display:flex; align-items:center; gap:16px;">
+            <div style="display:flex; align-items:center; gap:5px;">
               <label class="custom-cb-label">
                 <input type="checkbox" class="city-row-checkbox" data-city="${cityObj.city}" ${selectedIds.has(cityObj.city) ? 'checked' : ''} onchange="toggleCityRowSelection('${cityObj.city}', this)">
                 <span class="custom-checkmark">
