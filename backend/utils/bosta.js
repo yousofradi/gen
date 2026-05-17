@@ -4,6 +4,17 @@ const Shipping = require('../models/Shipping');
 
 const BOSTA_API_URL = 'https://api.bosta.co/api/v2';
 
+const normalizeString = (str) => {
+  if (!str) return '';
+  return str
+    .replace(/[أإآا]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/\s+/g, '')
+    .toLowerCase()
+    .trim();
+};
+
 /** Helper to generate a single delivery payload for Bosta */
 async function generateBostaPayload(order, bostaConfig) {
   const { city, districtId, firstLine, buildingNumber, floor, apartment } = bostaConfig;
@@ -17,13 +28,21 @@ async function generateBostaPayload(order, bostaConfig) {
     apartment: apartment
   };
 
-  // Resolve Bosta IDs for drop-off
-  const shippingRecord = await Shipping.findOne({ city: order.customer.government });
+  // Resolve Bosta IDs for drop-off using flexible city lookup
+  const shippingRecord = await Shipping.findOne({
+    $or: [
+      { city: order.customer.government },
+      { cityOtherName: order.customer.government }
+    ]
+  });
   const bostaCityId = shippingRecord ? shippingRecord.bostaCityId : order.customer.government;
 
   let bostaZoneId = order.customer.zone;
   if (shippingRecord && shippingRecord.zones) {
-    const zoneRecord = shippingRecord.zones.find(z => z.name === order.customer.zone || z.otherName === order.customer.zone);
+    const normalizedTarget = normalizeString(order.customer.zone);
+    const zoneRecord = shippingRecord.zones.find(z => {
+      return normalizeString(z.name) === normalizedTarget || normalizeString(z.otherName) === normalizedTarget;
+    });
     if (zoneRecord && zoneRecord.bostaZoneId) {
       bostaZoneId = zoneRecord.bostaZoneId;
     }
