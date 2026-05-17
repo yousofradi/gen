@@ -10,7 +10,8 @@ const shippingSchema = new mongoose.Schema({
     otherName: { type: String },
     districtOtherName: { type: String },
     bostaZoneId: { type: String },
-    bostaAvailable: { type: Boolean, default: true }
+    bostaAvailable: { type: Boolean, default: true },
+    dropOffAvailability: { type: Boolean, default: true }
   }]
 }, { timestamps: true });
 

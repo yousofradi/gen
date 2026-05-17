@@ -228,7 +228,8 @@ router.post('/shipping', adminAuth, async (req, res) => {
           otherName: d.zoneOtherName || d.districtOtherName,
           districtOtherName: d.districtOtherName,
           bostaZoneId: d.zoneId,
-          bostaAvailable: d.dropOffAvailability !== false
+          bostaAvailable: d.dropOffAvailability !== false,
+          dropOffAvailability: d.dropOffAvailability !== false
         }))
       };
     });
@@ -249,6 +250,67 @@ router.post('/shipping', adminAuth, async (req, res) => {
 
     const result = await Shipping.insertMany(newData);
     console.log(`Successfully inserted ${result.length} cities`);
+
+    // Inject dropoff-false zones into Egypt Post shipping options setting
+    const Setting = require('../models/Setting');
+    let shippingOptionsRecord = await Setting.findOne({ key: 'shipping_options' });
+    let options = shippingOptionsRecord ? shippingOptionsRecord.value : null;
+
+    const EGYPT_GOVERNORATES = [
+      "القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "البحر الأحمر", "البحيرة", 
+      "الفيوم", "الغربية", "الإسماعيلية", "المنوفية", "المنيا", "القليوبية", 
+      "الوادي الجديد", "السويس", "الشرقية", "أسوان", "أسيوط", "بني سويف", 
+      "بورسعيد", "دمياط", "جنوب سيناء", "كفر الشيخ", "مطروح", "الأقصر", 
+      "قنا", "شمال سيناء", "سوهاج"
+    ];
+
+    if (!options || !Array.isArray(options) || options.length === 0) {
+      options = [
+        {
+          name: "البريد المصري",
+          cost: 80,
+          cities: EGYPT_GOVERNORATES.map(gov => ({
+            city: gov,
+            fee: 80,
+            zones: []
+          }))
+        },
+        {
+          name: "بوسطة",
+          cost: 150,
+          cities: EGYPT_GOVERNORATES.map(gov => ({
+            city: gov,
+            fee: 150,
+            zones: []
+          }))
+        }
+      ];
+    }
+
+    const egyptPostOpt = options.find(o => o.name.includes('البريد') || o.name.toLowerCase().includes('post'));
+    if (egyptPostOpt) {
+      newData.forEach(c => {
+        const matchingEgyptPostCity = egyptPostOpt.cities.find(ec => 
+          ec.city === c.city || ec.city === c.cityOtherName
+        );
+
+        if (matchingEgyptPostCity) {
+          const dropoffFalseZones = c.zones
+            .filter(z => z.dropOffAvailability === false)
+            .map(z => z.otherName || z.name);
+
+          // Unique zones to avoid duplication
+          matchingEgyptPostCity.zones = Array.from(new Set(dropoffFalseZones));
+        }
+      });
+    }
+
+    await Setting.findOneAndUpdate(
+      { key: 'shipping_options' },
+      { value: options },
+      { upsert: true }
+    );
+    console.log('Successfully injected dropoff-false zones into Egypt Post shipping options');
 
     // Refresh cache
     const redis = require('../utils/redis');

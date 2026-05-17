@@ -1273,6 +1273,31 @@
         loadShippingOptions();
       } catch (e) { showToast('فشل الإزالة', 'error'); }
     }
+
+    async function seedShippingData() {
+      const confirmed = await window.showConfirmModal('استيراد بيانات الشحن', 'هل تريد استيراد بيانات الشحن بالكامل من Shipment.txt؟ سيتم تحديث الأسعار والمناطق.', false);
+      if (!confirmed) return;
+
+      const btn = event?.currentTarget || event?.target;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري الاستيراد...';
+      }
+
+      try {
+        const res = await api.seedShipping();
+        showToast('تم استيراد بيانات الشحن بنجاح من الملف!');
+        await loadShippingOptions();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'فشل الاستيراد', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Seed';
+        }
+      }
+    }
   </script>
 </body>
 </html>
