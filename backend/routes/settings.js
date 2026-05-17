@@ -57,6 +57,54 @@ router.post('/:key', adminAuth, async (req, res) => {
     
     // Clear cache
     await cache.del(`storefront:settings:${req.params.key}`);
+
+    // Synchronize shipping options back to individual Shipping documents in MongoDB
+    if (req.params.key === 'shipping_options') {
+      try {
+        const Shipping = require('../models/Shipping');
+        const redis = require('../utils/redis');
+        const SHIPPING_CACHE_KEY = 'storefront:shipping:list';
+        
+        const options = req.body.value || [];
+        const bostaOption = options.find(o => 
+          o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
+        ) || options[0];
+
+        if (bostaOption && Array.isArray(bostaOption.cities)) {
+          const isCityEqual = (a, b) => {
+            if (!a || !b) return false;
+            const norm = (s) => s.replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, '').toLowerCase().trim();
+            return norm(a) === norm(b);
+          };
+
+          for (const cityObj of bostaOption.cities) {
+            const newFee = Number(cityObj.fee);
+            if (!isNaN(newFee)) {
+              // Find by city name or cityOtherName using isCityEqual
+              const record = await Shipping.findOne({
+                $or: [
+                  { city: cityObj.city },
+                  { cityOtherName: cityObj.city }
+                ]
+              });
+              if (record) {
+                record.fee = newFee;
+                await record.save();
+              }
+            }
+          }
+          
+          // Clear Redis cache so `/api/shipping` immediately reflects the new fees!
+          try {
+            await redis.del(SHIPPING_CACHE_KEY);
+          } catch (err) {
+            console.error('[Redis] Shipping list cache clear failed:', err.message);
+          }
+        }
+      } catch (syncErr) {
+        console.error('[Sync] Failed to synchronize shipping options to DB collection:', syncErr.message);
+      }
+    }
     
     res.json(setting.value);
   } catch (err) {

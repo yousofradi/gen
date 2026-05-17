@@ -29,15 +29,44 @@ router.get('/', async (req, res) => {
 
     // 2. Fetch from DB (Exclude zones for performance)
     const fees = await Shipping.find({}, 'city cityOtherName fee');
+
+    // 3. Resolve active fees dynamically from shipping_options setting
+    const Setting = require('../models/Setting');
+    const shippingOptionsRecord = await Setting.findOne({ key: 'shipping_options' });
+    const shippingOptions = shippingOptionsRecord ? shippingOptionsRecord.value : [];
+    const bostaOption = shippingOptions.find(o => 
+      o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
+    ) || shippingOptions[0];
+
+    const isCityEqual = (a, b) => {
+      if (!a || !b) return false;
+      const norm = (s) => s.replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, '').toLowerCase().trim();
+      return norm(a) === norm(b);
+    };
+
+    const finalFees = fees.map(record => {
+      const cityObj = bostaOption ? (bostaOption.cities || []).find(c => 
+        isCityEqual(c.city, record.city) || isCityEqual(c.city, record.cityOtherName)
+      ) : null;
+      
+      const resolvedFee = cityObj ? Number(cityObj.fee) : record.fee;
+      
+      return {
+        _id: record._id,
+        city: record.city,
+        cityOtherName: record.cityOtherName,
+        fee: isNaN(resolvedFee) ? record.fee : resolvedFee
+      };
+    });
     
-    // 3. Set Cache (24 hour TTL for persistent feel)
+    // 4. Set Cache (24 hour TTL for persistent feel)
     try {
-      await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(fees), 'EX', 86400);
+      await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(finalFees), 'EX', 86400);
     } catch (err) {
       console.error('[Redis] Shipping cache set failed:', err.message);
     }
 
-    res.json(fees);
+    res.json(finalFees);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
