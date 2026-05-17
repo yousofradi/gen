@@ -9,6 +9,11 @@
   <title>الشحن — Admin</title>
   <link rel="stylesheet" href="css/style.css?v=20260515_v2">
   <style>
+    /* Lock scrolling on body and main layout when modal is active */
+    body.modal-open,
+    body.modal-open .admin-main {
+      overflow: hidden !important;
+    }
     .shipping-card { background:#fff; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,0.1); border:1px solid #f1f5f9; overflow:hidden; }
     .card-header { padding:20px 24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
     .card-title { font-size:1.25rem; font-weight:800; color:#1e293b; margin:0; }
@@ -403,7 +408,7 @@
 
   <!-- Zones Selection Modal -->
   <div id="zones-modal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width:500px;">
+    <div class="modal-content" style="max-width:95%; width:95%;">
       <div class="modal-header">
         <h3 id="zones-modal-title">تحديث المناطق</h3>
         <button class="close-btn" onclick="closeZonesModal()">×</button>
@@ -625,6 +630,7 @@
       modal.style.display = 'flex';
       setTimeout(() => modal.classList.add('open'), 10);
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
       document.getElementById('modal-title').textContent = 'إضافة مدينة';
       document.getElementById('ship-edit-id').value = '';
       document.getElementById('ship-city').value = '';
@@ -638,6 +644,7 @@
       modal.classList.remove('open');
       setTimeout(() => modal.style.display = 'none', 250); 
       document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
     }
 
     async function saveShipping() {
@@ -667,6 +674,7 @@
       modal.style.display = 'flex';
       setTimeout(() => modal.classList.add('open'), 10);
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
     }
 
     function renderZonesList() {
@@ -768,7 +776,8 @@
     }
 
     async function seedShippingData() {
-      if (!confirm('سيتم استبدال البيانات الحالية ببيانات تجريبية افتراضية. هل أنت متأكد؟')) return;
+      const confirmed = await window.showConfirmModal('تهيئة البيانات الافتراضية', 'سيتم استبدال البيانات الحالية ببيانات تجريبية افتراضية. هل أنت متأكد؟', false);
+      if (!confirmed) return;
       try {
         await api.seedShipping();
         showToast('تم إعادة تهيئة البيانات الافتراضية بنجاح');
@@ -779,7 +788,14 @@
     function openBulkFeeModal() {
       if (selectedIds.size === 0) return;
       document.getElementById('bulk-fee-modal-message').textContent = `تحديث رسوم الشحن لـ ${selectedIds.size} مدينة مختارة. ادخل السعر الجديد:`;
-      document.getElementById('bulk-fee-input').value = '65';
+      
+      let defaultValue = '';
+      if (selectedIds.size === 1) {
+        const id = Array.from(selectedIds)[0];
+        const city = shippingList.find(s => s._id === id);
+        if (city) defaultValue = city.fee;
+      }
+      document.getElementById('bulk-fee-input').value = defaultValue;
       
       const modal = document.getElementById('bulk-fee-modal');
       modal.style.display = 'flex';
@@ -787,12 +803,14 @@
         modal.classList.add('open');
         document.getElementById('bulk-fee-input').focus();
       }, 10);
+      document.body.classList.add('modal-open');
     }
 
     function closeBulkFeeModal() {
       const modal = document.getElementById('bulk-fee-modal');
       modal.classList.remove('open');
       setTimeout(() => modal.style.display = 'none', 250);
+      document.body.classList.remove('modal-open');
     }
 
     function confirmBulkUpdateFee() {
@@ -835,7 +853,8 @@
     }
 
     async function bulkDeleteShipping() {
-      if (!confirm(`حذف ${selectedIds.size} مدينة نهائياً؟`)) return;
+      const confirmed = await window.showConfirmModal('حذف مدينة', `هل تريد حذف ${selectedIds.size} مدينة نهائياً؟`, false);
+      if (!confirmed) return;
       try {
         await Promise.all([...selectedIds].map(id => api.deleteShipping(id)));
         showToast('تم الحذف بنجاح');
