@@ -271,9 +271,30 @@ function renderItems() {
     const available = getAvailableQty(p, item.selectedOptions);
     const lowStock = available !== Infinity && item.quantity > available;
 
-    const imgHtml = item.imageUrl
+    // Find matching variant option specific image url
+    let finalImageUrl = '';
+    if (p && p.variants && item.selectedOptions && item.selectedOptions.length > 0) {
+      const matchingVariant = p.variants.find(v => {
+        if (!v.combination) return false;
+        return item.selectedOptions.every(opt => v.combination[opt.groupName] === opt.label);
+      });
+      if (matchingVariant && matchingVariant.imageUrl) {
+        finalImageUrl = matchingVariant.imageUrl;
+      }
+    }
+    
+    // Fall back to product base image url
+    if (!finalImageUrl && p) {
+      finalImageUrl = p.imageUrl;
+    }
+    
+    // Fall back to order item's original imageUrl
+    if (!finalImageUrl) {
+      finalImageUrl = item.imageUrl;
+    }
 
-      ? `<img src="${item.imageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${item.name}">`
+    const imgHtml = finalImageUrl
+      ? `<img src="${finalImageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${item.name}">`
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
     const optText = (item.selectedOptions || []).map(op => op.label).join(' / ');
@@ -1078,6 +1099,19 @@ window.addSelectedProducts = async function (btn) {
     if (p) {
       const variantPrice = v.price;
       const combo = v.combo;
+
+      // Find matching variant option specific image url
+      let variantImageUrl = '';
+      if (p.variants && p.variants.length > 0) {
+        const matchingVariant = p.variants.find(varObj => {
+          if (!varObj.combination) return false;
+          return combo.every(c => varObj.combination[c.groupName] === c.label);
+        });
+        if (matchingVariant && matchingVariant.imageUrl) {
+          variantImageUrl = matchingVariant.imageUrl;
+        }
+      }
+
       const existing = currentOrder.items.find(i => {
         if (i.productId !== p._id) return false;
         if (!i.selectedOptions || i.selectedOptions.length !== combo.length) return false;
@@ -1090,7 +1124,7 @@ window.addSelectedProducts = async function (btn) {
         currentOrder.items.push({
           productId: p._id,
           name: p.name,
-          imageUrl: p.imageUrl || '',
+          imageUrl: variantImageUrl || p.imageUrl || '',
           basePrice: variantPrice,
           selectedOptions: combo,
           quantity: 1,
@@ -1172,9 +1206,33 @@ window.markAsReady = function () {
 
   const renderFulfillmentList = () => {
     modalItems.innerHTML = window.fulfillmentState.map((item, idx) => {
-      const imgHtml = item.imageUrl
+      const p = allProducts.find(x => x._id === item.productId) || {};
+
+      // Find matching variant option specific image url
+      let finalImageUrl = '';
+      if (p && p.variants && item.selectedOptions && item.selectedOptions.length > 0) {
+        const matchingVariant = p.variants.find(v => {
+          if (!v.combination) return false;
+          return item.selectedOptions.every(opt => v.combination[opt.groupName] === opt.label);
+        });
+        if (matchingVariant && matchingVariant.imageUrl) {
+          finalImageUrl = matchingVariant.imageUrl;
+        }
+      }
+
+      // Fall back to product base image url
+      if (!finalImageUrl && p) {
+        finalImageUrl = p.imageUrl;
+      }
+
+      // Fall back to order item's original imageUrl
+      if (!finalImageUrl) {
+        finalImageUrl = item.imageUrl;
+      }
+
+      const imgHtml = finalImageUrl
         ? `<div style="position:relative; width:64px; height:64px;">
-             <img src="${item.imageUrl}" style="width:64px; height:64px; border-radius:16px; object-fit:contain; border:1px solid #f1f5f9;" alt="${item.name}">
+             <img src="${finalImageUrl}" style="width:64px; height:64px; border-radius:16px; object-fit:contain; border:1px solid #f1f5f9;" alt="${item.name}">
              <div style="position:absolute; bottom:-4px; right:-4px; background:#fef3c7; color:#d97706; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                ${item.current}/${item.quantity}
              </div>

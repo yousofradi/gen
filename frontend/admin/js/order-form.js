@@ -504,9 +504,26 @@ function renderCart() {
 
   container.innerHTML = cartItems.map((c, i) => {
     const p = c.product;
-    const imgSrc = p.imageUrl || '';
-    const imgHtml = imgSrc
-      ? `<img src="${imgSrc}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${p.name}" loading="lazy">`
+    
+    // Find matching variant option specific image url
+    let finalImageUrl = '';
+    if (p && p.variants && c.selectedOptions && c.selectedOptions.length > 0) {
+      const matchingVariant = p.variants.find(v => {
+        if (!v.combination) return false;
+        return c.selectedOptions.every(opt => v.combination[opt.groupName] === opt.label);
+      });
+      if (matchingVariant && matchingVariant.imageUrl) {
+        finalImageUrl = matchingVariant.imageUrl;
+      }
+    }
+    
+    // Fall back to product base image url
+    if (!finalImageUrl && p) {
+      finalImageUrl = p.imageUrl;
+    }
+
+    const imgHtml = finalImageUrl
+      ? `<img src="${finalImageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${p.name}" loading="lazy">`
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
     const optText = (c.selectedOptions || []).map(op => op.label).join(' / ');
@@ -666,17 +683,30 @@ window.submitOrder = async function () {
     btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2.5px;margin:0;"></span> جارٍ الحفظ...';
   }
 
-  const finalItems = cartItems.map(c => ({
-    productId: c.product._id,
-    name: c.product.name,
-    imageUrl: c.product.imageUrl || '',
-    basePrice: c.price !== undefined ? c.price : ((c.product.salePrice && c.product.salePrice < c.product.basePrice) ? c.product.salePrice : c.product.basePrice),
-    selectedOptions: c.selectedOptions,
+  const finalItems = cartItems.map(c => {
+    const p = c.product;
+    let variantImageUrl = '';
+    if (p.variants && p.variants.length > 0 && c.selectedOptions && c.selectedOptions.length > 0) {
+      const matchingVariant = p.variants.find(varObj => {
+        if (!varObj.combination) return false;
+        return c.selectedOptions.every(opt => varObj.combination[opt.groupName] === opt.label);
+      });
+      if (matchingVariant && matchingVariant.imageUrl) {
+        variantImageUrl = matchingVariant.imageUrl;
+      }
+    }
 
-    quantity: c.quantity,
-    discount: c.discount || 0,
-    finalPrice: itemTotal(c)
-  }));
+    return {
+      productId: c.product._id,
+      name: c.product.name,
+      imageUrl: variantImageUrl || c.product.imageUrl || '',
+      basePrice: c.price !== undefined ? c.price : ((c.product.salePrice && c.product.salePrice < c.product.basePrice) ? c.product.salePrice : c.product.basePrice),
+      selectedOptions: c.selectedOptions,
+      quantity: c.quantity,
+      discount: c.discount || 0,
+      finalPrice: itemTotal(c)
+    };
+  });
 
   const payload = {
     customer: { 
