@@ -2043,29 +2043,3 @@ input[type=number] {
   object-fit: contain !important;
   background-color: #fff !important;
 }
-
-/* ── Move Icon to the Left & Text to the Right (RTL Support) ── */
-button:has(svg):has(span),
-.btn:has(svg):has(span),
-.detail-add-btn,
-.copy-btn,
-.btn-copy-payment,
-.dropdown-item-btn:has(svg),
-.admin-store-preview:has(svg) {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-direction: row-reverse !important;
-  gap: 8px !important;
-}
-
-button:has(svg):has(span) svg,
-.btn:has(svg):has(span) svg,
-.detail-add-btn svg,
-.copy-btn svg,
-.btn-copy-payment svg,
-.dropdown-item-btn svg,
-.admin-store-preview svg {
-  margin: 0 !important;
-  flex-shrink: 0 !important;
-}
