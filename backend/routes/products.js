@@ -282,8 +282,9 @@ router.post('/', adminAuth, async (req, res) => {
     
     await product.save();
     
-    // Write-Through: Update specific product cache
-    await updateStorefrontCache(product._id, optimizeProductData(product.toObject()));
+    // Write-Through: Update specific product cache with clean, lean data
+    const cleanProduct = await Product.findById(product._id).lean();
+    await updateStorefrontCache(product._id, optimizeProductData(cleanProduct));
     
     res.status(201).json(product);
   } catch (err) {
@@ -310,8 +311,9 @@ router.put('/:id', adminAuth, async (req, res) => {
 
     if (!product) return res.status(404).json({ error: 'Product not found' });
     
-    // Write-Through: Update specific product cache
-    await updateStorefrontCache(product._id, optimizeProductData(product.toObject()));
+    // Write-Through: Update specific product cache with clean, lean data
+    const cleanProduct = await Product.findById(product._id).lean();
+    await updateStorefrontCache(product._id, optimizeProductData(cleanProduct));
     
     res.json(product);
   } catch (err) {
