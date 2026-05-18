@@ -177,6 +177,7 @@
         grid-template-columns: 1fr !important;
       }
     }
+
     .modal-body {
       padding: 24px;
       overflow-y: auto;
@@ -313,13 +314,15 @@
               </svg>
             </button>
             <div id="details-menu" class="dropdown-menu-box">
-              <button class="dropdown-item-btn" onclick="printOrderInvoice()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                  <rect x="6" y="14" width="12" height="8"></rect>
+              <button class="dropdown-item-btn" onclick="shipCurrentOrder(this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="3" width="15" height="13"></rect>
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                  <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                  <circle cx="18.5" cy="18.5" r="2.5"></circle>
                 </svg>
-                <span>طباعة الفاتورة</span>
+                <span>شحن الاوردر</span>
               </button>
 
               <button class="dropdown-item-btn" onclick="archiveCurrentOrder(this)">
@@ -386,7 +389,8 @@
               <div class="info-card-body" id="order-items-container" style="padding: 0;">
                 <!-- Items injected here -->
               </div>
-              <div id="ready-btn-container" style="padding: 16px 20px; border-top: 1px solid #f1f5f9; display: none; text-align: left;">
+              <div id="ready-btn-container"
+                style="padding: 16px 20px; border-top: 1px solid #f1f5f9; display: none; text-align: left;">
                 <button class="btn" id="btn-make-ready" onclick="markAsReady()"
                   style="background:#0f766e; color:#fff; border-radius:12px; padding:8px 24px; font-weight:700; font-size:0.9rem; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.15); border:none;">جاهز</button>
               </div>
@@ -443,11 +447,19 @@
 
                   <div class="flex mt-16" style="justify-content:space-between; align-items:center; width:100%;">
                     <div class="flex gap-8" id="payment-actions-left" style="align-items:center;">
-                      <button class="btn btn-primary btn-sm" id="btn-mark-paid" onclick="markFullyPaid(this)">مدفوع بالكامل</button>
+                      <button class="btn btn-primary btn-sm" id="btn-mark-paid" onclick="markFullyPaid(this)">مدفوع
+                        بالكامل</button>
                       <button class="btn btn-secondary btn-sm" onclick="openPaymentModal()">تعديل الدفع</button>
                     </div>
-                    <button class="btn btn-sm" style="background:#19AF7A; color:#fff; font-weight:700; display:flex; align-items:center; gap:6px; border:none; border-radius:20px; padding:6px 16px; transition:background 0.2s;" onmouseover="this.style.background='#159367'" onmouseout="this.style.background='#19AF7A'" onclick="resendPaymentConfirmationDirect(this)">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block; vertical-align:middle;"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.99L2 22l5.13-1.347a9.92 9.92 0 0 0 4.882 1.28c5.505 0 9.988-4.478 9.99-9.988 0-2.667-1.04-5.176-2.93-7.062C17.182 3.002 14.675 2 12.012 2zm5.733 14.153c-.25.706-1.463 1.298-2.013 1.378-.49.071-.856.326-3.003-.522-2.748-1.085-4.48-3.906-4.617-4.09-.136-.18-.992-1.314-.992-2.51 0-1.196.626-1.782.846-2.023.22-.24.48-.3.64-.3.16 0 .32.003.46.01.144.006.336-.054.528.406.196.47.672 1.637.732 1.758.06.12.1.26.02.42-.08.16-.12.26-.24.4-.12.14-.252.312-.36.42-.12.12-.245.251-.106.49.139.238.618 1.018 1.326 1.649.91.81 1.675 1.06 1.915 1.18.24.12.38.1.52-.06.14-.16.6-1.002.76-1.222.16-.22.32-.18.54-.1.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.1.06.58-.19 1.286z"/></svg>
+                    <button class="btn btn-sm"
+                      style="background:#19AF7A; color:#fff; font-weight:700; display:flex; align-items:center; gap:6px; border:none; border-radius:20px; padding:6px 16px; transition:background 0.2s;"
+                      onmouseover="this.style.background='#159367'" onmouseout="this.style.background='#19AF7A'"
+                      onclick="resendPaymentConfirmationDirect(this)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                        style="display:inline-block; vertical-align:middle;">
+                        <path
+                          d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.99L2 22l5.13-1.347a9.92 9.92 0 0 0 4.882 1.28c5.505 0 9.988-4.478 9.99-9.988 0-2.667-1.04-5.176-2.93-7.062C17.182 3.002 14.675 2 12.012 2zm5.733 14.153c-.25.706-1.463 1.298-2.013 1.378-.49.071-.856.326-3.003-.522-2.748-1.085-4.48-3.906-4.617-4.09-.136-.18-.992-1.314-.992-2.51 0-1.196.626-1.782.846-2.023.22-.24.48-.3.64-.3.16 0 .32.003.46.01.144.006.336-.054.528.406.196.47.672 1.637.732 1.758.06.12.1.26.02.42-.08.16-.12.26-.24.4-.12.14-.252.312-.36.42-.12.12-.245.251-.106.49.139.238.618 1.018 1.326 1.649.91.81 1.675 1.06 1.915 1.18.24.12.38.1.52-.06.14-.16.6-1.002.76-1.222.16-.22.32-.18.54-.1.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.1.06.58-.19 1.286z" />
+                      </svg>
                       ارسال
                     </button>
                   </div>
@@ -555,25 +567,34 @@
         </div>
         <div class="form-group mb-16">
           <label class="form-label">المحافظة (المدينة)</label>
-          <div id="modal-c-gov-search-container" onclick="document.getElementById('modal-c-gov-search').focus()" style="position: relative;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">
-              <path d="M6 9l6 6 6-6"/>
+          <div id="modal-c-gov-search-container" onclick="document.getElementById('modal-c-gov-search').focus()"
+            style="position: relative;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"
+              style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+              <path d="M6 9l6 6 6-6" />
             </svg>
-            <input type="text" id="modal-c-gov-search" class="form-control" placeholder="اختر أو ابحث عن المدينة" autocomplete="off" style="padding-right: 40px;">
+            <input type="text" id="modal-c-gov-search" class="form-control" placeholder="اختر أو ابحث عن المدينة"
+              autocomplete="off" style="padding-right: 40px;">
             <input type="hidden" id="modal-c-gov">
-            <div id="modal-c-gov-dropdown" style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1100; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto;">
+            <div id="modal-c-gov-dropdown"
+              style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1100; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto;">
               <!-- Cities will be injected here -->
             </div>
           </div>
         </div>
         <div class="form-group mb-16" id="modal-c-zone-container">
           <label class="form-label">المنطقة</label>
-          <div id="modal-c-zone-search-container" onclick="document.getElementById('modal-c-zone').focus()" style="position: relative;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">
-              <path d="M6 9l6 6 6-6"/>
+          <div id="modal-c-zone-search-container" onclick="document.getElementById('modal-c-zone').focus()"
+            style="position: relative;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"
+              style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+              <path d="M6 9l6 6 6-6" />
             </svg>
-            <input type="text" id="modal-c-zone" class="form-control" placeholder="اختر أو ابحث عن المنطقة" autocomplete="off" oninput="renderModalZoneDropdown()" onfocus="renderModalZoneDropdown()" style="padding-right: 40px;">
-            <div id="modal-c-zone-dropdown" style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1100; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto;">
+            <input type="text" id="modal-c-zone" class="form-control" placeholder="اختر أو ابحث عن المنطقة"
+              autocomplete="off" oninput="renderModalZoneDropdown()" onfocus="renderModalZoneDropdown()"
+              style="padding-right: 40px;">
+            <div id="modal-c-zone-dropdown"
+              style="display: none; position: absolute; top: 100%; right: 0; left: 0; z-index: 1100; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto;">
               <!-- Zones will be injected here -->
             </div>
           </div>
@@ -720,20 +741,25 @@
 
   <!-- Ready Confirmation Modal (Preparing Products UI) -->
   <div class="modal-overlay" id="ready-confirm-modal" style="display: none;">
-    <div class="modal-box" style="max-width: 500px; border-radius: 24px; background: #fff; padding: 0; overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
-      <div class="modal-header" style="background: #fff; padding: 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: flex-start; justify-content: space-between; position: relative;">
-        <button type="button" class="modal-close" onclick="closeModal('ready-confirm-modal')" style="margin: 0; font-size: 1.5rem; color: #94a3b8; position: absolute; left: 24px; top: 24px;">×</button>
+    <div class="modal-box"
+      style="max-width: 500px; border-radius: 24px; background: #fff; padding: 0; overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+      <div class="modal-header"
+        style="background: #fff; padding: 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: flex-start; justify-content: space-between; position: relative;">
+        <button type="button" class="modal-close" onclick="closeModal('ready-confirm-modal')"
+          style="margin: 0; font-size: 1.5rem; color: #94a3b8; position: absolute; left: 24px; top: 24px;">×</button>
         <div style="width: 100%; text-align: right; padding-right: 32px;">
           <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b; font-weight: 800;">تجهيز المنتجات</h3>
-          <div id="ready-modal-order-id" style="font-size: 1.1rem; color: #64748b; margin-top: 4px; font-weight: 600;">#...</div>
+          <div id="ready-modal-order-id" style="font-size: 1.1rem; color: #64748b; margin-top: 4px; font-weight: 600;">
+            #...</div>
         </div>
       </div>
-      
+
       <div class="modal-body" id="ready-modal-items" style="padding: 0; overflow-y: auto; flex: 1;">
         <!-- Items will be injected here -->
       </div>
-      
-      <div class="modal-footer" style="background: #fff; padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-start; gap: 12px; flex-direction: row-reverse;">
+
+      <div class="modal-footer"
+        style="background: #fff; padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-start; gap: 12px; flex-direction: row-reverse;">
         <button type="button" class="btn"
           style="background:#f1f5f9; color:#94a3b8; border-radius:20px; padding:8px 24px; font-weight:700; font-size: 0.95rem; border: none; cursor: not-allowed;"
           id="ready-update-btn" disabled>تحديث</button>

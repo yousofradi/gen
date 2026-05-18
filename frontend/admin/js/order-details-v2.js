@@ -184,38 +184,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('is-loading');
   }
 
-  // Action: Download Invoice as Image (High Quality SnapRender)
-  window.printOrderInvoice = async function printOrderInvoice() {
-    const adminKey = localStorage.getItem('adminKey') || '';
-    const urlParams = new URLSearchParams(window.location.search);
-    const orderId = urlParams.get('id') || (currentOrder ? currentOrder.orderId : null);
-    if (!orderId) return;
+  // Action: Ship Current Order via Bosta API
+  window.shipCurrentOrder = async function shipCurrentOrder(btn) {
+    if (!currentOrder) return;
+    const orderId = currentOrder.orderId;
 
-    showToast('جاري تجهيز الفاتورة...', 'info');
+    // Check if the order is already shipped
+    if (currentOrder.bostaDeliveryId) {
+      showToast(`الطلب مشحون بالفعل برقم تتبع: ${currentOrder.bostaTrackingNumber || ''}`, 'info');
+      return;
+    }
+
+    // Egypt Post orders cannot be shipped via Bosta
+    if (currentOrder.carrier === 'egyptpost') {
+      showToast('لا يمكن شحن طلبات البريد المصري عبر Bosta', 'error');
+      return;
+    }
+
+    // Check if order is cancelled
+    if (currentOrder.status === 'cancelled') {
+      showToast('لا يمكن شحن طلب ملغي', 'error');
+      return;
+    }
+
+    // Show beautiful confirmation modal
+    const confirmed = await window.showConfirmModal(
+      'تأكيد شحن الطلب',
+      `هل تريد شحن الطلب #${orderId} عبر Bosta؟`
+    );
+    if (!confirmed) return;
+
+    const originalHtml = btn ? btn.innerHTML : 'Shipment شحن الاوردر';
+    if (btn) {
+      btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:#475569;border-top-color:transparent;margin:0;display:inline-block;vertical-align:middle;margin-left:8px;"></div><span>جاري الشحن...</span>';
+      btn.disabled = true;
+    }
 
     try {
-      const baseUrl = window.API_BASE || (typeof API_BASE !== 'undefined' ? API_BASE : '');
-      const url = `${baseUrl}/orders/${orderId}/download-image?adminKey=${adminKey}`;
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to generate invoice image');
+      const result = await api.shipOrdersBulk([orderId]);
+      if (result && result.count > 0) {
+        showToast(result.message || 'تم شحن الطلب بنجاح عبر Bosta', 'success');
+        
+        // Reload order data after a brief delay to show new status and tracking number
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        showToast(result.message || 'فشل شحن الطلب، تأكد من حالة الدفع والبيانات', 'error');
       }
-
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = `invoice-${orderId}.png`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(downloadUrl);
-      a.remove();
-      showToast('تم بدء التحميل');
     } catch (err) {
-      console.error('Invoice Download Error:', err);
-      showToast('حدث خطأ أثناء تحميل الفاتورة: ' + err.message, 'error');
+      console.error('Shipping Error:', err);
+      showToast(err.message || 'حدث خطأ أثناء شحن الطلب عبر Bosta', 'error');
+    } finally {
+      if (btn) {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      }
     }
   }
 
@@ -280,6 +302,15 @@ function renderOrder() {
   govEl.textContent = o.customer.government || 'لا يوجد محافظة';
   if (o.carrier === 'egyptpost') {
     govEl.innerHTML += ' <span class="badge badge-danger" style="background:#fee2e2; color:#dc2626; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-right:8px; font-weight:700;">البريد المصري</span>';
+  } else if (o.carrier === 'bosta') {
+    if (o.bostaTrackingNumber) {
+      govEl.innerHTML += ` <span class="badge badge-success" style="background:#e0f2fe; color:#0369a1; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; margin-right:8px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        بوسطة (#${o.bostaTrackingNumber})
+      </span>`;
+    } else {
+      govEl.innerHTML += ' <span class="badge badge-info" style="background:#f1f5f9; color:#475569; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-right:8px; font-weight:700;">بوسطة (غير مشحون)</span>';
+    }
   }
 
   document.getElementById('view-c-zone').textContent = o.customer.zone || 'لا توجد منطقة';
