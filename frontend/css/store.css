@@ -591,17 +591,16 @@
 .product-purchase-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 32px;
+  gap: 20px;
 }
 
 .qty-selector {
   display: flex;
   align-items: center;
   border: 1px solid #ddd;
-  border-radius: 12px;
+  border-radius: 4px;
   overflow: hidden;
-  height: 48px;
+  height: 42px;
   background: #fff;
 }
 
@@ -643,9 +642,9 @@
 
 .detail-add-btn {
   flex: 1;
-  height: 48px;
+  height: 40px;
   border: none;
-  border-radius: 12px;
+  border-radius: 4px;
   background: var(--primary);
   color: #fff;
   font-family: var(--font-main);
