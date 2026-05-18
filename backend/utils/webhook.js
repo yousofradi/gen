@@ -153,19 +153,20 @@ ${remainingText}
             }
             const whatsappLink = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(customerMessage)}`;
 
-            // 3. Shorten the Link
+            // 3. Shorten the Link using TinyURL (is.gd blacklists wa.me domain, causing database insert errors)
             let shortLink = whatsappLink; 
             try {
                 const response = await this.helpers.httpRequest({
                     method: 'GET',
-                    url: 'https://is.gd/create.php',
+                    url: 'https://tinyurl.com/api-create.php',
                     qs: {
-                        format: 'simple',
                         url: whatsappLink,
                     },
                     timeout: 10000,
                 });
-                if (response) shortLink = response;
+                if (response && response.trim() && !response.toLowerCase().includes('error')) {
+                  shortLink = response.trim();
+                }
             } catch (error) {
                 console.warn('[WhatsApp] Link shortening system error:', error.message);
             }
