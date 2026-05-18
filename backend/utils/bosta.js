@@ -37,6 +37,7 @@ async function generateBostaPayload(order, bostaConfig) {
   const bostaCityId = shippingRecord ? shippingRecord.bostaCityId : order.customer.government;
 
   let bostaZoneId = order.customer.zone;
+  let bostaDistrictId = order.customer.zone;
   if (shippingRecord && shippingRecord.zones) {
     const formatZoneName = (z) => {
       const zName = z.zoneOtherName || z.name || '';
@@ -62,8 +63,11 @@ async function generateBostaPayload(order, bostaConfig) {
                normalizeString(compound) === part
              );
     });
-    if (zoneRecord && zoneRecord.bostaZoneId) {
-      bostaZoneId = zoneRecord.bostaZoneId;
+    if (zoneRecord) {
+      if (zoneRecord.bostaZoneId) {
+        bostaZoneId = zoneRecord.bostaZoneId;
+      }
+      bostaDistrictId = zoneRecord.bostaDistrictId || zoneRecord.bostaZoneId || bostaZoneId;
     }
   }
 
@@ -83,7 +87,7 @@ async function generateBostaPayload(order, bostaConfig) {
     dropOffAddress: {
       city: bostaCityId,
       zone: bostaZoneId,
-      district: bostaZoneId,
+      district: bostaDistrictId,
       firstLine: order.customer.address
     },
     receiver: {

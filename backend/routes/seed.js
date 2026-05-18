@@ -230,6 +230,7 @@ router.post('/shipping', adminAuth, async (req, res) => {
           zoneOtherName: d.zoneOtherName,
           districtOtherName: d.districtOtherName,
           bostaZoneId: d.zoneId,
+          bostaDistrictId: d.districtId,
           bostaAvailable: d.dropOffAvailability !== false,
           dropOffAvailability: d.dropOffAvailability !== false
         }))

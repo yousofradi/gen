@@ -31,6 +31,7 @@ async function run() {
         zoneOtherName: d.zoneOtherName,
         districtOtherName: d.districtOtherName,
         bostaZoneId: d.zoneId,
+        bostaDistrictId: d.districtId,
         bostaAvailable: d.dropOffAvailability !== false
       }));
 
