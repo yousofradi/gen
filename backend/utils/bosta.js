@@ -51,17 +51,17 @@ async function generateBostaPayload(order, bostaConfig) {
     const zoneRecord = shippingRecord.zones.find(z => {
       const compound = formatZoneName(z);
       return normalizeString(z.name) === normalizedTarget ||
-             normalizeString(z.otherName) === normalizedTarget ||
-             normalizeString(z.zoneName) === normalizedTarget ||
-             normalizeString(z.zoneOtherName) === normalizedTarget ||
-             normalizeString(compound) === normalizedTarget ||
-             targetParts.some(part => 
-               normalizeString(z.name) === part ||
-               normalizeString(z.otherName) === part ||
-               normalizeString(z.zoneName) === part ||
-               normalizeString(z.zoneOtherName) === part ||
-               normalizeString(compound) === part
-             );
+        normalizeString(z.otherName) === normalizedTarget ||
+        normalizeString(z.zoneName) === normalizedTarget ||
+        normalizeString(z.zoneOtherName) === normalizedTarget ||
+        normalizeString(compound) === normalizedTarget ||
+        targetParts.some(part =>
+          normalizeString(z.name) === part ||
+          normalizeString(z.otherName) === part ||
+          normalizeString(z.zoneName) === part ||
+          normalizeString(z.zoneOtherName) === part ||
+          normalizeString(compound) === part
+        );
     });
     if (zoneRecord) {
       if (zoneRecord.bostaZoneId) {
@@ -85,7 +85,7 @@ async function generateBostaPayload(order, bostaConfig) {
     pickupAddress: storeAddress,
     returnAddress: storeAddress,
     dropOffAddress: {
-      city: bostaCityName,
+      city: bostaCityName, // Change this to the English bosta Name
       zoneId: bostaZoneId,
       districtId: bostaDistrictId,
       firstLine: (order.customer.address && order.customer.address.trim().length >= 5)
