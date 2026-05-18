@@ -391,30 +391,45 @@ window.printInvoices = async function () {
     btn.disabled = true;
   }
 
-  showToast('جاري تحميل جميع الفواتير...', 'info');
+  showToast('جاري تحضير الفواتير للتحميل المجاني والمباشر...', 'info');
   
   try {
-    const url = `${API_BASE}/orders/bulk/download-pdf?adminKey=${adminKey}`;
+    const url = `${API_BASE}/orders/bulk/invoice-html?adminKey=${adminKey}`;
     const response = await fetch(url);
     
     if (!response.ok) {
         const error = await response.text();
-        throw new Error(error || 'Failed to generate PDF');
+        throw new Error(error || 'Failed to generate invoice HTML');
     }
 
-    const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = `bulk-invoices-${new Date().toISOString().split('T')[0]}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(downloadUrl);
-    a.remove();
+    const htmlText = await response.text();
     
-    showToast('تم بدء التحميل');
+    // Create temporary offscreen container
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '-9999px';
+    container.innerHTML = htmlText;
+    document.body.appendChild(container);
+    
+    // Configure html2pdf options
+    const opt = {
+      margin: [4, 4, 4, 4], // 4mm margins
+      filename: `bulk-invoices-${new Date().toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+    };
+    
+    // Generate and download PDF on the client side
+    await html2pdf().from(container).set(opt).save();
+    
+    // Clean up temporary element
+    container.remove();
+    
+    showToast('تم تحميل الفواتير بنجاح ✅');
   } catch (err) {
-    console.error('PDF Download Error:', err);
+    console.error('PDF Generation Error:', err);
     showToast('فشل تحميل الفواتير: ' + err.message, 'error');
   } finally {
     if (btn) {

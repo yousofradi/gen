@@ -334,6 +334,106 @@ ${pagesHtml}
   }
 });
 
+// GET /api/orders/bulk/invoice-html — Bulk invoice HTML (completely free and unlimited, used by html2pdf client-side)
+router.get('/bulk/invoice-html', adminAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({ archived: { $ne: true }, status: { $ne: 'cancelled' } }).sort({ createdAt: -1 });
+    const Setting = require('../models/Setting');
+    const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
+    const settings = globalSettings ? globalSettings.value : {};
+
+    let pagesHtml = '';
+    for (const order of orders) {
+      const innerHtml = await generateInvoiceInnerHtml(order, settings, { includeImages: false });
+      pagesHtml += `
+        <div class="page" style="page-break-after: always; break-after: page;">
+          <div class="invoice-wrapper">
+            ${innerHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    const fullHtml = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
+* { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
+@page { size: A5; margin: 4mm; }
+body { margin: 0; padding: 0; }
+.page {
+  page-break-after: always;
+  break-after: page;
+  width: 140mm;
+  height: 202mm;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page:last-child { page-break-after: auto; break-after: auto; }
+.invoice-wrapper { width: 100%; transform-origin: center center; }
+
+/* USER CSS START */
+.invoice { width: 500px; margin: 0 auto; direction: rtl; padding: 10px 5px; }
+.customer-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 7px; }
+.customer-table td { border: 1px solid #000; font-size: 10px; font-weight: 600; text-align: center; padding: 4px; }
+.label-column { width: 25%; background: #fff; }
+.value-column { width: 75%; }
+.order-section { border: 1px solid #000; }
+.items-table { width: 100%; border-collapse: collapse; }
+.items-table thead { background: #f5ede0; }
+.items-table th, .items-table td { padding: 6px 6px; font-weight: 600; font-size: 12px; text-align: center; border-bottom: 1px solid #a6a5a5; }
+.items-table tbody tr:nth-child(even) { background-color: #f9f6ef; }
+.items-table tbody tr:nth-child(odd) { background-color: #ffffff; }
+.items-table td:first-child, .items-table th:first-child { text-align: right; }
+.summary { background: #f5ede0; padding: 1px 6px; }
+.row { display: flex; justify-content: space-between; font-size: 13px; margin: 2px; }
+.grand { border-top: 2px solid #4a2c0a; font-weight: 700; margin-top: 4px; padding-top: 4px; }
+.paid-box { background: #e8f5ed; padding: 1px 6px; }
+.green { color: #1a7a45; font-weight: 700; }
+.red { color: #b84a20; font-weight: 700; }
+.notes-section { padding: 4px 6px; font-size: 11px; background: #f5ede0; }
+.notes-title { font-weight: 700; color: #b84a20; text-decoration: underline; padding-bottom: 2px; }
+.footer { background: #4a2c0a; color: #fff; text-align: center; padding: 7px; font-weight: 700; font-size: 13px; }
+/* USER CSS END */
+</style>
+<script>
+window.onload = function() {
+  document.querySelectorAll('.page').forEach(function(page) {
+    var wrapper = page.querySelector('.invoice-wrapper');
+    if (!wrapper) return;
+    var pageH = page.offsetHeight;
+    var pageW = page.offsetWidth;
+    var contentH = wrapper.scrollHeight;
+    var contentW = wrapper.scrollWidth;
+    var scaleH = pageH / contentH;
+    var scaleW = pageW / contentW;
+    var scale = Math.min(scaleH, scaleW);
+    scale = Math.min(Math.max(scale, 0.55), 2.0);
+    wrapper.style.transform = 'scale(' + scale + ')';
+    wrapper.style.width = (100 / scale) + '%';
+  });
+};
+</script>
+</head>
+<body>
+${pagesHtml}
+</body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(fullHtml);
+
+  } catch (err) {
+    console.error('Bulk HTML Generation Error:', err);
+    res.status(500).send('Failed to generate bulk HTML: ' + err.message);
+  }
+});
+
 // GET /api/orders/:orderId/download-image — Download invoice as image using SnapRender
 router.get('/:orderId/download-image', adminAuth, async (req, res) => {
   try {

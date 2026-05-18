@@ -184,7 +184,7 @@ ${shortLink}`;
             const snapKey = process.env.SNAPRENDER_API_KEY;
             if (snapKey && event === 'order.paid') {
               try {
-                const innerHtml = await generateInvoiceInnerHtml(data, settings);
+                const innerHtml = await generateInvoiceInnerHtml(data, settings, { includeImages: true });
                 const fullHtml = `
                   <!DOCTYPE html>
                   <html dir="rtl" lang="ar">
