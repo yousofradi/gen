@@ -129,13 +129,15 @@ ${remainingText}
             const whatsappLink = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(customerMessage)}`;
 
             // 3. Shorten the Link
-            const simpleWaLink = `https://wa.me/${cleanCustomerPhone}`;
             let shortLink = '';
 
             try {
-              // Try is.gd shortener
+              // Try is.gd shortener with browser User-Agent and increased timeout
               const isgdRes = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(whatsappLink)}`, {
-                signal: AbortSignal.timeout(8000)
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                },
+                signal: AbortSignal.timeout(15000)
               }).catch(() => null);
 
               if (isgdRes && isgdRes.ok) {
@@ -148,10 +150,10 @@ ${remainingText}
               console.warn('[WhatsApp] Link shortening system error:', e.message);
             }
 
-            // Final fallback: if shortening failed, use the SIMPLE wa.me link instead of the LONG ugly one
+            // Final fallback: if shortening failed, use the LONG whatsappLink containing the pre-filled message text!
             if (!shortLink) {
-              shortLink = simpleWaLink;
-              console.log('[WhatsApp] All shorteners failed, using simple wa.me link');
+              shortLink = whatsappLink;
+              console.log('[WhatsApp] Link shortening failed or timed out, falling back to full long whatsappLink');
             }
 
             // 4. Prepare Owner Message
