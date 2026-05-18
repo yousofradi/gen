@@ -88,9 +88,7 @@ async function generateBostaPayload(order, bostaConfig) {
       city: bostaCityName, // Change this to the English bosta Name
       zoneId: bostaZoneId,
       districtId: bostaDistrictId,
-      firstLine: (order.customer.address && order.customer.address.trim().length >= 5)
-        ? order.customer.address.trim()
-        : `${order.customer.address || ''} - العنوان بالتفصيل`
+      firstLine: order.customer.address
     },
     receiver: {
       firstName: order.customer.name.split(' ')[0],
