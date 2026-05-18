@@ -10,13 +10,54 @@ const SHIPPING_CACHE_KEY = 'storefront:shipping:list';
 async function refreshShippingCache() {
   try {
     const fees = await Shipping.find({}, 'city cityOtherName fee zones');
-    await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(fees), 'EX', 86400);
+    
+    // Resolve active fees dynamically from shipping_options setting
+    const Setting = require('../models/Setting');
+    const shippingOptionsRecord = await Setting.findOne({ key: 'shipping_options' });
+    const shippingOptions = shippingOptionsRecord ? shippingOptionsRecord.value : [];
+    const bostaOption = shippingOptions.find(o => 
+      o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
+    ) || shippingOptions[0];
+
+    const isCityEqual = (a, b) => {
+      if (!a || !b) return false;
+      const norm = (s) => s.replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, '').toLowerCase().trim();
+      return norm(a) === norm(b);
+    };
+
+    const finalFees = fees.map(record => {
+      const cityObj = bostaOption ? (bostaOption.cities || []).find(c => 
+        isCityEqual(c.city, record.city) || isCityEqual(c.city, record.cityOtherName)
+      ) : null;
+      
+      const resolvedFee = cityObj ? Number(cityObj.fee) : record.fee;
+      
+      return {
+        _id: record._id,
+        city: record.city,
+        cityOtherName: record.cityOtherName,
+        fee: isNaN(resolvedFee) ? record.fee : resolvedFee,
+        zones: record.zones || []
+      };
+    });
+
+    await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(finalFees), 'EX', 86400);
+
+    // Also clear all cached zones to keep them in sync
+    try {
+      const keys = await redis.keys('storefront:shipping:zones:*');
+      if (keys && keys.length > 0) {
+        await redis.del(keys);
+      }
+    } catch (redisErr) {
+      console.warn('[Redis] Failed to clear zone keys during refresh:', redisErr.message);
+    }
   } catch (err) {
     console.error('[Redis] Shipping cache refresh failed:', err.message);
   }
 }
 
-// GET /api/shipping — return all governorates (minimal data)
+// GET /api/shipping — return all governorates (minimal data with zones cached)
 router.get('/', async (req, res) => {
   try {
     // 1. Try Cache
@@ -27,8 +68,8 @@ router.get('/', async (req, res) => {
       console.error('[Redis] Shipping cache get failed:', err.message);
     }
 
-    // 2. Fetch from DB (Exclude zones for performance)
-    const fees = await Shipping.find({}, 'city cityOtherName fee');
+    // 2. Fetch from DB (Include zones for immediate caching)
+    const fees = await Shipping.find({}, 'city cityOtherName fee zones');
 
     // 3. Resolve active fees dynamically from shipping_options setting
     const Setting = require('../models/Setting');
@@ -55,7 +96,8 @@ router.get('/', async (req, res) => {
         _id: record._id,
         city: record.city,
         cityOtherName: record.cityOtherName,
-        fee: isNaN(resolvedFee) ? record.fee : resolvedFee
+        fee: isNaN(resolvedFee) ? record.fee : resolvedFee,
+        zones: record.zones || []
       };
     });
     
@@ -115,12 +157,22 @@ router.get('/egyptpost', async (req, res) => {
   }
 });
 
-// GET /api/shipping/zones/:cityId — return zones for a gov
+// GET /api/shipping/zones/:cityId — return zones for a gov (fetched instantly from Redis cache)
 router.get('/zones/:cityId', async (req, res) => {
   try {
     const { cityId } = req.params;
-    let gov;
     
+    // 1. Try Redis Cache first
+    const cacheKey = `storefront:shipping:zones:${cityId}`;
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) return res.json(JSON.parse(cached));
+    } catch (err) {
+      console.error('[Redis] Zones cache get failed:', err.message);
+    }
+
+    // 2. Fallback to DB
+    let gov;
     // Support both ID and Name lookup for robustness
     if (mongoose.Types.ObjectId.isValid(cityId)) {
       gov = await Shipping.findById(cityId);
@@ -129,7 +181,16 @@ router.get('/zones/:cityId', async (req, res) => {
     }
 
     if (!gov) return res.status(404).json({ error: 'Governorate not found' });
-    res.json(gov.zones || []);
+    const zones = gov.zones || [];
+
+    // 3. Set Cache (24 hour TTL)
+    try {
+      await redis.set(cacheKey, JSON.stringify(zones), 'EX', 86400);
+    } catch (err) {
+      console.error('[Redis] Zones cache set failed:', err.message);
+    }
+
+    res.json(zones);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
