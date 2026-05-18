@@ -34,7 +34,7 @@ async function generateBostaPayload(order, bostaConfig) {
   const shippingRecord = shippings.find(s => {
     return normalizeString(s.city) === normalizedGov || normalizeString(s.cityOtherName) === normalizedGov;
   });
-  const bostaCityName = shippingRecord ? shippingRecord.city : order.customer.government;
+  const bostaCityId = shippingRecord ? shippingRecord.bostaCityId : order.customer.government;
 
   const normalizePhone = (p) => {
     if (!p) return '';
@@ -47,11 +47,8 @@ async function generateBostaPayload(order, bostaConfig) {
     return cleaned;
   };
 
-  const dropOffAddress = {
-    city: bostaCityName,
-    firstLine: order.customer.address
-  };
-
+  let bostaZoneId = order.customer.zone;
+  let bostaDistrictId = order.customer.zone;
   if (shippingRecord && shippingRecord.zones) {
     const formatZoneName = (z) => {
       const zName = z.zoneOtherName || z.name || '';
@@ -78,22 +75,20 @@ async function generateBostaPayload(order, bostaConfig) {
         );
     });
 
-    if (zoneRecord && zoneRecord.bostaDistrictId) {
-      dropOffAddress.districtId = zoneRecord.bostaDistrictId;
+    if (zoneRecord) {
       if (zoneRecord.bostaZoneId) {
-        dropOffAddress.zoneId = zoneRecord.bostaZoneId;
+        bostaZoneId = zoneRecord.bostaZoneId;
       }
-    } else {
-      // Fallback: districtId is not populated in DB, use districtName + cityId
-      if (shippingRecord.bostaCityId) {
-        dropOffAddress.cityId = shippingRecord.bostaCityId;
-      }
-      dropOffAddress.districtName = zoneRecord ? (zoneRecord.name || zoneRecord.zoneName) : (order.customer.zone || 'Default');
+      bostaDistrictId = zoneRecord.bostaDistrictId || zoneRecord.bostaZoneId || bostaZoneId;
     }
-  } else {
-    // If no shippingRecord is found, fallback to customer zone as districtName
-    dropOffAddress.districtName = order.customer.zone || 'Default';
   }
+
+  const dropOffAddress = {
+    city: bostaCityId,
+    zoneId: bostaZoneId,
+    districtId: bostaDistrictId,
+    firstLine: order.customer.address
+  };
 
   return {
     type: 10, // Package Delivery
