@@ -542,70 +542,134 @@ function syncVariants() {
   const defaultPrice = Number(document.getElementById('p-price').value) || 0;
   const defaultSalePrice = document.getElementById('p-sale-price').value ? Number(document.getElementById('p-sale-price').value) : null;
 
-  variants = combinations.map(combo => {
+  // Multi-pass, non-duplicating matching strategy
+  const newVariants = new Array(combinations.length).fill(null);
+  const usedOldIndexes = new Set();
+  const normalize = s => (s || '').trim().toLowerCase();
+
+  // Pass 1: Exact Match (all keys and values match exactly, case/space insensitive)
+  combinations.forEach((combo, comboIdx) => {
     const cKeys = Object.keys(combo);
-    const cValues = Object.values(combo).map(v => v.trim().toLowerCase());
-    
-    // Attempt to find the best existing variant to inherit data from
-    // 1. Exact match (using fuzzy key names)
-    let existing = oldVariants.find(v => {
+    const matchedIdx = oldVariants.findIndex((v, oldIdx) => {
+      if (usedOldIndexes.has(oldIdx)) return false;
       if (!v.combination) return false;
       const vKeys = Object.keys(v.combination);
       if (vKeys.length !== cKeys.length) return false;
       return cKeys.every(cKey => {
-        const vKeyMatch = vKeys.find(vk => vk.trim().toLowerCase() === cKey.trim().toLowerCase());
-        return vKeyMatch && v.combination[vKeyMatch] === combo[cKey];
+        const vKeyMatch = vKeys.find(vk => normalize(vk) === normalize(cKey));
+        return vKeyMatch && normalize(v.combination[vKeyMatch]) === normalize(combo[cKey]);
       });
     });
 
-    if (!existing) {
-      // 2. Partial match (DELETING an option group)
-      // Matches if all our current keys/values exist in the old variant
-      existing = oldVariants.find(v => {
-        if (!v.combination) return false;
-        const vKeys = Object.keys(v.combination);
-        return cKeys.every(cKey => {
-          const vKeyMatch = vKeys.find(vk => vk.trim().toLowerCase() === cKey.trim().toLowerCase());
-          return vKeyMatch && v.combination[vKeyMatch] === combo[cKey];
-        });
-      });
+    if (matchedIdx !== -1) {
+      usedOldIndexes.add(matchedIdx);
+      newVariants[comboIdx] = {
+        ...oldVariants[matchedIdx],
+        combination: combo
+      };
     }
+  });
 
-    if (!existing) {
-      // 3. Partial match (ADDING an option group)
-      // Matches if all old keys/values exist in our new combo
-      existing = oldVariants.find(v => {
-        if (!v.combination) return false;
-        const vKeys = Object.keys(v.combination);
-        if (vKeys.length === 0) return false;
-        return vKeys.every(vKey => {
-          const cKeyMatch = cKeys.find(ck => ck.trim().toLowerCase() === vKey.trim().toLowerCase());
-          return cKeyMatch && combo[cKeyMatch] === v.combination[vKey];
-        });
-      });
+  // Pass 2: Fuzzy Rename Match (if keys were renamed but value combinations match)
+  combinations.forEach((combo, comboIdx) => {
+    if (newVariants[comboIdx] !== null) return;
+    
+    const cValues = Object.values(combo).map(normalize);
+    const matchedIdx = oldVariants.findIndex((v, oldIdx) => {
+      if (usedOldIndexes.has(oldIdx)) return false;
+      if (!v.combination) return false;
+      const vValues = Object.values(v.combination).map(normalize);
+      if (cValues.length !== vValues.length) return false;
+      return cValues.every(cv => vValues.includes(cv));
+    });
+
+    if (matchedIdx !== -1) {
+      usedOldIndexes.add(matchedIdx);
+      newVariants[comboIdx] = {
+        ...oldVariants[matchedIdx],
+        combination: combo
+      };
     }
+  });
 
-    if (!existing) {
-      // 4. Value-based match (Fallback for renames + add/delete)
-      // Matches if all current values exist in the old variant's values
-      existing = oldVariants.find(v => {
-        if (!v.combination) return false;
-        const vVals = Object.values(v.combination).map(val => val.trim().toLowerCase());
-        return cValues.every(cv => vVals.includes(cv));
+  // Pass 3: Partial Match - Deleting an option group (current keys are a subset of old keys)
+  combinations.forEach((combo, comboIdx) => {
+    if (newVariants[comboIdx] !== null) return;
+
+    const cKeys = Object.keys(combo);
+    const matchedIdx = oldVariants.findIndex((v, oldIdx) => {
+      if (usedOldIndexes.has(oldIdx)) return false;
+      if (!v.combination) return false;
+      const vKeys = Object.keys(v.combination);
+      if (cKeys.length >= vKeys.length) return false;
+      return cKeys.every(cKey => {
+        const vKeyMatch = vKeys.find(vk => normalize(vk) === normalize(cKey));
+        return vKeyMatch && normalize(v.combination[vKeyMatch]) === normalize(combo[cKey]);
       });
-    }
+    });
 
-    if (!existing) {
-      // 5. Value-based match reverse (Fallback for renames + addition)
-      existing = oldVariants.find(v => {
-        if (!v.combination) return false;
-        const vVals = Object.values(v.combination).map(val => val.trim().toLowerCase());
-        if (vVals.length === 0) return false;
-        return vVals.every(vv => cValues.includes(vv));
+    if (matchedIdx !== -1) {
+      usedOldIndexes.add(matchedIdx);
+      newVariants[comboIdx] = {
+        ...oldVariants[matchedIdx],
+        combination: combo
+      };
+    }
+  });
+
+  // Pass 4: Partial Match - Adding an option group (old keys are a subset of current keys)
+  combinations.forEach((combo, comboIdx) => {
+    if (newVariants[comboIdx] !== null) return;
+
+    const cKeys = Object.keys(combo);
+    const matchedIdx = oldVariants.findIndex((v, oldIdx) => {
+      if (usedOldIndexes.has(oldIdx)) return false;
+      if (!v.combination) return false;
+      const vKeys = Object.keys(v.combination);
+      if (vKeys.length === 0 || vKeys.length >= cKeys.length) return false;
+      return vKeys.every(vKey => {
+        const cKeyMatch = cKeys.find(ck => normalize(ck) === normalize(vKey));
+        return cKeyMatch && normalize(combo[cKeyMatch]) === normalize(v.combination[vKey]);
       });
-    }
+    });
 
-    if (existing) {
+    if (matchedIdx !== -1) {
+      usedOldIndexes.add(matchedIdx);
+      newVariants[comboIdx] = {
+        ...oldVariants[matchedIdx],
+        combination: combo
+      };
+    }
+  });
+
+  // Pass 5: Value-based partial match (adding/deleting and renames simultaneously)
+  combinations.forEach((combo, comboIdx) => {
+    if (newVariants[comboIdx] !== null) return;
+
+    const cValues = Object.values(combo).map(normalize);
+    const matchedIdx = oldVariants.findIndex((v, oldIdx) => {
+      if (usedOldIndexes.has(oldIdx)) return false;
+      if (!v.combination) return false;
+      const vValues = Object.values(v.combination).map(normalize);
+      if (vValues.length === 0) return false;
+      const currentSubset = cValues.every(cv => vValues.includes(cv));
+      const oldSubset = vValues.every(vv => cValues.includes(vv));
+      return currentSubset || oldSubset;
+    });
+
+    if (matchedIdx !== -1) {
+      usedOldIndexes.add(matchedIdx);
+      newVariants[comboIdx] = {
+        ...oldVariants[matchedIdx],
+        combination: combo
+      };
+    }
+  });
+
+  // Build the final variants array with proper defaults for new ones
+  variants = combinations.map((combo, comboIdx) => {
+    if (newVariants[comboIdx] !== null) {
+      const existing = newVariants[comboIdx];
       return {
         ...existing,
         combination: combo,
@@ -1079,6 +1143,7 @@ function populateProductForm(p) {
   }));
   optionEditModes = optionGroups.map(() => false);
 
+  const seenIds = new Set();
   variants = (p.variants || []).map(v => {
     let combo = {};
     if (v.combination) {
@@ -1088,8 +1153,19 @@ function populateProductForm(p) {
         combo = { ...v.combination };
       }
     }
+
+    // Clean up duplicate _ids to heal legacy/corrupted data
+    let variantId = v._id;
+    if (variantId) {
+      if (seenIds.has(variantId)) {
+        variantId = undefined; // Strip duplicate ID so Mongoose generates a clean new one
+      } else {
+        seenIds.add(variantId);
+      }
+    }
+
     return {
-      _id: v._id, // Preserve ID for atomic updates in DB
+      _id: variantId,
       combination: combo,
       price: Number(v.price || 0),
       salePrice: (v.salePrice !== null && v.salePrice !== undefined) ? Number(v.salePrice) : null,
@@ -1107,7 +1183,22 @@ function populateProductForm(p) {
     // Ensure combinations match group names (healing legacy/mismatched data)
     normalizeCombinations();
 
-    if (variants.length === 0) {
+    // Check if there are any duplicate combinations in the loaded variants
+    const combinationStrings = new Set();
+    let hasDuplicateCombinations = false;
+    variants.forEach(v => {
+      const str = Object.entries(v.combination || {})
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([k, val]) => `${k}:${val}`)
+        .join('|');
+      if (combinationStrings.has(str)) {
+        hasDuplicateCombinations = true;
+      } else {
+        combinationStrings.add(str);
+      }
+    });
+
+    if (variants.length === 0 || hasDuplicateCombinations) {
       syncVariants();
     }
   } else {
