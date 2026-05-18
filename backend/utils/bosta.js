@@ -34,7 +34,7 @@ async function generateBostaPayload(order, bostaConfig) {
   const shippingRecord = shippings.find(s => {
     return normalizeString(s.city) === normalizedGov || normalizeString(s.cityOtherName) === normalizedGov;
   });
-  const bostaCityId = shippingRecord ? shippingRecord.bostaCityId : order.customer.government;
+  const bostaCityName = shippingRecord ? shippingRecord.city : order.customer.government;
 
   const normalizePhone = (p) => {
     if (!p) return '';
@@ -84,7 +84,7 @@ async function generateBostaPayload(order, bostaConfig) {
   }
 
   const dropOffAddress = {
-    city: bostaCityId,
+    city: bostaCityName,
     zoneId: bostaZoneId,
     districtId: bostaDistrictId,
     firstLine: order.customer.address
