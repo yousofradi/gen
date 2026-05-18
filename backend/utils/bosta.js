@@ -34,7 +34,7 @@ async function generateBostaPayload(order, bostaConfig) {
   const shippingRecord = shippings.find(s => {
     return normalizeString(s.city) === normalizedGov || normalizeString(s.cityOtherName) === normalizedGov;
   });
-  const bostaCityId = shippingRecord ? shippingRecord.bostaCityId : order.customer.government;
+  const bostaCityName = shippingRecord ? shippingRecord.city : order.customer.government;
 
   let bostaZoneId = order.customer.zone;
   let bostaDistrictId = order.customer.zone;
@@ -85,10 +85,12 @@ async function generateBostaPayload(order, bostaConfig) {
     pickupAddress: storeAddress,
     returnAddress: storeAddress,
     dropOffAddress: {
-      city: bostaCityId,
-      zone: bostaZoneId,
-      district: bostaDistrictId,
-      firstLine: order.customer.address
+      city: bostaCityName,
+      zoneId: bostaZoneId,
+      districtId: bostaDistrictId,
+      firstLine: (order.customer.address && order.customer.address.trim().length >= 5)
+        ? order.customer.address.trim()
+        : `${order.customer.address || ''} - العنوان بالتفصيل`
     },
     receiver: {
       firstName: order.customer.name.split(' ')[0],
