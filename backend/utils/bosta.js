@@ -47,8 +47,11 @@ async function generateBostaPayload(order, bostaConfig) {
     return cleaned;
   };
 
-  let bostaZoneId = order.customer.zone;
-  let bostaDistrictId = order.customer.zone;
+  const dropOffAddress = {
+    city: bostaCityName,
+    firstLine: order.customer.address
+  };
+
   if (shippingRecord && shippingRecord.zones) {
     const formatZoneName = (z) => {
       const zName = z.zoneOtherName || z.name || '';
@@ -75,20 +78,22 @@ async function generateBostaPayload(order, bostaConfig) {
         );
     });
 
-    if (zoneRecord) {
+    if (zoneRecord && zoneRecord.bostaDistrictId) {
+      dropOffAddress.districtId = zoneRecord.bostaDistrictId;
       if (zoneRecord.bostaZoneId) {
-        bostaZoneId = zoneRecord.bostaZoneId;
+        dropOffAddress.zoneId = zoneRecord.bostaZoneId;
       }
-      bostaDistrictId = zoneRecord.bostaDistrictId || zoneRecord.bostaZoneId || bostaZoneId;
+    } else {
+      // Fallback: districtId is not populated in DB, use districtName + cityId
+      if (shippingRecord.bostaCityId) {
+        dropOffAddress.cityId = shippingRecord.bostaCityId;
+      }
+      dropOffAddress.districtName = zoneRecord ? (zoneRecord.name || zoneRecord.zoneName) : (order.customer.zone || 'Default');
     }
+  } else {
+    // If no shippingRecord is found, fallback to customer zone as districtName
+    dropOffAddress.districtName = order.customer.zone || 'Default';
   }
-
-  const dropOffAddress = {
-    city: bostaCityName,
-    zoneId: bostaZoneId,
-    districtId: bostaDistrictId,
-    firstLine: order.customer.address
-  };
 
   return {
     type: 10, // Package Delivery
