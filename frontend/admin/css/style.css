@@ -415,6 +415,14 @@ h4 {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+.input-error {
+  border-color: var(--danger) !important;
+}
+
+.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
 .form-control::placeholder {
   color: var(--text-light);
 }
@@ -2013,4 +2021,18 @@ input[type=number] {
   height: 1px;
   background: #f1f5f9;
   margin: 4px 8px;
+}
+
+/* Unify option and product images to look identical and uncropped */
+.option-img,
+.pli-img,
+.order-cart-img,
+.search-result-img,
+.variant-img-picker img,
+.gallery-item img,
+.image-item img,
+.selected-item-img,
+.item-img {
+  object-fit: contain !important;
+  background-color: #fff !important;
 }

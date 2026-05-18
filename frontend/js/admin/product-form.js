@@ -154,6 +154,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pSalePrice = document.getElementById('p-sale-price');
 
     if (pPrice) {
+      pPrice.addEventListener('input', () => {
+        validateMainProductPrices();
+      });
       pPrice.addEventListener('change', () => {
         const val = Number(pPrice.value) || 0;
         if (variants.length > 0) {
@@ -163,6 +166,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     if (pSalePrice) {
+      pSalePrice.addEventListener('input', () => {
+        validateMainProductPrices();
+      });
       pSalePrice.addEventListener('change', () => {
         const val = pSalePrice.value ? Number(pSalePrice.value) : null;
         if (variants.length > 0) {
@@ -728,13 +734,13 @@ function renderVariantsTable() {
           <td>
             <div class="currency-input-group">
               <span class="addon">ج.م</span>
-              <input type="number" value="${c.price}" onchange="updateVariantField(${c.originalIndex}, 'price', this.value)">
+              <input type="number" class="variant-price" data-idx="${c.originalIndex}" value="${c.price}" oninput="validateVariantRow(this, ${c.originalIndex})" onchange="updateVariantField(${c.originalIndex}, 'price', this.value)">
             </div>
           </td>
           <td>
             <div class="currency-input-group">
               <span class="addon">ج.م</span>
-              <input type="number" value="${c.salePrice || ''}" onchange="updateVariantField(${c.originalIndex}, 'salePrice', this.value)">
+              <input type="number" class="variant-saleprice" data-idx="${c.originalIndex}" value="${c.salePrice || ''}" oninput="validateVariantRow(this, ${c.originalIndex})" onchange="updateVariantField(${c.originalIndex}, 'salePrice', this.value)">
             </div>
           </td>
           <td style="text-align:center">
@@ -747,6 +753,7 @@ function renderVariantsTable() {
   });
 
   tbody.innerHTML = html;
+  validateAllVariantRows();
 }
 
 window.toggleVariantChildren = function (parentVal) {
@@ -1091,4 +1098,88 @@ function populateProductForm(p) {
   }
   renderOptionSetup();
   renderVariantsTable();
+  validateMainProductPrices();
+}
+
+window.validateVariantRow = function(inputEl, idx) {
+  const row = inputEl.closest('tr');
+  if (!row) return;
+
+  const priceInput = row.querySelector('.variant-price');
+  const salePriceInput = row.querySelector('.variant-saleprice');
+  
+  if (!priceInput || !salePriceInput) return;
+
+  const price = Number(priceInput.value) || 0;
+  const salePriceVal = salePriceInput.value;
+  
+  const priceGroup = priceInput.closest('.currency-input-group');
+  const salePriceGroup = salePriceInput.closest('.currency-input-group');
+  
+  if (salePriceVal !== '' && Number(salePriceVal) > price) {
+    if (priceGroup) priceGroup.classList.add('input-error');
+    if (salePriceGroup) salePriceGroup.classList.add('input-error');
+    
+    let errorMsg = row.querySelector('.variant-price-error');
+    if (!errorMsg) {
+      errorMsg = document.createElement('div');
+      errorMsg.className = 'variant-price-error';
+      errorMsg.style.color = 'var(--danger)';
+      errorMsg.style.fontSize = '0.78rem';
+      errorMsg.style.marginTop = '4px';
+      errorMsg.style.textAlign = 'right';
+      errorMsg.textContent = 'سعر الخصم لا يمكن أن يكون أكبر من السعر الأساسي';
+      
+      salePriceGroup.parentNode.appendChild(errorMsg);
+    }
+  } else {
+    if (priceGroup) priceGroup.classList.remove('input-error');
+    if (salePriceGroup) salePriceGroup.classList.remove('input-error');
+    
+    const errorMsg = row.querySelector('.variant-price-error');
+    if (errorMsg) errorMsg.remove();
+  }
+}
+
+window.validateAllVariantRows = function() {
+  document.querySelectorAll('tr.variant-row.child').forEach(row => {
+    const salePriceInput = row.querySelector('.variant-saleprice');
+    if (salePriceInput) {
+      const idx = salePriceInput.getAttribute('data-idx');
+      validateVariantRow(salePriceInput, Number(idx));
+    }
+  });
+}
+
+window.validateMainProductPrices = function() {
+  const priceInput = document.getElementById('p-price');
+  const salePriceInput = document.getElementById('p-sale-price');
+  if (!priceInput || !salePriceInput) return;
+
+  const price = Number(priceInput.value) || 0;
+  const salePriceVal = salePriceInput.value;
+
+  const parent = salePriceInput.parentNode;
+  
+  if (salePriceVal !== '' && Number(salePriceVal) > price) {
+    priceInput.classList.add('input-error');
+    salePriceInput.classList.add('input-error');
+    
+    let errorMsg = parent.querySelector('.main-price-error');
+    if (!errorMsg) {
+      errorMsg = document.createElement('div');
+      errorMsg.className = 'main-price-error';
+      errorMsg.style.color = 'var(--danger)';
+      errorMsg.style.fontSize = '0.78rem';
+      errorMsg.style.marginTop = '4px';
+      errorMsg.style.textAlign = 'right';
+      errorMsg.textContent = 'سعر الخصم لا يمكن أن يكون أكبر من السعر الأساسي';
+      parent.appendChild(errorMsg);
+    }
+  } else {
+    priceInput.classList.remove('input-error');
+    salePriceInput.classList.remove('input-error');
+    const errorMsg = parent.querySelector('.main-price-error');
+    if (errorMsg) errorMsg.remove();
+  }
 }
