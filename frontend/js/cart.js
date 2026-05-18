@@ -211,12 +211,22 @@ Cart.renderSlideCart = function() {
     const opts = item.selectedOptions.map(o => `${o.groupName}: ${o.label}`).join(', ');
     return `
       <div class="sc-item">
-        <div class="sc-item-top">
+        <div class="sc-item-top" style="margin-bottom: 0;">
           ${imgSrc ? `<img src="${imgSrc}" class="sc-item-img" alt="${item.name}" onerror="this.style.display='none'">` : '<div class="sc-item-img sc-item-img-placeholder"></div>'}
           <div class="sc-item-info">
             <div class="sc-item-name">${item.name}</div>
             ${opts ? `<div class="sc-item-opts">${opts}</div>` : ''}
-            <div class="sc-item-price">${formatPrice(item.unitPrice)}</div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+              <div class="sc-item-total" style="font-weight: 700; font-size: 1.05rem; color: #111827;">${formatPrice(item.unitPrice * item.quantity)}</div>
+              
+              <div class="sc-qty-control">
+                <button class="sc-qty-btn" onclick="Cart.updateQty('${item.key}', ${item.quantity + 1}); Cart.renderSlideCart()">+</button>
+                <span class="sc-qty-value">${item.quantity}</span>
+                <button class="sc-qty-btn" onclick="Cart.updateQty('${item.key}', ${item.quantity - 1}); Cart.renderSlideCart()" ${item.quantity <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed"' : ''}>−</button>
+              </div>
+            </div>
+
             ${(function() {
               const available = getAvailable(item);
               if (available !== Infinity && item.quantity > available) {
@@ -229,14 +239,6 @@ Cart.renderSlideCart = function() {
           <button class="sc-delete-btn" onclick="Cart.removeItem('${item.key}'); Cart.renderSlideCart()" title="حذف">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
-        </div>
-        <div class="sc-item-qty-row">
-          <div class="sc-item-total">${formatPrice(item.unitPrice * item.quantity)}</div>
-          <div class="sc-qty-control">
-            <button class="sc-qty-btn" onclick="Cart.updateQty('${item.key}', ${item.quantity + 1}); Cart.renderSlideCart()">+</button>
-            <span class="sc-qty-value">${item.quantity}</span>
-            <button class="sc-qty-btn" onclick="Cart.updateQty('${item.key}', ${item.quantity - 1}); Cart.renderSlideCart()" ${item.quantity <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed"' : ''}>−</button>
-          </div>
         </div>
       </div>
     `;

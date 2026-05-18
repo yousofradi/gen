@@ -1083,16 +1083,23 @@ a .spinner {
   padding: 100px 0;
   text-align: center;
 }
+
 body.is-loading #page-content-spinner {
   display: block !important;
 }
+
 body.is-loading #main-content-layout {
   display: none !important;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes slideUp {
@@ -1230,7 +1237,7 @@ input[type=number] {
   position: fixed;
   top: 0;
   left: -420px;
-  width: 85%;
+  width: 75%;
   max-width: 400px;
   height: 100%;
   height: 100dvh;
@@ -1493,14 +1500,14 @@ input[type=number] {
   display: flex;
   align-items: center;
   border: 1.5px solid #e5e7eb;
-  border-radius: 999px;
+  /* border-radius: 999px;*/
   overflow: hidden;
   height: 34px;
 }
 
 .sc-qty-btn {
-  width: 34px;
-  height: 34px;
+  width: 25px;
+  height: 25px;
   border: none;
   background: #fff;
   font-size: 1.1rem;
@@ -2035,4 +2042,30 @@ input[type=number] {
 .item-img {
   object-fit: contain !important;
   background-color: #fff !important;
+}
+
+/* ── Move Icon to the Left & Text to the Right (RTL Support) ── */
+button:has(svg):has(span),
+.btn:has(svg):has(span),
+.detail-add-btn,
+.copy-btn,
+.btn-copy-payment,
+.dropdown-item-btn:has(svg),
+.admin-store-preview:has(svg) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: row-reverse !important;
+  gap: 8px !important;
+}
+
+button:has(svg):has(span) svg,
+.btn:has(svg):has(span) svg,
+.detail-add-btn svg,
+.copy-btn svg,
+.btn-copy-payment svg,
+.dropdown-item-btn svg,
+.admin-store-preview svg {
+  margin: 0 !important;
+  flex-shrink: 0 !important;
 }
