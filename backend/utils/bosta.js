@@ -36,8 +36,26 @@ async function generateBostaPayload(order, bostaConfig) {
   });
   const bostaCityName = shippingRecord ? shippingRecord.city : order.customer.government;
 
-  let bostaZoneId = order.customer.zone;
-  let bostaDistrictId = order.customer.zone;
+  const normalizePhone = (p) => {
+    if (!p) return '';
+    let cleaned = p.replace(/\D/g, ''); // keep only digits
+    if (cleaned.startsWith('20') && cleaned.length > 11) {
+      cleaned = cleaned.substring(2);
+    } else if (cleaned.startsWith('2') && cleaned.length > 11) {
+      cleaned = cleaned.substring(1);
+    }
+    return cleaned;
+  };
+
+  const addressLine = (order.customer.address && order.customer.address.trim().length >= 5)
+    ? order.customer.address.trim()
+    : `${order.customer.address || ''} - العنوان بالتفصيل`;
+
+  const dropOffAddress = {
+    city: bostaCityName,
+    firstLine: addressLine
+  };
+
   if (shippingRecord && shippingRecord.zones) {
     const formatZoneName = (z) => {
       const zName = z.zoneOtherName || z.name || '';
@@ -63,12 +81,22 @@ async function generateBostaPayload(order, bostaConfig) {
           normalizeString(compound) === part
         );
     });
-    if (zoneRecord) {
+
+    if (zoneRecord && zoneRecord.bostaDistrictId) {
+      dropOffAddress.districtId = zoneRecord.bostaDistrictId;
       if (zoneRecord.bostaZoneId) {
-        bostaZoneId = zoneRecord.bostaZoneId;
+        dropOffAddress.zoneId = zoneRecord.bostaZoneId;
       }
-      bostaDistrictId = zoneRecord.bostaDistrictId || zoneRecord.bostaZoneId || bostaZoneId;
+    } else {
+      // Fallback: districtId is not populated in DB, use districtName + cityId
+      if (shippingRecord.bostaCityId) {
+        dropOffAddress.cityId = shippingRecord.bostaCityId;
+      }
+      dropOffAddress.districtName = zoneRecord ? (zoneRecord.name || zoneRecord.zoneName) : (order.customer.zone || 'Default');
     }
+  } else {
+    // If no shippingRecord is found, fallback to customer zone as districtName
+    dropOffAddress.districtName = order.customer.zone || 'Default';
   }
 
   return {
@@ -84,20 +112,15 @@ async function generateBostaPayload(order, bostaConfig) {
     },
     pickupAddress: storeAddress,
     returnAddress: storeAddress,
-    dropOffAddress: {
-      city: bostaCityName, // Change this to the English bosta Name
-      zoneId: bostaZoneId,
-      districtId: bostaDistrictId,
-      firstLine: order.customer.address
-    },
+    dropOffAddress: dropOffAddress,
     receiver: {
-      firstName: order.customer.name.split(' ')[0],
+      firstName: order.customer.name.split(' ')[0] || 'Customer',
       lastName: order.customer.name.split(' ').slice(1).join(' ') || 'Customer',
-      phone: order.customer.phone,
-      ...(order.customer.secondPhone ? { secondPhone: order.customer.secondPhone } : {})
+      phone: normalizePhone(order.customer.phone),
+      ...(order.customer.secondPhone ? { secondPhone: normalizePhone(order.customer.secondPhone) } : {})
     },
     isConsigneeReschedule: true,
-    notes: 'يرجى التواصل مع العميل قبل التحرك - قابل للكسر',
+    notes: 'يرجى التواصل مع العميل قبل التحرك  - قابل للكسر',
     cod: (function () {
       const remaining = order.totalPrice - (order.paidAmount || 0);
       return remaining > 0 ? remaining + 10 : 0;
