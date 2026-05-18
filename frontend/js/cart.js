@@ -32,11 +32,25 @@ Object.assign(Cart, {
       
       const finalUnitPrice = (finalSalePrice !== null && finalSalePrice < finalBasePrice) ? finalSalePrice : finalBasePrice;
 
+      let finalImageUrl = '';
+      if (product.variants && product.variants.length > 0 && selectedOptions && selectedOptions.length > 0) {
+        const matchingVariant = product.variants.find(v => {
+          if (!v.combination) return false;
+          return selectedOptions.every(opt => v.combination[opt.groupName] === opt.label);
+        });
+        if (matchingVariant && matchingVariant.imageUrl) {
+          finalImageUrl = matchingVariant.imageUrl;
+        }
+      }
+      if (!finalImageUrl) {
+        finalImageUrl = (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || '');
+      }
+
       items.push({
         key,
         productId: product._id,
         name: product.name,
-        imageUrl: (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || ''),
+        imageUrl: finalImageUrl,
         basePrice: finalBasePrice,
         salePrice: finalSalePrice,
         selectedOptions,

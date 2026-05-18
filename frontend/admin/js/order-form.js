@@ -351,7 +351,8 @@ window.renderModalProducts = function () {
 
   listEl.innerHTML = filtered.map(p => {
     const isChecked = modalSelectedProducts.has(p._id);
-    const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" class="pli-img" loading="lazy">` : `<div class="pli-img"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
+    const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || '');
+    const imgHtml = imgUrl ? `<img src="${imgUrl}" class="pli-img" loading="lazy">` : `<div class="pli-img"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
     const hasOptions = p.options && p.options.length > 0;
     const effectiveBase = (p.salePrice && p.salePrice < p.basePrice) ? p.salePrice : p.basePrice;
 
@@ -569,7 +570,7 @@ function renderCart() {
     
     // Fall back to product base image url
     if (!finalImageUrl && p) {
-      finalImageUrl = p.imageUrl;
+      finalImageUrl = (p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || '');
     }
 
     const imgHtml = finalImageUrl
@@ -767,7 +768,7 @@ window.submitOrder = async function () {
     return {
       productId: c.product._id,
       name: c.product.name,
-      imageUrl: variantImageUrl || c.product.imageUrl || '',
+      imageUrl: variantImageUrl || ((c.product.images && c.product.images.length > 0) ? c.product.images[0] : (c.product.imageUrl || '')),
       basePrice: c.price !== undefined ? c.price : ((c.product.salePrice && c.product.salePrice < c.product.basePrice) ? c.product.salePrice : c.product.basePrice),
       selectedOptions: c.selectedOptions,
       quantity: c.quantity,

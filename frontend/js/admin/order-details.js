@@ -19,15 +19,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.classList.add('is-loading');
 
   try {
-    const [order, shipping, settings] = await Promise.all([
+    const [order, shipping, settings, productsRes] = await Promise.all([
       api.getOrder(orderId),
       api.getShipping().catch(() => ({})),
-      api.getSetting('sundura_global_settings').catch(() => ({}))
+      api.getSetting('sundura_global_settings').catch(() => ({})),
+      api.getProducts(1, 1000, true).catch(() => [])
     ]);
 
     currentOrder = order;
     originalOrder = JSON.parse(JSON.stringify(order));
     shippingMap = shipping;
+    allProducts = Array.isArray(productsRes) ? productsRes : (productsRes.products || []);
 
     // Fallback if DB is empty
     if (Object.keys(shippingMap).length === 0) {
@@ -136,8 +138,25 @@ function renderItems() {
   }
 
   container.innerHTML = currentOrder.items.map((item, idx) => {
-    const imgHtml = item.imageUrl
-      ? `<img src="${item.imageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:cover; border:1px solid #f1f5f9;" alt="${item.name}">`
+    const p = allProducts.find(x => x._id === item.productId) || {};
+    let finalImageUrl = item.imageUrl;
+    if (!finalImageUrl && p) {
+      if (p.variants && item.selectedOptions && item.selectedOptions.length > 0) {
+        const matchingVariant = p.variants.find(v => {
+          if (!v.combination) return false;
+          return item.selectedOptions.every(opt => v.combination[opt.groupName] === opt.label);
+        });
+        if (matchingVariant && matchingVariant.imageUrl) {
+          finalImageUrl = matchingVariant.imageUrl;
+        }
+      }
+      if (!finalImageUrl) {
+        finalImageUrl = (p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || '');
+      }
+    }
+
+    const imgHtml = finalImageUrl
+      ? `<img src="${finalImageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${item.name}">`
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
     const optText = (item.selectedOptions || []).map(op => op.label).join(' / ');
@@ -614,7 +633,8 @@ window.renderModalProducts = function () {
   if (col) filtered = filtered.filter(p => p.collectionId === col);
 
   listEl.innerHTML = filtered.map(p => {
-    const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" class="pli-img">` : `<div class="pli-img"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
+    const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || '');
+    const imgHtml = imgUrl ? `<img src="${imgUrl}" class="pli-img">` : `<div class="pli-img"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
     const hasOptions = p.options && p.options.length > 0;
     const effectiveBase = (p.salePrice && p.salePrice < p.basePrice) ? p.salePrice : p.basePrice;
 
@@ -728,7 +748,7 @@ window.addSelectedProducts = function () {
         currentOrder.items.push({
           productId: p._id,
           name: p.name,
-          imageUrl: p.imageUrl || '',
+          imageUrl: (p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || ''),
           basePrice: effectiveBase,
           selectedOptions: [],
           quantity: 1,
@@ -757,10 +777,21 @@ window.addSelectedProducts = function () {
         existing.quantity++;
       } else {
         const extraPrice = combo.reduce((sum, c) => sum + (c.price || 0), 0);
+        let variantImageUrl = '';
+        if (p.variants && p.variants.length > 0 && combo && combo.length > 0) {
+          const matchingVariant = p.variants.find(varObj => {
+            if (!varObj.combination) return false;
+            return combo.every(opt => varObj.combination[opt.groupName] === opt.label);
+          });
+          if (matchingVariant && matchingVariant.imageUrl) {
+            variantImageUrl = matchingVariant.imageUrl;
+          }
+        }
+
         currentOrder.items.push({
           productId: p._id,
           name: p.name,
-          imageUrl: p.imageUrl || '',
+          imageUrl: variantImageUrl || ((p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || '')),
           basePrice: effectiveBase,
           selectedOptions: combo,
           quantity: 1,
