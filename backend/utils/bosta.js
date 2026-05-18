@@ -184,9 +184,17 @@ async function createBulkBostaDeliveries(orders) {
     // Bosta bulk response usually contains an array of results or a single object with success info
     return response.data;
   } catch (err) {
-    const errorData = err.response ? err.response.data : err.message;
-    console.error('Bosta Bulk API Error:', errorData);
-    throw new Error(errorData.message || err.message);
+    const errorData = err.response ? err.response.data : null;
+    console.error('Bosta Bulk API Error:', errorData || err.message);
+    if (errorData && errorData.message) {
+      let msg = errorData.message;
+      if (errorData.data && Array.isArray(errorData.data)) {
+        const details = errorData.data.map(d => `${d.businessReference || `Index ${d.index}`}: ${d.errorMessage || d.message || 'Validation error'}`).join(', ');
+        msg += ` -> ${details}`;
+      }
+      throw new Error(msg);
+    }
+    throw new Error(err.message);
   }
 }
 
