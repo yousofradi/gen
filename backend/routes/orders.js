@@ -233,8 +233,9 @@ router.get('/bulk/download-pdf', adminAuth, async (req, res) => {
 <head>
 <meta charset="UTF-8">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
-* { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600&display=swap');
+* { font-family: 'Cairo', sans-serif !important; font-weight: 500; box-sizing: border-box; }
+h1, h2, h3, h4, th, strong, b, .notes-title, .footer, .grand, .green, .red, .label-column { font-weight: 600 !important; }
 @page { size: A5; margin: 4mm; }
 body { margin: 0; padding: 0; }
 .page {
@@ -359,8 +360,9 @@ router.get('/bulk/invoice-html', adminAuth, async (req, res) => {
 <head>
 <meta charset="UTF-8">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
-* { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600&display=swap');
+* { font-family: 'Cairo', sans-serif !important; font-weight: 500; box-sizing: border-box; }
+h1, h2, h3, h4, th, strong, b, .notes-title, .footer, .grand, .green, .red, .label-column { font-weight: 600 !important; }
 @page { size: A5; margin: 4mm; }
 body { margin: 0; padding: 0; }
 .page {
@@ -457,8 +459,9 @@ router.get('/:orderId/download-image', adminAuth, async (req, res) => {
 <head>
 <meta charset="UTF-8">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
-* { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600&display=swap');
+* { font-family: 'Cairo', sans-serif !important; font-weight: 500; box-sizing: border-box; }
+h1, h2, h3, h4, th, strong, b, .notes-title, .footer, .grand, .green, .red, .label-column { font-weight: 600 !important; }
 body { margin: 0; padding: 0; background: #fff; }
 .invoice-container { width: 500px; margin: 0 auto; background: #fff; padding: 10px; }
 
@@ -555,8 +558,9 @@ router.get('/:orderId/invoice', adminAuth, async (req, res) => {
 <head>
 <meta charset="UTF-8">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
-* { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600&display=swap');
+* { font-family: 'Cairo', sans-serif !important; font-weight: 500; box-sizing: border-box; }
+h1, h2, h3, h4, th, strong, b, .notes-title, .footer, .grand, .green, .red, .label-column { font-weight: 600 !important; }
 @page { size: A5; margin: 4mm; }
 body { margin: 0; padding: 0; }
 .page {

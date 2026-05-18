@@ -207,7 +207,7 @@ ${shortLink}`;
                   <html dir="rtl" lang="ar">
                   <head>
                     <meta charset="UTF-8">
-                    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+                    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600&display=swap" rel="stylesheet">
                     <style>
                       * { box-sizing: border-box; }
                       html, body {
@@ -216,8 +216,10 @@ ${shortLink}`;
                         width: 500px;
                         height: fit-content;
                         background: #ffffff;
-                        font-family: 'Tajawal', Arial, sans-serif;
+                        font-family: 'Cairo', Arial, sans-serif !important;
+                        font-weight: 500;
                       }
+                      h1, h2, h3, h4, th, strong, b, .notes-title, .footer, .grand, .green, .red, .label-column { font-weight: 600 !important; }
                       .invoice {
                         width: 500px;
                         margin: 0;
