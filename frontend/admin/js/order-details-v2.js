@@ -943,7 +943,8 @@ window.saveOrderChanges = async function (silent = false) {
       paidAmount: currentOrder.paidAmount,
       paid: currentOrder.paidAmount >= currentOrder.totalPrice,
       customer: currentOrder.customer,
-      forcePaymentWebhook: currentOrder.forcePaymentWebhook
+      forcePaymentWebhook: currentOrder.forcePaymentWebhook,
+      updatedAt: currentOrder.updatedAt
     };
 
     await api.updateOrder(currentOrder.orderId, updates);
@@ -965,6 +966,15 @@ window.saveOrderChanges = async function (silent = false) {
     renderOrder();
     return true;
   } catch (err) {
+    if (err.message === 'conflict' || err.message.includes('conflict') || err.message.includes('تعارض')) {
+      await window.showConfirmModal(
+        'تنبيه تعارض البيانات',
+        'تم تعديل هذا الطلب بالفعل بواسطة مستخدم آخر أو في نافذة أخرى. يجب إعادة تحميل الصفحة للحصول على البيانات الأحدث وتجنب الكتابة فوق التعديلات الأخرى.',
+        false
+      );
+      window.location.reload();
+      return false;
+    }
     showToast(err.message || 'فشل الحفظ', 'error');
     return false;
   } finally {
@@ -1404,13 +1414,22 @@ window.confirmMarkAsReady = async function (btn) {
   try {
     closeModal('ready-confirm-modal');
     document.body.classList.add('is-loading');
-    const updated = await api.updateOrder(currentOrder.orderId, { status: 'ready' });
+    const updated = await api.updateOrder(currentOrder.orderId, { status: 'ready', updatedAt: currentOrder.updatedAt });
     currentOrder = updated;
     if (typeof originalOrder !== 'undefined') originalOrder = JSON.parse(JSON.stringify(updated));
     renderOrder();
     showToast('تم تجهيز الطلب بنجاح', 'success');
     if (window.hideBar) window.hideBar();
   } catch (err) {
+    if (err.message === 'conflict' || err.message.includes('conflict') || err.message.includes('تعارض')) {
+      await window.showConfirmModal(
+        'تنبيه تعارض البيانات',
+        'تم تعديل هذا الطلب بالفعل بواسطة مستخدم آخر أو في نافذة أخرى. يجب إعادة تحميل الصفحة للحصول على البيانات الأحدث وتجنب الكتابة فوق التعديلات الأخرى.',
+        false
+      );
+      window.location.reload();
+      return;
+    }
     showToast('فشل تحديث حالة الطلب', 'error');
     if (btn) {
       btn.disabled = false;

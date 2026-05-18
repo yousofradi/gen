@@ -832,6 +832,16 @@ router.put('/:orderId', adminAuth, async (req, res) => {
     const order = await Order.findOne(query);
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
+    // Concurrency Check (Optimistic Concurrency Control)
+    if (updates.updatedAt && order.updatedAt) {
+      const clientTime = new Date(updates.updatedAt).getTime();
+      const serverTime = new Date(order.updatedAt).getTime();
+      // Allow 1 second buffer to prevent precision issues, though millisecond equality is usually exact
+      if (serverTime - clientTime > 1000) {
+        return res.status(409).json({ error: 'conflict' });
+      }
+    }
+
     // Handle stock adjustment if items changed and order is not cancelled
     if (updates.items && order.status !== 'cancelled') {
       // 1. Restore old stock

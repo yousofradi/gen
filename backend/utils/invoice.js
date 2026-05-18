@@ -15,6 +15,10 @@ async function generateInvoiceInnerHtml(order, settings, options = {}) {
   const Product = require('../models/Product');
   const includeImages = options.includeImages === true;
 
+  const isCompact = order.items.length > 11;
+  const imgSize = isCompact ? 18 : 24;
+  const svgSize = isCompact ? 10 : 14;
+
   function getVariantImageUrl(product, selectedOptions) {
     if (!product || !product.variants || !selectedOptions || selectedOptions.length === 0) {
       return null;
@@ -68,9 +72,9 @@ async function generateInvoiceInnerHtml(order, settings, options = {}) {
         finalImageUrl = p.imageUrl;
       }
       
-      imgHtml = finalImageUrl ? `<img src="${finalImageUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px; flex-shrink: 0;" />` : `
-        <div style="width: 32px; height: 32px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+      imgHtml = finalImageUrl ? `<img src="${finalImageUrl}" style="width: ${imgSize}px; height: ${imgSize}px; object-fit: cover; border-radius: 4px; flex-shrink: 0;" />` : `
+        <div style="width: ${imgSize}px; height: ${imgSize}px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
           </svg>
         </div>`;
@@ -124,6 +128,85 @@ async function generateInvoiceInnerHtml(order, settings, options = {}) {
   }
 
   return `
+<style>
+  /* General invoice optimization to remove whitespace */
+  .invoice {
+    width: 500px !important;
+    margin: 0 auto !important;
+    padding: 2px 4px !important;
+  }
+  .customer-table {
+    margin-bottom: 4px !important;
+  }
+  .customer-table td {
+    padding: 3px 4px !important;
+    font-size: 10px !important;
+  }
+  .items-table th, .items-table td {
+    padding: 4px 4px !important;
+    font-size: 11px !important;
+  }
+  .summary {
+    padding: 2px 6px !important;
+  }
+  .row {
+    margin: 1px !important;
+    font-size: 11px !important;
+  }
+  .grand {
+    margin-top: 2px !important;
+    padding-top: 2px !important;
+  }
+  .paid-box {
+    padding: 2px 6px !important;
+  }
+  .notes-section {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+  }
+  .footer {
+    padding: 4px !important;
+    font-size: 11px !important;
+  }
+  
+  ${isCompact ? `
+  /* Ultra-compact styling for long orders (> 11 products) */
+  .customer-table {
+    margin-bottom: 2px !important;
+  }
+  .customer-table td {
+    padding: 1px 2px !important;
+    font-size: 8px !important;
+  }
+  .items-table th, .items-table td {
+    padding: 1px 2px !important;
+    font-size: 9px !important;
+  }
+  .summary {
+    padding: 1px 3px !important;
+  }
+  .row {
+    margin: 0px !important;
+    font-size: 9px !important;
+  }
+  .grand {
+    margin-top: 1px !important;
+    padding-top: 1px !important;
+  }
+  .paid-box {
+    padding: 1px 3px !important;
+  }
+  .notes-section {
+    padding: 2px 3px !important;
+    font-size: 9px !important;
+  }
+  .footer {
+    padding: 2px !important;
+    font-size: 9px !important;
+  }
+  ` : ''}
+</style>
+
 <div class="invoice">
 
 <table class="customer-table">
