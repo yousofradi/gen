@@ -52,9 +52,9 @@ function getShippingFeeForCityAndZone(cityName, zoneName) {
     isCityEqual(s.city, cityName) || isCityEqual(s.cityOtherName, cityName)
   );
 
-  if (zoneName && govData && govData.zones) {
+  if (zoneName && govData && govData.zones && govData.zones.length > 0) {
     const selectedZoneObj = govData.zones.find(z => api.formatZoneName(z) === zoneName);
-    if (selectedZoneObj && (selectedZoneObj.bostaAvailable === false || selectedZoneObj.dropOffAvailability === false)) {
+    if (!selectedZoneObj || selectedZoneObj.bostaAvailable === false || selectedZoneObj.dropOffAvailability === false) {
       carrier = 'egyptpost';
     }
   }
@@ -729,9 +729,18 @@ window.submitOrder = async function () {
     return showToast('يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط', 'error');
   }
 
+  // Resolve carrier first
+  let carrier = 'bosta';
+  if (zone && window._currentCityZonesList && window._currentCityZonesList.length > 0) {
+    const selectedZoneObj = window._currentCityZonesList.find(z => api.formatZoneName(z) === zone);
+    if (!selectedZoneObj || selectedZoneObj.bostaAvailable === false || selectedZoneObj.dropOffAvailability === false) {
+      carrier = 'egyptpost';
+    }
+  }
+
   // Zone validation
   const zoneOptions = window._currentCityZones || [];
-  if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
+  if (carrier !== 'egyptpost' && zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
     showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
     return;
   }
@@ -767,14 +776,6 @@ window.submitOrder = async function () {
     };
   });
 
-  // Resolve carrier and fee
-  let carrier = 'bosta';
-  if (zone && window._currentCityZonesList) {
-    const selectedZoneObj = window._currentCityZonesList.find(z => api.formatZoneName(z) === zone);
-    if (selectedZoneObj && selectedZoneObj.bostaAvailable === false) {
-      carrier = 'egyptpost';
-    }
-  }
   const shippingFee = getShippingFeeForCityAndZone(cityName, zone);
 
   const payload = {

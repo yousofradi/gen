@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
             const compound = formatZoneName(z);
             return compound === customer.zone || z.name === customer.zone || z.otherName === customer.zone;
           });
-          if (zoneRecord && (zoneRecord.dropOffAvailability === false || zoneRecord.bostaAvailable === false)) {
+          if (!zoneRecord || zoneRecord.dropOffAvailability === false || zoneRecord.bostaAvailable === false) {
             resolvedCarrier = 'egyptpost';
           } else {
             resolvedCarrier = 'bosta';

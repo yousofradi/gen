@@ -340,9 +340,11 @@ function updatePriceSummary() {
 
   // Check if zone is selected
   const selectedZone = getSelectedZoneObject();
+  const zoneVal = document.getElementById('zone')?.value;
+  const hasZonesList = window._currentZones && window._currentZones.length > 0;
   
-  if (window._enableZones && selectedZone) {
-    if (selectedZone.dropOffAvailability === false || selectedZone.bostaAvailable === false) {
+  if (window._enableZones && hasZonesList) {
+    if (!selectedZone || selectedZone.dropOffAvailability === false || selectedZone.bostaAvailable === false) {
       resolvedCarrier = 'egyptpost';
     } else {
       resolvedCarrier = 'bosta';
@@ -530,9 +532,16 @@ function setupForm() {
     setTimeout(() => {
       const zoneGroup = document.getElementById('zone-form-group');
       if (zoneGroup && zoneGroup.style.display !== 'none') {
-        const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
-        if (!zoneInput.value || !zoneOptions.includes(zoneInput.value)) {
+        const isEgyptPost = window._selectedCarrier === 'egyptpost';
+        if (!zoneInput.value) {
           setError(zoneInput, 'من فضلك اختر من القائمه');
+        } else if (!isEgyptPost) {
+          const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
+          if (!zoneOptions.includes(zoneInput.value)) {
+            setError(zoneInput, 'من فضلك اختر من القائمه');
+          } else {
+            setError(zoneInput, null);
+          }
         } else {
           setError(zoneInput, null);
         }
@@ -561,10 +570,15 @@ function setupForm() {
     
     const zoneGroup = document.getElementById('zone-form-group');
     if (zoneGroup && zoneGroup.style.display !== 'none') {
-        const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
-        if (!zone || !zoneOptions.includes(zone)) {
+        if (!zone) {
           setError(zoneInput, 'من فضلك اختر من القائمه');
           hasError = true;
+        } else if (window._selectedCarrier !== 'egyptpost') {
+          const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
+          if (!zoneOptions.includes(zone)) {
+            setError(zoneInput, 'من فضلك اختر من القائمه');
+            hasError = true;
+          }
         }
     }
 
