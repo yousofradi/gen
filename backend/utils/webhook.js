@@ -96,8 +96,6 @@ async function sendWebhook(event, data) {
               customerMessage = `مرحباً ${data.customer.name}
 
 رقم الطلب: ${data.orderId}
-المجموع الفرعي: ${subtotal} EGP
-الشحن (${carrierName}): ${data.shippingFee} EGP
 إجمالي المبلغ: ${data.totalPrice} EGP
 
 طرق الدفع:
@@ -113,8 +111,6 @@ ${settings.paymentNotes || ''}
               customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
 
 رقم الأوردر : ${data.orderId}
-المجموع الفرعي: ${subtotal} EGP
-الشحن (${carrierName}): ${data.shippingFee} EGP
 المبلغ الاجمالي : ${data.totalPrice} EGP
 تم الدفع : ${data.paidAmount || 0} EGP
 ${remainingText}
@@ -179,8 +175,6 @@ ${remainingText}
               ownerMessage = `🔔 طلب جديد
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
-المجموع الفرعي: EGP ${data.totalPrice - data.shippingFee}
-الشحن (${carrierName}): EGP ${data.shippingFee}
 اجمالي الطلب: EGP ${data.totalPrice}`;
 
               if (data.customer.notes) ownerMessage += `\nملاحظات: ${data.customer.notes}`;
@@ -190,8 +184,6 @@ ${remainingText}
 
 رقم الطلب: ${data.orderId}
 اسم العميل: ${data.customer.name}
-المجموع الفرعي: EGP ${data.totalPrice - data.shippingFee}
-الشحن (${carrierName}): EGP ${data.shippingFee}
 اجمالي الطلب: EGP ${data.totalPrice}
 ${remainingText}
 
