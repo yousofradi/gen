@@ -133,7 +133,7 @@ ${remainingText}
             let shortLink = '';
 
             try {
-              // Try is.gd first
+              // Try is.gd shortener
               const isgdRes = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(whatsappLink)}`, {
                 signal: AbortSignal.timeout(8000)
               }).catch(() => null);
@@ -142,20 +142,6 @@ ${remainingText}
                 const text = await isgdRes.text();
                 if (text && text.startsWith('http')) {
                   shortLink = text;
-                }
-              }
-
-              if (!shortLink) {
-                // Try TinyURL fallback
-                const tinyRes = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(whatsappLink)}`, {
-                  signal: AbortSignal.timeout(8000)
-                }).catch(() => null);
-
-                if (tinyRes && tinyRes.ok) {
-                  const text = await tinyRes.text();
-                  if (text && text.startsWith('http')) {
-                    shortLink = text;
-                  }
                 }
               }
             } catch (e) {
