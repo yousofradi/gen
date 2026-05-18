@@ -170,7 +170,7 @@ function renderItems() {
           <div style="display: flex; align-items: center; gap: 12px; flex: 1.5;">
             ${imgHtml}
             <div style="text-align: right; display: flex; flex-direction: column; justify-content: center;">
-              <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b; line-height: 1.2;">${item.name}</div>
+              <div style="font-weight: 700; font-size: 13px; color: #1e293b; line-height: 1.2;">${item.name}</div>
               ${optText ? `<div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${optText}</div>` : ''}
               ${item.discount ? `<div style="font-size:0.75rem; color:#dc2626; margin-top:4px; font-weight:600;">خصم: ${formatPrice(item.discount)}</div>` : ''}
             </div>

@@ -393,7 +393,7 @@ function renderItems() {
           <div style="display: flex; align-items: center; gap: 12px; flex: 1.5;">
             ${imgHtml}
             <div style="text-align: right; display: flex; flex-direction: column; justify-content: center;">
-              <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b; line-height: 1.2;">${item.name}</div>
+              <div style="font-weight: 700; font-size: 13px; color: #1e293b; line-height: 1.2;">${item.name}</div>
               ${optText ? `<div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${optText}</div>` : ''}
               ${item.discount ? (item.discount > 0 
                 ? `<div style="font-size:0.75rem; color:#dc2626; margin-top:4px; font-weight:600;">خصم: ${formatPrice(item.discount)}</div>` 
@@ -1364,7 +1364,7 @@ window.markAsReady = function () {
           <div style="display: flex; gap: 16px; align-items: center; flex: 1;">
             ${imgHtml}
             <div style="text-align: right;">
-              <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem;">${item.name}</div>
+              <div style="font-weight: 800; color: #1e293b; font-size: 13px;">${item.name}</div>
               ${optText ? `<div style="color: #64748b; font-size: 0.85rem; margin-top: 2px;">${optText}</div>` : ''}
             </div>
           </div>
