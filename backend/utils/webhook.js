@@ -5,7 +5,32 @@
 const Webhook = require('../models/Webhook');
 const cityMap = require('./cityMap');
 
+const helpers = {
+  async httpRequest({ method, url, qs, timeout }) {
+    try {
+      const queryString = qs ? '?' + new URLSearchParams(qs).toString() : '';
+      const res = await fetch(url + queryString, {
+        method: method || 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
+        signal: AbortSignal.timeout(timeout || 10000)
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return await res.text();
+    } catch (err) {
+      console.warn('[helpers.httpRequest] Error:', err.message);
+      return null;
+    }
+  }
+};
+
 async function sendWebhook(event, data) {
+  const context = { helpers };
+  return sendWebhookInner.call(context, event, data);
+}
+
+async function sendWebhookInner(event, data) {
   try {
     const webhooks = await Webhook.find({ active: true, events: event });
     console.log(`[Webhook] Found ${webhooks.length} active webhooks for event: ${event}`);
@@ -129,31 +154,20 @@ ${remainingText}
             const whatsappLink = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(customerMessage)}`;
 
             // 3. Shorten the Link
-            let shortLink = '';
-
+            let shortLink = whatsappLink; 
             try {
-              // Try is.gd shortener with browser User-Agent and increased timeout
-              const isgdRes = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(whatsappLink)}`, {
-                headers: {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                },
-                signal: AbortSignal.timeout(15000)
-              }).catch(() => null);
-
-              if (isgdRes && isgdRes.ok) {
-                const text = await isgdRes.text();
-                if (text && text.startsWith('http')) {
-                  shortLink = text;
-                }
-              }
-            } catch (e) {
-              console.warn('[WhatsApp] Link shortening system error:', e.message);
-            }
-
-            // Final fallback: if shortening failed, use the LONG whatsappLink containing the pre-filled message text!
-            if (!shortLink) {
-              shortLink = whatsappLink;
-              console.log('[WhatsApp] Link shortening failed or timed out, falling back to full long whatsappLink');
+                const response = await this.helpers.httpRequest({
+                    method: 'GET',
+                    url: 'https://is.gd/create.php',
+                    qs: {
+                        format: 'simple',
+                        url: whatsappLink,
+                    },
+                    timeout: 10000,
+                });
+                if (response) shortLink = response;
+            } catch (error) {
+                console.warn('[WhatsApp] Link shortening system error:', error.message);
             }
 
             // 4. Prepare Owner Message
