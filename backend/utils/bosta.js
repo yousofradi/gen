@@ -28,20 +28,39 @@ async function generateBostaPayload(order, bostaConfig) {
     apartment: apartment
   };
 
-  // Resolve Bosta IDs for drop-off using flexible city lookup
-  const shippingRecord = await Shipping.findOne({
-    $or: [
-      { city: order.customer.government },
-      { cityOtherName: order.customer.government }
-    ]
+  // Resolve Bosta IDs for drop-off using flexible city lookup with normalization
+  const shippings = await Shipping.find({});
+  const normalizedGov = normalizeString(order.customer.government);
+  const shippingRecord = shippings.find(s => {
+    return normalizeString(s.city) === normalizedGov || normalizeString(s.cityOtherName) === normalizedGov;
   });
   const bostaCityId = shippingRecord ? shippingRecord.bostaCityId : order.customer.government;
 
   let bostaZoneId = order.customer.zone;
   if (shippingRecord && shippingRecord.zones) {
+    const formatZoneName = (z) => {
+      const zName = z.zoneOtherName || z.name || '';
+      const dName = z.districtOtherName || z.districtName || '';
+      return zName === dName ? zName : `${zName} - ${dName}`;
+    };
+
     const normalizedTarget = normalizeString(order.customer.zone);
+    const targetParts = (order.customer.zone || '').split('-').map(p => normalizeString(p));
+
     const zoneRecord = shippingRecord.zones.find(z => {
-      return normalizeString(z.name) === normalizedTarget || normalizeString(z.otherName) === normalizedTarget;
+      const compound = formatZoneName(z);
+      return normalizeString(z.name) === normalizedTarget ||
+             normalizeString(z.otherName) === normalizedTarget ||
+             normalizeString(z.zoneName) === normalizedTarget ||
+             normalizeString(z.zoneOtherName) === normalizedTarget ||
+             normalizeString(compound) === normalizedTarget ||
+             targetParts.some(part => 
+               normalizeString(z.name) === part ||
+               normalizeString(z.otherName) === part ||
+               normalizeString(z.zoneName) === part ||
+               normalizeString(z.zoneOtherName) === part ||
+               normalizeString(compound) === part
+             );
     });
     if (zoneRecord && zoneRecord.bostaZoneId) {
       bostaZoneId = zoneRecord.bostaZoneId;

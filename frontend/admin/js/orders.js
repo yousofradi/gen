@@ -404,28 +404,17 @@ window.printInvoices = async function () {
 
     const htmlText = await response.text();
     
-    // Create temporary offscreen container
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '-9999px';
-    container.innerHTML = htmlText;
-    document.body.appendChild(container);
-    
     // Configure html2pdf options
     const opt = {
       margin: [4, 4, 4, 4], // 4mm margins
       filename: `bulk-invoices-${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
     };
     
-    // Generate and download PDF on the client side
-    await html2pdf().from(container).set(opt).save();
-    
-    // Clean up temporary element
-    container.remove();
+    // Generate and download PDF on the client side directly from the HTML text
+    await html2pdf().from(htmlText).set(opt).save();
     
     showToast('تم تحميل الفواتير بنجاح ✅');
   } catch (err) {
