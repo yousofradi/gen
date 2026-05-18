@@ -391,34 +391,30 @@ window.printInvoices = async function () {
     btn.disabled = true;
   }
 
-  showToast('جاري تحضير الفواتير للتحميل المجاني والمباشر...', 'info');
+  showToast('جاري تحميل جميع الفواتير من PDFBolt...', 'info');
   
   try {
-    const url = `${API_BASE}/orders/bulk/invoice-html?adminKey=${adminKey}`;
+    const url = `${API_BASE}/orders/bulk/download-pdf?adminKey=${adminKey}`;
     const response = await fetch(url);
     
     if (!response.ok) {
         const error = await response.text();
-        throw new Error(error || 'Failed to generate invoice HTML');
+        throw new Error(error || 'Failed to generate PDF');
     }
 
-    const htmlText = await response.text();
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `bulk-invoices-${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    a.remove();
     
-    // Configure html2pdf options
-    const opt = {
-      margin: [4, 4, 4, 4], // 4mm margins
-      filename: `bulk-invoices-${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-      jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
-    };
-    
-    // Generate and download PDF on the client side directly from the HTML text
-    await html2pdf().from(htmlText).set(opt).save();
-    
-    showToast('تم تحميل الفواتير بنجاح ✅');
+    showToast('تم بدء تحميل الفواتير بنجاح ✅');
   } catch (err) {
-    console.error('PDF Generation Error:', err);
+    console.error('PDF Download Error:', err);
     showToast('فشل تحميل الفواتير: ' + err.message, 'error');
   } finally {
     if (btn) {
