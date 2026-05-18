@@ -47,13 +47,9 @@ async function generateBostaPayload(order, bostaConfig) {
     return cleaned;
   };
 
-  const addressLine = (order.customer.address && order.customer.address.trim().length >= 5)
-    ? order.customer.address.trim()
-    : `${order.customer.address || ''} - العنوان بالتفصيل`;
-
   const dropOffAddress = {
     city: bostaCityName,
-    firstLine: addressLine
+    firstLine: order.customer.address
   };
 
   if (shippingRecord && shippingRecord.zones) {
