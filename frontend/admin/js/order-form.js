@@ -888,6 +888,17 @@ window.submitOrder = async function () {
     const res = await api.createOrder(payload);
     showToast('تم إنشاء الطلب بنجاح!');
     
+    // If the order was created from a recovered abandoned cart, delete the abandoned cart from the database
+    const params = new URLSearchParams(window.location.search);
+    const recoverCartId = params.get('recoverCartId');
+    if (recoverCartId) {
+      try {
+        await api.deleteAbandonedCart(recoverCartId);
+      } catch (deleteErr) {
+        console.error('Failed to delete abandoned cart after recovery:', deleteErr);
+      }
+    }
+
     if (res && res.orderId) {
       setTimeout(() => window.location.href = `order-details.html?id=${res.orderId}`, 1000);
     }
