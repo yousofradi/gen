@@ -287,11 +287,21 @@ async function recoverAbandonedCart(cartId) {
             quantity: item.quantity || 1,
             selectedOptions: item.selectedOptions || [],
             discount: item.discount || 0,
-            price: item.basePrice
+            price: item.unitPrice !== undefined ? item.unitPrice : item.basePrice
           });
         }
       }
       renderCart();
+    }
+
+    // Set customer mode to 'new' since this is recovered data and not a selected existing customer profile
+    const radioNew = document.querySelector('input[name="customer_type"][value="new"]');
+    if (radioNew) {
+      radioNew.checked = true;
+    }
+    const existingSection = document.getElementById('existing-customer-section');
+    if (existingSection) {
+      existingSection.style.display = 'none';
     }
 
     showToast('تم استعادة بيانات السلة المتروكة بنجاح');
@@ -1064,6 +1074,19 @@ window.toggleCustomerMode = function () {
     resetCustomerSelectionUI();
   } else {
     existingSection.style.display = 'block';
+    
+    // Proactively expand/show the customer dropdown list and focus the input when Exist Customer is selected!
+    const dropdown = document.getElementById('customer-dropdown');
+    const input = document.getElementById('customer-search');
+    if (dropdown && allCustomers.length > 0) {
+      renderCustomerDropdown(allCustomers);
+      dropdown.classList.add('active');
+      if (input) {
+        setTimeout(() => {
+          input.focus();
+        }, 50);
+      }
+    }
   }
 };
 

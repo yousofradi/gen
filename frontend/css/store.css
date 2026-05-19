@@ -550,7 +550,7 @@
 /* ── Options (Square Style) ── */
 .radio-options {
   display: flex;
-  gap: 10px;
+  gap: 4px;
   flex-wrap: wrap;
   margin-bottom: 24px;
 }
@@ -563,20 +563,21 @@
   display: block;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 5px 11px;
   min-width: 80px;
   text-align: center;
   cursor: pointer;
   font-size: 0.9rem;
   color: #1f2937;
-  transition: all 0.2s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   background: #fff;
   line-height: 1.4;
 }
 
 .radio-option input:checked+label {
   border-color: var(--primary);
-  border-width: 2px;
+  border-width: 1px;
+  box-shadow: 0 0 0 1px var(--primary);
   font-weight: 600;
   color: #111;
 }
@@ -1073,4 +1074,12 @@
   100% {
     opacity: 1;
   }
+}
+
+/* Prevent any scale/shrink transition when clicking buttons */
+.btn:active,
+button:active,
+.radio-option label:active {
+  transform: none !important;
+  transition: none !important;
 }

@@ -499,7 +499,7 @@ select.form-control {
 .radio-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 4px;
 }
 
 .radio-option input[type="radio"] {
@@ -515,7 +515,7 @@ select.form-control {
   font-size: 0.83rem;
   color: var(--text-muted);
   background: var(--bg-surface);
-  transition: all 0.1s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   user-select: none;
 }
 
@@ -1913,4 +1913,12 @@ button:has(svg):has(span) svg,
 .btn-copy-payment svg {
   margin: 0 !important;
   flex-shrink: 0 !important;
+}
+
+/* Prevent any scale/shrink transition when clicking buttons */
+.btn:active,
+button:active,
+.radio-option label:active {
+  transform: none !important;
+  transition: none !important;
 }

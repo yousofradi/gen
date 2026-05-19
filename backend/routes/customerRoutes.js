@@ -15,6 +15,7 @@ router.get('/', adminAuth, async (req, res) => {
           phone: { $first: "$customer.phone" },
           secondPhone: { $first: "$customer.secondPhone" },
           government: { $first: "$customer.government" },
+          zone: { $first: "$customer.zone" },
           address: { $first: "$customer.address" },
           totalSpent: { $sum: "$paidAmount" },
           orderCount: { $sum: 1 },
@@ -46,6 +47,7 @@ router.get('/:phone', adminAuth, async (req, res) => {
           phone: { $first: "$customer.phone" },
           secondPhone: { $first: "$customer.secondPhone" },
           government: { $first: "$customer.government" },
+          zone: { $first: "$customer.zone" },
           address: { $first: "$customer.address" },
           notes: { $first: "$customer.notes" },
           totalSpent: { $sum: "$paidAmount" },
@@ -69,6 +71,38 @@ router.get('/:phone', adminAuth, async (req, res) => {
   } catch (err) {
     console.error('Fetch customer detail error:', err);
     res.status(500).json({ error: 'Failed to fetch customer details' });
+  }
+});
+
+// PUT /api/customers/:phone — Update a customer's profile across all their orders
+router.put('/:phone', adminAuth, async (req, res) => {
+  try {
+    const originalPhone = req.params.phone;
+    const { name, phone, secondPhone, government, zone, address } = req.body;
+
+    if (!name || !phone || !government || !zone || !address) {
+      return res.status(400).json({ error: 'Name, phone, government, zone, and address are required' });
+    }
+
+    // Update all matching orders
+    const result = await Order.updateMany(
+      { "customer.phone": originalPhone },
+      {
+        $set: {
+          "customer.name": name,
+          "customer.phone": phone,
+          "customer.secondPhone": secondPhone || '',
+          "customer.government": government,
+          "customer.zone": zone,
+          "customer.address": address
+        }
+      }
+    );
+
+    res.json({ success: true, message: `Updated ${result.modifiedCount} orders for the customer` });
+  } catch (err) {
+    console.error('Update customer error:', err);
+    res.status(500).json({ error: 'Failed to update customer' });
   }
 });
 

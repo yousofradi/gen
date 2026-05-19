@@ -133,6 +133,7 @@ const api = {
   // Customers
   getCustomers() { return this._request('/customers', { admin: true }); },
   getCustomer(phone) { return this._request(`/customers/${phone}`, { admin: true }); },
+  updateCustomer(phone, d) { return this._request(`/customers/${phone}`, { method: 'PUT', body: JSON.stringify(d), admin: true }); },
 
   // Shipping
   getShipping() { return this._request('/shipping', { useCache: false }); },

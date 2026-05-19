@@ -35,7 +35,6 @@ const abandonedCartSchema = new mongoose.Schema({
   timestamps: true // Automatically handles createdAt and updatedAt
 });
 
-abandonedCartSchema.index({ checkoutToken: 1 });
 abandonedCartSchema.index({ updatedAt: -1 });
 
 module.exports = mongoose.model('AbandonedCart', abandonedCartSchema);

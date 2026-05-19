@@ -218,16 +218,11 @@ function closeEditModal() {
 }
 
 async function applyChanges(btn) {
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2.5px;margin:0;"></span> جاري الحفظ...';
-  }
-
   const name = document.getElementById('modal-c-name').value.trim();
   const phone = document.getElementById('modal-c-phone').value.trim();
   const phone2 = document.getElementById('modal-c-phone2').value.trim();
   const cityId = document.getElementById('modal-c-gov').value;
-  const zone = document.getElementById('modal-c-zone').value;
+  const zone = document.getElementById('modal-c-zone').value.trim();
   const address = document.getElementById('modal-c-address').value.trim();
 
   const govData = (window._fullShippingData || []).find(s => s._id === cityId);
@@ -235,29 +230,43 @@ async function applyChanges(btn) {
 
   if (!name || !phone || !cityName || !zone) {
     showToast('الاسم ورقم الهاتف والمحافظة والمنطقة مطلوبة', 'error');
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2.5px;margin:0;"></span> جاري الحفظ...';
+  }
+
+  try {
+    // Call the new API to save the updated customer across all past/current orders in the database
+    await api.updateCustomer(currentCustomer.phone, {
+      name,
+      phone,
+      secondPhone: phone2,
+      government: cityName,
+      zone,
+      address
+    });
+
+    // Update local state
+    currentCustomer.name = name;
+    currentCustomer.phone = phone;
+    currentCustomer.secondPhone = phone2;
+    currentCustomer.government = cityName;
+    currentCustomer.zone = zone;
+    currentCustomer.address = address;
+
+    renderCustomer();
+    closeEditModal();
+    showToast('تم تحديث بيانات العميل بنجاح');
+  } catch (err) {
+    console.error('Failed to update customer:', err);
+    showToast('فشل حفظ التعديلات في قاعدة البيانات: ' + err.message, 'error');
+  } finally {
     if (btn) {
       btn.disabled = false;
       btn.textContent = 'تطبيق';
     }
-    return;
   }
-
-  // To update customer info, we need to update all their orders in this simplified schema
-  // In a real app, we would have a Customer model.
-  // For now, we'll let the user know this is for UI demonstration or we could theoretically update orders via batch.
-  // However, the requirement says "save + update UI without reload".
-
-  // Update local state
-  currentCustomer.name = name;
-  currentCustomer.phone = phone;
-  currentCustomer.secondPhone = phone2;
-  currentCustomer.government = cityName;
-  currentCustomer.zone = zone;
-  currentCustomer.address = address;
-
-  renderCustomer();
-  closeEditModal();
-  showToast('تم تحديث البيانات بنجاح (سيتم تطبيقها على الطلبات القادمة)');
-
-  // Optional: In a real implementation with this schema, you'd need an endpoint like /api/customers/update-all
 }

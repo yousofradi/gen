@@ -31,13 +31,7 @@ const REDIS_TTL = 2592000; // 30 days ("Never violate")
 
 async function updateStorefrontCache(productId, productData) {
   try {
-    const cacheKey = `storefront:product:${productId}`;
-    if (productData) {
-      await cache.set(cacheKey, productData, REDIS_TTL);
-    } else {
-      await cache.del(cacheKey);
-    }
-    // Always clear list cache when a product changes
+    // Always clear storefront list page caches when a product changes
     await clearListCache();
   } catch (err) {
     console.error('[Redis] Cache update failed:', err);
@@ -194,30 +188,9 @@ router.get('/', async (req, res) => {
 // GET /api/products/:id — single product
 router.get('/:id', async (req, res) => {
   try {
-    const { admin } = req.query;
-    let cacheKey = `storefront:product:${req.params.id}`;
-
-    // 1. ADMIN BYPASS
-    if (admin !== 'true') {
-      try {
-        const cached = await cache.get(cacheKey);
-        if (cached) return res.json(cached);
-      } catch (err) {
-        console.error('[Redis] Cache get failed:', err.message);
-      }
-    }
-
     const product = await Product.findById(req.params.id).lean();
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    
-    const optimized = optimizeProductData(product);
-
-    // Update cache if not admin
-    if (admin !== 'true') {
-      await cache.set(cacheKey, optimized, REDIS_TTL);
-    }
-
-    res.json(optimized);
+    res.json(optimizeProductData(product));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product' });
   }
