@@ -31,7 +31,7 @@ async function loadOrdersSilently() {
     updateFilterCounts();
     filterOrdersClient();
   } catch (err) {
-    console.error('Auto-refresh failed', err);
+    console.warn('Auto-refresh failed silently (network issue or server offline):', err.message || err);
   }
 }
 
