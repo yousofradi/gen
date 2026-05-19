@@ -133,7 +133,7 @@ ${settings.paymentNotes || ''}
             } else {
               const subtotal = data.totalPrice - data.shippingFee;
               const carrierName = data.carrier === 'egyptpost' ? 'البريد المصري' : 'بوسطة';
-              customerMessage = `شكراً لشرائك من متجر (${brandName}) ♡
+              customerMessage = `شكراً لشرائك من متجر ${brandName} ♡
 
 رقم الأوردر : ${data.orderId}
 المبلغ الاجمالي : ${data.totalPrice} EGP
@@ -154,21 +154,21 @@ ${remainingText}
             const whatsappLink = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(customerMessage)}`;
 
             // 3. Shorten the Link using TinyURL (is.gd blacklists wa.me domain, causing database insert errors)
-            let shortLink = whatsappLink; 
+            let shortLink = whatsappLink;
             try {
-                const response = await this.helpers.httpRequest({
-                    method: 'GET',
-                    url: 'https://tinyurl.com/api-create.php',
-                    qs: {
-                        url: whatsappLink,
-                    },
-                    timeout: 10000,
-                });
-                if (response && response.trim() && !response.toLowerCase().includes('error')) {
-                  shortLink = response.trim();
-                }
+              const response = await this.helpers.httpRequest({
+                method: 'GET',
+                url: 'https://tinyurl.com/api-create.php',
+                qs: {
+                  url: whatsappLink,
+                },
+                timeout: 10000,
+              });
+              if (response && response.trim() && !response.toLowerCase().includes('error')) {
+                shortLink = response.trim();
+              }
             } catch (error) {
-                console.warn('[WhatsApp] Link shortening system error:', error.message);
+              console.warn('[WhatsApp] Link shortening system error:', error.message);
             }
 
             // 4. Prepare Owner Message

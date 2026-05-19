@@ -226,10 +226,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.disabled = true;
     }
 
+    // Automatically save unsaved changes before shipping
+    if (originalOrder && JSON.stringify(currentOrder) !== JSON.stringify(originalOrder)) {
+      const saved = await saveOrderChanges(true);
+      if (!saved) {
+        showToast('فشل حفظ التعديلات قبل الشحن، يرجى التحقق من صحة البيانات', 'error');
+        if (btn) {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+        }
+        return;
+      }
+    }
+
     try {
       const result = await api.shipOrdersBulk([orderId]);
       if (result && result.count > 0) {
-        showToast(result.message || 'تم شحن الطلب بنجاح عبر Bosta', 'success');
+        showToast('تم شحن الاوردر بنجاح', 'success');
         
         // Reload order data after a brief delay to show new status and tracking number
         setTimeout(() => window.location.reload(), 1000);

@@ -455,7 +455,7 @@ window.shipOrders = async function () {
   try {
     const orderIds = ordersToShip.map(o => o.orderId);
     const result = await api.shipOrdersBulk(orderIds);
-    showToast(result.message || `تم شحن ${result.count} طلبات بنجاح`, 'success');
+    showToast('تم شحن الطلبات بنجاح', 'success');
   } catch (err) {
     console.error(`Failed to ship orders bulk:`, err);
     showToast(err.message || 'فشل شحن الطلبات', 'error');

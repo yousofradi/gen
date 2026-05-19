@@ -801,7 +801,7 @@ router.post('/bulk/ship', adminAuth, async (req, res) => {
       }
     }
 
-    res.json({ message: `تم شحن ${successCount} طلبات بنجاح`, count: successCount });
+    res.json({ message: 'تم شحن الطلبات بنجاح', count: successCount });
   } catch (err) {
     console.error('Bulk ship error:', err);
     res.status(500).json({ error: 'Failed to ship orders bulk: ' + err.message });

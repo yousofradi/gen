@@ -54,45 +54,63 @@ async function generateBostaPayload(order, bostaConfig) {
 
   if (shippingRecord && shippingRecord.zones) {
     const formatZoneName = (z) => {
-      const zName = z.zoneOtherName || z.name || '';
-      const dName = z.districtOtherName || z.districtName || '';
-      return zName === dName ? zName : `${zName} - ${dName}`;
+      if (!z) return '';
+      const main = (z.zoneOtherName || z.otherName || z.name || '').trim();
+      const dist = (z.districtOtherName || z.districtName || '').trim();
+      return dist && dist !== main ? `${main} - ${dist}` : main;
     };
 
     const normalizedTarget = normalizeString(order.customer.zone);
     const targetParts = (order.customer.zone || '').split('-').map(p => normalizeString(p));
 
-    const zoneRecord = shippingRecord.zones.find(z => {
+    // Find the best matching zone record by prioritizing the most specific match first
+    let zoneRecord = null;
+
+    // Priority 1: Exact match on compound name
+    zoneRecord = shippingRecord.zones.find(z => {
       const compound = formatZoneName(z);
-      return normalizeString(z.name) === normalizedTarget ||
-        normalizeString(z.otherName) === normalizedTarget ||
-        normalizeString(z.zoneName) === normalizedTarget ||
-        normalizeString(z.zoneOtherName) === normalizedTarget ||
-        normalizeString(compound) === normalizedTarget ||
-        targetParts.some(part =>
-          normalizeString(z.name) === part ||
-          normalizeString(z.otherName) === part ||
-          normalizeString(z.zoneName) === part ||
-          normalizeString(z.zoneOtherName) === part ||
-          normalizeString(compound) === part
-        );
+      return normalizeString(compound) === normalizedTarget;
     });
+
+    // Priority 2: Exact match on district specific names (name, otherName, districtOtherName, districtName)
+    if (!zoneRecord) {
+      zoneRecord = shippingRecord.zones.find(z => {
+        return normalizeString(z.otherName) === normalizedTarget ||
+          normalizeString(z.name) === normalizedTarget ||
+          (z.districtOtherName && normalizeString(z.districtOtherName) === normalizedTarget) ||
+          (z.districtName && normalizeString(z.districtName) === normalizedTarget);
+      });
+    }
+
+    // Priority 3: Match on targetParts, but ONLY matching district-specific names to prevent general zone mismatch
+    if (!zoneRecord) {
+      zoneRecord = shippingRecord.zones.find(z => {
+        return targetParts.some(part => {
+          return normalizeString(z.otherName) === part ||
+            normalizeString(z.name) === part ||
+            (z.districtOtherName && normalizeString(z.districtOtherName) === part) ||
+            (z.districtName && normalizeString(z.districtName) === part);
+        });
+      });
+    }
+
+    // Priority 4: Fallback to general zone matching if still not matched
+    if (!zoneRecord) {
+      zoneRecord = shippingRecord.zones.find(z => {
+        const compound = formatZoneName(z);
+        return normalizeString(z.zoneName) === normalizedTarget ||
+          normalizeString(z.zoneOtherName) === normalizedTarget ||
+          targetParts.some(part =>
+            normalizeString(z.zoneName) === part ||
+            normalizeString(z.zoneOtherName) === part ||
+            normalizeString(compound) === part
+          );
+      });
+    }
 
     if (zoneRecord && zoneRecord.bostaDistrictId) {
       dropOffAddress.districtId = zoneRecord.bostaDistrictId;
-      if (zoneRecord.bostaZoneId) {
-        dropOffAddress.zoneId = zoneRecord.bostaZoneId;
-      }
-    } else {
-      // Fallback: districtId is not populated in DB, use districtName + cityId
-      if (shippingRecord.bostaCityId) {
-        dropOffAddress.cityId = shippingRecord.bostaCityId;
-      }
-      dropOffAddress.districtName = zoneRecord ? (zoneRecord.name || zoneRecord.zoneName) : (order.customer.zone || 'Default');
     }
-  } else {
-    // If no shippingRecord is found, fallback to customer zone as districtName
-    dropOffAddress.districtName = order.customer.zone || 'Default';
   }
 
   return {
@@ -112,11 +130,11 @@ async function generateBostaPayload(order, bostaConfig) {
     receiver: {
       firstName: order.customer.name.split(' ')[0] || 'Customer',
       lastName: order.customer.name.split(' ').slice(1).join(' ') || 'Customer',
-      phone: normalizePhone(order.customer.phone),
-      ...(order.customer.secondPhone ? { secondPhone: normalizePhone(order.customer.secondPhone) } : {})
+      phone: order.customer.phone,
+      ...(order.customer.secondPhone ? { secondPhone: order.customer.secondPhone } : {})
     },
     isConsigneeReschedule: true,
-    notes: 'يرجى التواصل مع العميل قبل التحرك  - قابل للكسر',
+    notes: 'يرجى التواصل مع العميل قبل التحرك بساعتين علي الاقل - قابل للكسر ',
     cod: (function () {
       const remaining = order.totalPrice - (order.paidAmount || 0);
       return remaining > 0 ? remaining + 10 : 0;

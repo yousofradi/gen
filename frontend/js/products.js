@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const saved = await api.getSetting(STORAGE_KEY);
       if (saved) sections = saved;
-    } catch(e) {
+    } catch (e) {
       console.error('Failed to load homepage sections from API', e);
       // Fallback to localStorage for smooth transition
       const savedLocal = localStorage.getItem(STORAGE_KEY);
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function renderFromConfig(sections, products, collections) {
   const container = document.getElementById('home-content');
   let html = '';
-  
+
   for (const s of sections) {
     if (s.type === 'products') {
       html += await renderProductSection(s, products, collections);
@@ -48,13 +48,13 @@ async function renderFromConfig(sections, products, collections) {
       html += renderTextSection(s);
     }
   }
-  
+
   container.innerHTML = html;
 }
 
 async function renderProductSection(s, products, collections) {
   let sectionProducts = [];
-  
+
   if (s.productIds && s.productIds.length > 0) {
     // Manually selected products
     sectionProducts = s.productIds
@@ -90,11 +90,11 @@ async function renderProductSection(s, products, collections) {
     // Fallback: all products
     sectionProducts = products;
   }
-  
+
   sectionProducts = sectionProducts.filter(p => p.quantity === null || p.quantity === undefined || p.quantity > 0);
   sectionProducts = sectionProducts.slice(0, s.maxItems || 8);
   if (sectionProducts.length === 0) return '';
-  
+
   const cols = s.itemsPerRow || 4;
   return `
     <section class="home-section">
@@ -107,35 +107,35 @@ async function renderProductSection(s, products, collections) {
 
 function renderCollectionSection(s, collections) {
   let displayCols = collections;
-  
+
   if (s.selectedCollections && s.selectedCollections.length > 0) {
     displayCols = s.selectedCollections
       .map(id => collections.find(c => c._id === id))
       .filter(Boolean);
   }
-  
+
   if (displayCols.length === 0) return '';
-  
+
   return `
     <section class="home-section" id="collections-section">
       ${s.showTitle !== false && s.title ? `<h2 class="home-section-title">${s.title}</h2>` : ''}
       <div class="cat-grid" id="collections-grid">
         ${displayCols.map(c => {
-          const img = c.imageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZWZlOSIvPjwvc3ZnPg==';
-          const link = c.urlName ? `collection.html?handle=${c.urlName}` : `collection.html?id=${c._id}`;
-          return `
+    const img = c.imageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZWZlOSIvPjwvc3ZnPg==';
+    const link = c.urlName ? `collection.html?handle=${c.urlName}` : `collection.html?id=${c._id}`;
+    return `
             <a href="${link}" class="cat-item">
               <img src="${img}" alt="${c.name}" loading="lazy" onerror="this.style.background='#f5efe9'">
               ${s.showNames !== false ? `<div class="cat-label">${c.name}</div>` : ''}
             </a>`;
-        }).join('')}
+  }).join('')}
       </div>
     </section>`;
 }
 
 function renderBannerSection(s) {
   if (!s.imageUrl) return '';
-  
+
   const getLink = (type, val) => {
     if (type === 'collection' && val) return `collection.html?id=${val}`;
     if (type === 'collections_page') return 'products.html#collections';
@@ -146,7 +146,7 @@ function renderBannerSection(s) {
 
   const link1 = getLink(s.linkType, s.linkValue);
   const link2 = getLink(s.link2Type, s.link2Value);
-  
+
   const btn1 = s.showBtn ? `
     <a href="${link1 || '#'}" class="btn btn-primary" style="padding:10px 24px; border-radius:30px; box-shadow:0 4px 12px rgba(0,0,0,0.15); text-decoration:none; display:inline-block; margin-bottom:8px; width:fit-content;">${s.btnText || 'تسوق الآن'}</a>` : '';
 
@@ -189,14 +189,14 @@ function renderStoreCard(p) {
   const img = getImg(p);
   const hasVariants = p.variants && p.variants.length > 0;
   const hasOptions = p.options && p.options.length > 0;
-  
+
   const displayPrice = p.salePrice || p.basePrice;
   const originalPrice = p.basePrice;
   const isRange = false;
 
   const hasDiscount = displayPrice < originalPrice;
   const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
-  
+
   const pJson = JSON.stringify({
     _id: p._id, name: p.name, basePrice: p.basePrice, salePrice: p.salePrice,
     images: p.images, imageUrl: p.imageUrl, options: p.options, quantity: p.quantity
@@ -232,7 +232,7 @@ function renderStoreCard(p) {
     </div>`;
 }
 
-window.quickAddToCart = function(event, btn) {
+window.quickAddToCart = function (event, btn) {
   event.preventDefault();
   event.stopPropagation();
   let p;
@@ -244,11 +244,11 @@ window.quickAddToCart = function(event, btn) {
   }
   const isUnlimited = p.quantity === null || p.quantity === undefined;
   if (!isUnlimited && p.quantity <= 0) {
-    if(window.showToast) window.showToast('عذراً، المنتج غير متوفر حالياً', 'error');
+    if (window.showToast) window.showToast('عذراً، المنتج غير متوفر حالياً', 'error');
     else alert('عذراً، المنتج غير متوفر حالياً');
     return;
   }
-  if(window.Cart) {
+  if (window.Cart) {
     window.Cart.addItem(p, []);
     window.Cart.openCart();
   }
