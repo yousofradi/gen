@@ -846,10 +846,6 @@ window.openOrderDiscountModal = function () {
 };
 
 window.applyOrderDiscount = async function (btn) {
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2.5px;margin:0;"></span> جارٍ الحفظ...';
-  }
   const val = document.getElementById('modal-order-discount').value;
   currentOrder.discount = parseFloat(val) || 0;
   updateTotals();

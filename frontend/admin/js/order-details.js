@@ -840,7 +840,6 @@ window.promptItemQty = function (idx) {
 };
 
 window.applyItemQty = function (btn) {
-  if (btn) btn.disabled = true;
   const idx = parseInt(document.getElementById('modal-qty-idx').value, 10);
   const qty = parseInt(document.getElementById('modal-item-qty').value, 10);
   if (qty >= 1 && currentOrder.items[idx]) {
@@ -885,7 +884,6 @@ window.openOrderDiscountModal = function () {
 };
 
 window.applyOrderDiscount = async function (btn) {
-  if (btn) btn.disabled = true;
   const val = document.getElementById('modal-order-discount').value;
   currentOrder.discount = parseFloat(val) || 0;
   closeModal('order-discount-modal');
