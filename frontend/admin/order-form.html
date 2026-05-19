@@ -806,6 +806,14 @@
           </svg>
           الطلبات
         </a>
+        <a href="abandoned-carts.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          السلّات المتروكة
+        </a>
         <a href="customers.html">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round">
@@ -988,44 +996,44 @@
                       <input type="tel" id="c-second-phone" class="form-control" placeholder="اختياري">
                     </div>
                   </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">المحافظة (المدينة) *</label>
-                  <div class="customer-select-wrapper" style="margin-top:0">
-                    <div id="gov-search-container" class="customer-search-container" onclick="document.getElementById('c-gov-search').focus()">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                      </svg>
-                      <input type="text" id="c-gov-search" class="customer-search-input" placeholder="اختر أو ابحث عن المدينة" autocomplete="off" required>
-                      <input type="hidden" id="c-gov" required>
-                    </div>
-                    <div id="gov-dropdown" class="customer-dropdown">
-                      <!-- Cities will be loaded here -->
-                    </div>
-                  </div>
-                </div>
-                <div class="form-group" id="c-zone-container">
-                  <label class="form-label">المنطقة *</label>
-                  <div class="customer-select-wrapper" style="margin-top:0">
-                    <div id="zone-search-container" class="customer-search-container" onclick="document.getElementById('c-zone').focus()">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                      </svg>
-                      <input type="text" id="c-zone" class="customer-search-input" placeholder="اختر أو ابحث عن المنطقة" autocomplete="off" required>
-                    </div>
-                    <div id="zone-dropdown" class="customer-dropdown">
-                      <!-- Zones will be loaded here -->
+                  <div class="form-group">
+                    <label class="form-label">المحافظة (المدينة) *</label>
+                    <div class="customer-select-wrapper" style="margin-top:0">
+                      <div id="gov-search-container" class="customer-search-container" onclick="document.getElementById('c-gov-search').focus()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+                          <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                        <input type="text" id="c-gov-search" class="customer-search-input" placeholder="اختر أو ابحث عن المدينة" autocomplete="off" required>
+                        <input type="hidden" id="c-gov" required>
+                      </div>
+                      <div id="gov-dropdown" class="customer-dropdown">
+                        <!-- Cities will be loaded here -->
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">العنوان التفصيلي *</label>
-                  <textarea id="c-address" class="form-control" required rows="2"
-                    placeholder="الشارع، الحي، المدينة..."></textarea>
-                </div>
-                <div class="form-group" style="margin-bottom:0">
-                  <label class="form-label">ملاحظات</label>
-                  <textarea id="c-notes" class="form-control" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+                  <div class="form-group" id="c-zone-container">
+                    <label class="form-label">المنطقة *</label>
+                    <div class="customer-select-wrapper" style="margin-top:0">
+                      <div id="zone-search-container" class="customer-search-container" onclick="document.getElementById('c-zone').focus()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+                          <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                        <input type="text" id="c-zone" class="customer-search-input" placeholder="اختر أو ابحث عن المنطقة" autocomplete="off" required>
+                      </div>
+                      <div id="zone-dropdown" class="customer-dropdown">
+                        <!-- Zones will be loaded here -->
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">العنوان التفصيلي *</label>
+                    <textarea id="c-address" class="form-control" required rows="2"
+                      placeholder="الشارع، الحي، المدينة..."></textarea>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">ملاحظات</label>
+                    <textarea id="c-notes" class="form-control" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+                  </div>
                 </div>
               </div>
             </div>

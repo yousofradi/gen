@@ -230,6 +230,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.hideBar) window.hideBar();
   };
 
+  // Set initial customer mode on load (defaults to existing with hidden fields)
+  toggleCustomerMode(false);
+
   // Check if recovering an abandoned cart
   const urlParams = new URLSearchParams(window.location.search);
   const recoverCartId = urlParams.get('recoverCartId');
@@ -304,6 +307,10 @@ async function recoverAbandonedCart(cartId) {
     const existingSection = document.getElementById('existing-customer-section');
     if (existingSection) {
       existingSection.style.display = 'none';
+    }
+    const fields = document.getElementById('customer-fields');
+    if (fields) {
+      fields.style.display = 'block';
     }
 
     // Automatically trigger the "Unsaved Changes" bar/alert
@@ -996,9 +1003,16 @@ function resetCustomerSelectionUI() {
       document.getElementById('c-second-phone').value = '';
       document.getElementById('c-address').value = '';
       document.getElementById('c-gov').value = '';
+      const govSearch = document.getElementById('c-gov-search');
+      if (govSearch) govSearch.value = '';
       document.getElementById('c-zone').value = '';
       document.getElementById('zone-dropdown').innerHTML = '';
     }
+
+    // Hide customer fields again in existing customer mode
+    const fields = document.getElementById('customer-fields');
+    const mode = document.querySelector('input[name="customer_type"]:checked')?.value;
+    if (fields && mode === 'existing') fields.style.display = 'none';
   }
 }
 
@@ -1037,6 +1051,10 @@ window.selectCustomer = async function (phone) {
   const govName = customer.government || '';
   const govData = (window._fullShippingData || []).find(s => s.city === govName || s.cityOtherName === govName);
   document.getElementById('c-gov').value = govData ? govData._id : '';
+  const searchInput = document.getElementById('c-gov-search');
+  if (searchInput && govData) {
+    searchInput.value = govData.cityOtherName || govData.city;
+  }
 
   await handleCityChange(); // Populates zones
   document.getElementById('c-zone').value = customer.zone || '';
@@ -1064,6 +1082,10 @@ window.selectCustomer = async function (phone) {
     if (icon) icon.style.display = 'none';
   }
 
+  // Display all the input fields populated with data
+  const fields = document.getElementById('customer-fields');
+  if (fields) fields.style.display = 'block';
+
   // Disable editing of primary info for selected customers
   document.getElementById('c-name').readOnly = true;
   document.getElementById('c-phone').readOnly = true;
@@ -1072,18 +1094,22 @@ window.selectCustomer = async function (phone) {
   if (window.markAsModified) window.markAsModified();
 };
 
-window.toggleCustomerMode = function () {
+window.toggleCustomerMode = function (autoExpand = true) {
   const mode = document.querySelector('input[name="customer_type"]:checked').value;
   const existingSection = document.getElementById('existing-customer-section');
+  const fields = document.getElementById('customer-fields');
   
   if (mode === 'new') {
     existingSection.style.display = 'none';
+    if (fields) fields.style.display = 'block';
     // Clear fields
     document.getElementById('c-name').value = '';
     document.getElementById('c-phone').value = '';
     document.getElementById('c-second-phone').value = '';
     document.getElementById('c-address').value = '';
     document.getElementById('c-gov').value = '';
+    const govSearch = document.getElementById('c-gov-search');
+    if (govSearch) govSearch.value = '';
     document.getElementById('c-zone').value = '';
     document.getElementById('zone-dropdown').innerHTML = '';
     document.getElementById('customer-search').value = '';
@@ -1093,16 +1119,25 @@ window.toggleCustomerMode = function () {
   } else {
     existingSection.style.display = 'block';
     
-    // Proactively expand/show the customer dropdown list and focus the input when Exist Customer is selected!
-    const dropdown = document.getElementById('customer-dropdown');
-    const input = document.getElementById('customer-search');
-    if (dropdown && allCustomers.length > 0) {
-      renderCustomerDropdown(allCustomers);
-      dropdown.classList.add('active');
-      if (input) {
-        setTimeout(() => {
-          input.focus();
-        }, 50);
+    // In existing customer mode, hide the input fields until a customer is chosen
+    const display = document.getElementById('selected-customer-display');
+    const isSelected = display && display.classList.contains('active');
+    if (fields) {
+      fields.style.display = isSelected ? 'block' : 'none';
+    }
+    
+    if (autoExpand) {
+      // Proactively expand/show the customer dropdown list and focus the input when Exist Customer is selected!
+      const dropdown = document.getElementById('customer-dropdown');
+      const input = document.getElementById('customer-search');
+      if (dropdown && allCustomers.length > 0) {
+        renderCustomerDropdown(allCustomers);
+        dropdown.classList.add('active');
+        if (input) {
+          setTimeout(() => {
+            input.focus();
+          }, 50);
+        }
       }
     }
   }

@@ -117,7 +117,7 @@ function renderOrders() {
   `).join('');
 }
 
-function openEditModal() {
+window.openEditModal = async function () {
   const c = currentCustomer;
   document.getElementById('modal-c-name').value = c.name;
   document.getElementById('modal-c-phone').value = c.phone;
@@ -133,11 +133,11 @@ function openEditModal() {
     hiddenGov.value = govData ? govData._id : '';
   }
   
-  handleModalCityChange(true); // skipZoneClear = true
+  await handleModalCityChange(true); // skipZoneClear = true
   document.getElementById('modal-c-zone').value = c.zone || '';
   document.getElementById('modal-c-address').value = c.address || '';
   document.getElementById('edit-modal').classList.add('open');
-}
+};
 
 window.handleModalCityChange = async function (skipZoneClear = false) {
   const cityId = document.getElementById('modal-c-gov').value;
