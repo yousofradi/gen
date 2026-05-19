@@ -358,3 +358,10 @@ function initUnsavedChangesBar() {
     }
   });
 }
+
+function toggleSidebarDropdown(btn) {
+  const container = btn.closest('.admin-nav-dropdown-container');
+  if (container) {
+    container.classList.toggle('is-active');
+  }
+}

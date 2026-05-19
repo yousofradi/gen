@@ -1,9 +1,9 @@
 const Redis = require('ioredis');
 
-const redisUrl = process.env.REDIS_URL;
+const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 
-if (!redisUrl) {
-    console.error('❌ REDIS_URL is not set in environment variables.');
+if (!process.env.REDIS_URL) {
+    console.warn('⚠️ REDIS_URL is not set in environment variables. Defaulting to local redis.');
 }
 
 const isTls = redisUrl.startsWith('rediss://');

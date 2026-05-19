@@ -118,6 +118,10 @@ const api = {
   deleteOrdersBatch(orderIds) { return this._request('/orders/delete/batch', { method: 'POST', body: JSON.stringify({ orderIds }), admin: true }); },
   shipOrdersBulk(orderIds) { return this._request('/orders/bulk/ship', { method: 'POST', body: JSON.stringify({ orderIds }), admin: true }); },
 
+  // Abandoned Carts
+  getAbandonedCarts() { return this._request('/abandoned-carts', { admin: true }); },
+  deleteAbandonedCart(id) { return this._request(`/abandoned-carts/${id}`, { method: 'DELETE', admin: true }); },
+
   // Customers
   getCustomers() { return this._request('/customers', { admin: true }); },
   getCustomer(phone) { return this._request(`/customers/${phone}`, { admin: true }); },

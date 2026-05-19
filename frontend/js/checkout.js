@@ -17,6 +17,28 @@ function smartMatch(text, query) {
 
 /** Checkout page logic */
 document.addEventListener('DOMContentLoaded', async () => {
+  // Check if we need to recover a checkout from an abandoned cart
+  const urlParams = new URLSearchParams(window.location.search);
+  const recoverToken = urlParams.get('recover');
+  
+  if (recoverToken) {
+    try {
+      const cartData = await api.getPublicAbandonedCart(recoverToken);
+      if (cartData) {
+        // Restore items to cart
+        Cart._save(cartData.items);
+        // Save the checkoutToken to localStorage
+        localStorage.setItem('sundura_checkout_token', recoverToken);
+        // Save customer data draft to localStorage
+        localStorage.setItem('sundura_checkout_draft', JSON.stringify(cartData.customer));
+      }
+    } catch (err) {
+      console.error('Failed to recover abandoned cart:', err);
+    }
+    // Clean query parameters so the URL looks clean
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
   const items = Cart.getItems();
   if (!items.length) { window.location.href = 'cart'; return; }
 
@@ -62,6 +84,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadCities();
   await loadPaymentMethods();
   setupForm();
+
+  // Restore draft details after form setup and cities are fully loaded
+  await restoreCheckoutDraft();
 });
 
 async function loadPaymentMethods() {
@@ -407,6 +432,8 @@ function updatePriceSummary() {
   const total = subtotal + shippingFee;
   window._currentShippingFee = shippingFee;
 
+  if (window.syncAbandonedCart) window.syncAbandonedCart();
+
   // Update Header Price
   const headerTotal = document.getElementById('header-total-price');
   if (headerTotal) headerTotal.textContent = formatPrice(total);
@@ -627,6 +654,15 @@ function setupForm() {
 
     try {
       const order = await api.createOrder(orderData);
+      
+      // Cleanup abandoned cart token and draft
+      const token = localStorage.getItem('sundura_checkout_token');
+      if (token) {
+        api.deleteAbandonedCartByToken(token).catch(err => console.warn(err));
+        localStorage.removeItem('sundura_checkout_token');
+      }
+      localStorage.removeItem('sundura_checkout_draft');
+
       Cart.clear();
       window.location.href = `payment?id=${order.orderId}`;
     } catch (err) {
@@ -635,3 +671,113 @@ function setupForm() {
     }
   });
 }
+
+// ── Restore Checkout Draft ──────────────────────────────────
+async function restoreCheckoutDraft() {
+  const nameInput = document.getElementById('cust-name');
+  const phoneInput = document.getElementById('cust-phone');
+  const phone2Input = document.getElementById('cust-phone2');
+  const addressInput = document.getElementById('cust-address');
+  const govSearchInput = document.getElementById('government-search');
+  const govHiddenInput = document.getElementById('government');
+  const zoneInput = document.getElementById('zone');
+  const notesInput = document.getElementById('cust-notes');
+
+  const draftStr = localStorage.getItem('sundura_checkout_draft');
+  if (draftStr) {
+    try {
+      const draft = JSON.parse(draftStr);
+      if (draft.name && nameInput) nameInput.value = draft.name;
+      if (draft.phone && phoneInput) phoneInput.value = draft.phone;
+      if (draft.secondPhone && phone2Input) phone2Input.value = draft.secondPhone;
+      if (draft.address && addressInput) addressInput.value = draft.address;
+      if (draft.notes && notesInput) notesInput.value = draft.notes;
+      
+      if (draft.government && govHiddenInput && govSearchInput) {
+        const list = window._fullShippingData || [];
+        const match = list.find(s => (s.cityOtherName || s.city) === draft.government);
+        if (match) {
+          govHiddenInput.value = match._id;
+          govSearchInput.value = match.cityOtherName || match.city;
+          // Dynamically fetch and fill zones
+          await handleGovChange();
+          
+          if (draft.zone && zoneInput) {
+            zoneInput.value = draft.zone;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to parse checkout draft:', err);
+    }
+  }
+
+  // Set flag to enable sync
+  window._checkoutDraftLoaded = true;
+  updatePriceSummary();
+
+  // Bind change/input listeners to all checkout form fields to sync on change
+  const form = document.getElementById('checkout-form');
+  if (form) {
+    form.querySelectorAll('input, textarea').forEach(input => {
+      input.addEventListener('input', syncAbandonedCart);
+      input.addEventListener('change', syncAbandonedCart);
+    });
+  }
+}
+
+// ── Debounced Sync Abandoned Cart ───────────────────────────
+let syncTimeout = null;
+function syncAbandonedCart() {
+  if (window._checkoutDraftLoaded !== true) return;
+  
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(async () => {
+    let token = localStorage.getItem('sundura_checkout_token');
+    if (!token) {
+      token = 'chk_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('sundura_checkout_token', token);
+    }
+
+    const name = document.getElementById('cust-name')?.value.trim() || '';
+    const phone = document.getElementById('cust-phone')?.value.trim() || '';
+    const phone2 = document.getElementById('cust-phone2')?.value.trim() || '';
+    const address = document.getElementById('cust-address')?.value.trim() || '';
+    const cityId = document.getElementById('government')?.value || '';
+    const govData = (window._fullShippingData || []).find(s => s._id === cityId);
+    const cityName = govData ? (govData.cityOtherName || govData.city) : '';
+    const zone = document.getElementById('zone')?.value || '';
+    const notes = document.getElementById('cust-notes')?.value.trim() || '';
+
+    const draft = {
+      name,
+      phone,
+      secondPhone: phone2,
+      address,
+      government: cityName,
+      zone,
+      notes
+    };
+
+    localStorage.setItem('sundura_checkout_draft', JSON.stringify(draft));
+
+    const items = Cart.getItems();
+    // Do not sync to DB if cart is empty
+    if (items.length === 0) return;
+
+    const payload = {
+      checkoutToken: token,
+      customer: draft,
+      items
+    };
+
+    try {
+      await api.saveAbandonedCart(payload);
+    } catch (err) {
+      console.warn('Failed to sync abandoned cart to backend:', err);
+    }
+  }, 1000);
+}
+
+// Export function to global scope
+window.syncAbandonedCart = syncAbandonedCart;

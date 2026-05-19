@@ -111,6 +111,13 @@ const api = {
   cancelOrdersBatch(orderIds) { return this._request('/orders/cancel/batch', { method: 'POST', body: JSON.stringify({ orderIds }), admin: true }); },
   deleteOrdersBatch(orderIds) { return this._request('/orders/delete/batch', { method: 'POST', body: JSON.stringify({ orderIds }), admin: true }); },
 
+  // Abandoned Carts
+  saveAbandonedCart(d) { return this._request('/abandoned-carts', { method: 'POST', body: JSON.stringify(d) }); },
+  getAbandonedCarts() { return this._request('/abandoned-carts', { admin: true }); },
+  deleteAbandonedCart(id) { return this._request(`/abandoned-carts/${id}`, { method: 'DELETE', admin: true }); },
+  deleteAbandonedCartByToken(token) { return this._request(`/abandoned-carts/token/${token}`, { method: 'DELETE' }); },
+  getPublicAbandonedCart(token) { return this._request(`/abandoned-carts/public/${token}`); },
+
   // Customers
   getCustomers() { return this._request('/customers', { admin: true }); },
   getCustomer(phone) { return this._request(`/customers/${phone}`, { admin: true }); },
