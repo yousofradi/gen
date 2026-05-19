@@ -1,4 +1,27 @@
 require('dotenv').config();
+
+// Programmatically suppress Bull/BullMQ automatic Redis eviction policy warning logs
+const originalWarn = console.warn;
+console.warn = function (...args) {
+  if (args[0] && typeof args[0] === 'string' && args[0].includes('Eviction policy is')) {
+    return;
+  }
+  originalWarn.apply(console, args);
+};
+const originalError = console.error;
+console.error = function (...args) {
+  if (args[0] && typeof args[0] === 'string' && args[0].includes('Eviction policy is')) {
+    return;
+  }
+  originalError.apply(console, args);
+};
+const originalLog = console.log;
+console.log = function (...args) {
+  if (args[0] && typeof args[0] === 'string' && args[0].includes('Eviction policy is')) {
+    return;
+  }
+  originalLog.apply(console, args);
+};
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
