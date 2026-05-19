@@ -108,6 +108,8 @@
         padding: 12px 16px;
         border-bottom: none;
         gap: 16px;
+        cursor: default;
+        pointer-events: none;
       }
 
       .carts-table-wrap tbody {
@@ -118,6 +120,7 @@
         background: #f8fafc;
       }
 
+      .carts-table-wrap th,
       .carts-table-wrap td {
         background: transparent !important;
       }
@@ -138,7 +141,7 @@
         gap: 16px;
       }
 
-      .carts-table-wrap tr:hover {
+      .carts-table-wrap tbody tr:hover {
         background: #f8fafc !important;
         border-color: #cbd5e1;
         transform: translateY(-1px);
