@@ -70,9 +70,102 @@
       .hide-mobile {
         display: none !important;
       }
-      .carts-table-wrap table td, .carts-table-wrap table th {
-        padding: 12px 8px;
+      .carts-table-wrap table {
+        min-width: 100% !important;
+      }
+      .carts-table-wrap table thead {
+        display: none !important;
+      }
+      .carts-table-wrap tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+        background: #f8fafc;
+      }
+      .carts-table-wrap tr {
+        display: flex !important;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      }
+      .carts-table-wrap tr:hover {
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      }
+      
+      /* Hide TD 4 (Products list), TD 6 (Date), and standard TD 7 (Actions) */
+      .carts-table-wrap td:nth-child(4),
+      .carts-table-wrap td:nth-child(6),
+      .carts-table-wrap td:nth-child(7) {
+        display: none !important;
+      }
+      
+      /* Style TD 2: Customer Info */
+      .carts-table-wrap td:nth-child(2) {
+        flex: 2;
+        padding: 0 !important;
+        border: none !important;
+        text-align: right;
+        order: 1;
+      }
+      /* Style TD 3: Governorate Name */
+      .carts-table-wrap td:nth-child(3) {
+        flex: 1.2;
+        padding: 0 !important;
+        border: none !important;
+        text-align: right;
         font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 600;
+        order: 2;
+      }
+      /* Style TD 5: Total Price */
+      .carts-table-wrap td:nth-child(5) {
+        flex: 1;
+        padding: 0 !important;
+        border: none !important;
+        text-align: left;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #0f766e;
+        order: 3;
+      }
+      
+      /* Mobile delete button cell */
+      .mobile-delete-btn-cell {
+        display: flex !important;
+        padding: 0 !important;
+        border: none !important;
+        align-items: center;
+        justify-content: center;
+        order: 4; /* FAR LEFT in RTL flex row */
+      }
+      
+      .mobile-delete-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #fee2e2;
+        color: #ef4444;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .mobile-delete-btn:hover {
+        background: #fecaca;
       }
     }
   </style>

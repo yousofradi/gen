@@ -229,7 +229,77 @@ document.addEventListener('DOMContentLoaded', async () => {
     recalcSummary();
     if (window.hideBar) window.hideBar();
   };
+
+  // Check if recovering an abandoned cart
+  const urlParams = new URLSearchParams(window.location.search);
+  const recoverCartId = urlParams.get('recoverCartId');
+  if (recoverCartId) {
+    await recoverAbandonedCart(recoverCartId);
+  }
 });
+
+async function recoverAbandonedCart(cartId) {
+  try {
+    const carts = await api.getAbandonedCarts();
+    const cart = (carts || []).find(c => c._id === cartId);
+    if (!cart) {
+      showToast('السلة المتروكة غير موجودة أو تم حذفها', 'error');
+      return;
+    }
+
+    // 1. Populate Customer Fields
+    if (cart.customer) {
+      if (document.getElementById('c-name')) document.getElementById('c-name').value = cart.customer.name || '';
+      if (document.getElementById('c-phone')) document.getElementById('c-phone').value = cart.customer.phone || '';
+      if (document.getElementById('c-second-phone')) document.getElementById('c-second-phone').value = cart.customer.secondPhone || '';
+      if (document.getElementById('c-address')) document.getElementById('c-address').value = cart.customer.address || '';
+      if (document.getElementById('c-notes')) document.getElementById('c-notes').value = cart.customer.notes || '';
+
+      // Populate Governorate / City
+      const govName = cart.customer.government;
+      if (govName) {
+        const s = (window._fullShippingData || []).find(x => 
+          x.city === govName || x.cityOtherName === govName
+        );
+        if (s) {
+          document.getElementById('c-gov').value = s._id;
+          document.getElementById('c-gov-search').value = s.cityOtherName || s.city;
+          
+          // Trigger city change to load zones
+          await handleCityChange();
+          
+          // Set Zone if present
+          if (cart.customer.zone && document.getElementById('c-zone')) {
+            document.getElementById('c-zone').value = cart.customer.zone;
+          }
+        }
+      }
+    }
+
+    // 2. Populate Cart Items
+    if (cart.items && cart.items.length > 0) {
+      cartItems = [];
+      for (const item of cart.items) {
+        const p = allProducts.find(x => x._id === item.productId);
+        if (p) {
+          cartItems.push({
+            product: p,
+            quantity: item.quantity || 1,
+            selectedOptions: item.selectedOptions || [],
+            discount: item.discount || 0,
+            price: item.basePrice
+          });
+        }
+      }
+      renderCart();
+    }
+
+    showToast('تم استعادة بيانات السلة المتروكة بنجاح');
+  } catch (err) {
+    console.error('Failed to recover abandoned cart:', err);
+    showToast('فشل استعادة بيانات السلة المتروكة', 'error');
+  }
+}
 
 // ── Products Modal ─────────────────────────────────────
 let collectionsMap = {};

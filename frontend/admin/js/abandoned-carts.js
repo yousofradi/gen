@@ -85,7 +85,7 @@ function renderCarts(list) {
     const address = cart.customer?.address || '';
     let addressDisplay = `<div style="font-weight:600; color:#334155;">${gov} ${zone ? ` - ${zone}` : ''}</div>`;
     if (address) {
-      addressDisplay += `<div style="font-size:0.8rem; color:#64748b; margin-top:4px; max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${address}">${address}</div>`;
+      addressDisplay += `<div class="hide-mobile" style="font-size:0.8rem; color:#64748b; margin-top:4px; max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${address}">${address}</div>`;
     }
 
     // Time ago or formatted
@@ -100,7 +100,17 @@ function renderCarts(list) {
     const recoverUrl = `${storeUrl}/checkout?recover=${cart.checkoutToken}`;
 
     return `
-      <tr id="cart-row-${cart._id}">
+      <tr id="cart-row-${cart._id}" onclick="handleRowClick(event, '${cart._id}')" style="position: relative;">
+        <!-- Mobile Delete Button (renders on the far left) -->
+        <td class="mobile-delete-btn-cell" style="display: none; padding: 0; width: auto; border: none; align-items: center; justify-content: center;">
+          <button class="mobile-delete-btn" onclick="deleteCart('${cart._id}', event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </td>
+        
         <td>
           <div style="font-weight:700; color:#0f172a;">${custName}</div>
           <div style="margin-top:4px;">${waLinkHtml}</div>
@@ -116,11 +126,11 @@ function renderCarts(list) {
         <td style="font-size:0.8rem; color:#64748b;">${dateFormatted}</td>
         <td style="text-align: center;">
           <div style="display:flex; gap:8px; justify-content:center;">
-            <button class="btn-action btn-confirm" onclick="confirmCart('${recoverUrl}')">
+            <button class="btn-action btn-confirm" onclick="confirmCart('${cart._id}', event)">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               <span>تأكيد السلة</span>
             </button>
-            <button class="btn-action btn-delete" onclick="deleteCart('${cart._id}')">
+            <button class="btn-action btn-delete" onclick="deleteCart('${cart._id}', event)">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
               <span>حذف</span>
             </button>
@@ -149,12 +159,13 @@ function filterCarts() {
   renderCarts(filtered);
 }
 
-function confirmCart(recoverUrl) {
-  // Opens the customer checkout in a new window to recover their checkout data
-  window.open(recoverUrl, '_blank');
+function confirmCart(cartId, event) {
+  if (event) event.stopPropagation();
+  window.location.href = `order-form.html?recoverCartId=${cartId}`;
 }
 
-async function deleteCart(id) {
+async function deleteCart(id, event) {
+  if (event) event.stopPropagation();
   const ok = await showConfirmModal('حذف السلة المتروكة', 'هل أنت متأكد من رغبتك في حذف هذه السلة المتروكة؟ لا يمكن استعادتها بعد الحذف.');
   if (!ok) return;
 
@@ -169,4 +180,11 @@ async function deleteCart(id) {
     console.error('Failed to delete cart:', err);
     showToast(err.message || 'فشل في حذف السلة المتروكة', 'error');
   }
+}
+
+function handleRowClick(event, cartId) {
+  if (event.target.closest('button') || event.target.closest('a') || event.target.closest('input')) {
+    return;
+  }
+  window.location.href = `order-form.html?recoverCartId=${cartId}`;
 }
