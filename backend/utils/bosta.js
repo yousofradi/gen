@@ -121,9 +121,6 @@ async function generateBostaPayload(order, bostaConfig) {
         description: order.items.map(i => `${i.name}  ( ${i.quantity} )`).join(' , ')
       }
     },
-    goodsInfo: {
-      amount: Math.max(0, order.totalPrice - (order.shippingFee || 0))
-    },
     pickupAddress: storeAddress,
     returnAddress: storeAddress,
     dropOffAddress: dropOffAddress,
