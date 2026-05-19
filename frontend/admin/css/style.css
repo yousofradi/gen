@@ -2043,3 +2043,69 @@ input[type=number] {
   object-fit: contain !important;
   background-color: #fff !important;
 }
+
+/* ── Admin Dashboard Refinements ─────────────────────── */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.stat-card-left {
+  display: flex;
+  align-items: center;
+}
+
+.stat-change-pct {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-card-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card-title {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.stat-card-value {
+  color: #1e293b;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'Cairo', sans-serif;
+}
+
+@media (max-width: 1024px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

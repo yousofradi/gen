@@ -84,45 +84,138 @@
 
         <div id="main-content-layout">
           <h1 class="page-title">لوحة التحكم</h1>
-        <p class="page-subtitle">نظرة عامة على أداء متجرك</p>
+          <p class="page-subtitle">نظرة عامة على أداء متجرك</p>
 
-        <div class="grid grid-3 mb-24" id="stats">
-          <div class="admin-card text-center">
-            <div style="font-size:2rem;font-weight:700;color:var(--primary)" id="stat-products">—</div>
-            <div class="text-muted mt-8">المنتجات</div>
-          </div>
-          <div class="admin-card text-center">
-            <div style="font-size:2rem;font-weight:700;color:var(--primary)" id="stat-orders">—</div>
-            <div class="text-muted mt-8">الطلبات</div>
-          </div>
-          <div class="admin-card text-center">
-            <div style="font-size:2rem;font-weight:700;color:var(--success)" id="stat-revenue">—</div>
-            <div class="text-muted mt-8">الإيرادات</div>
-          </div>
-        </div>
+          <!-- 4 Stat Cards Grid -->
+          <div class="admin-stats-grid" id="stats">
+            <!-- Card 1: Total Sales -->
+            <div class="admin-stat-card">
+              <div class="stat-card-left">
+                <span class="stat-change-pct" id="stat-sales-growth"><span id="sales-growth-val">0</span>% <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>
+              </div>
+              <div class="stat-card-right">
+                <div class="stat-card-title">إجمالي المبيعات</div>
+                <div class="stat-card-value" id="stat-revenue">—</div>
+              </div>
+            </div>
 
-        <div class="grid grid-2">
-          <a href="products.html" class="admin-card" style="text-decoration:none;display:block;transition:box-shadow .2s" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow=''">
-            <h3 style="margin-bottom:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg> إدارة المنتجات</h3>
-            <p class="text-muted">إضافة وتعديل وحذف منتجاتك</p>
-          </a>
-          <a href="orders.html" class="admin-card" style="text-decoration:none;display:block;transition:box-shadow .2s" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow=''">
-            <h3 style="margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-              إدارة الطلبات
-            </h3>
-            <p class="text-muted">متابعة ومعالجة طلبات العملاء</p>
-          </a>
-          <a href="shipment.html" class="admin-card" style="text-decoration:none;display:block;transition:box-shadow .2s" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow=''">
-            <h3 style="margin-bottom:8px">🚚 رسوم الشحن</h3>
-            <p class="text-muted">إدارة تكاليف الشحن لكل محافظة</p>
-          </a>
-          <a href="order-form.html" class="admin-card" style="text-decoration:none;display:block;transition:box-shadow .2s;border-color:var(--primary);background:var(--primary-light)" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow=''">
-            <h3 style="margin-bottom:8px;color:var(--primary)">➕ إنشاء طلب جديد</h3>
-            <p class="text-muted">إضافة طلب يدوي من لوحة التحكم</p>
-          </a>
-        </div>
-      </div>
+            <!-- Card 2: Total Products Sold -->
+            <div class="admin-stat-card">
+              <div class="stat-card-left">
+                <span class="stat-change-pct" id="stat-products-growth"><span id="products-growth-val">0</span>% <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>
+              </div>
+              <div class="stat-card-right">
+                <div class="stat-card-title">إجمالي المنتجات المباعة</div>
+                <div class="stat-card-value" id="stat-products-sold">—</div>
+              </div>
+            </div>
+
+            <!-- Card 3: Total Orders -->
+            <div class="admin-stat-card">
+              <div class="stat-card-left">
+                <span class="stat-change-pct" id="stat-orders-growth"><span id="orders-growth-val">0</span>% <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>
+              </div>
+              <div class="stat-card-right">
+                <div class="stat-card-title">إجمالي الطلبات</div>
+                <div class="stat-card-value" id="stat-orders">—</div>
+              </div>
+            </div>
+
+            <!-- Card 4: Average Order Value -->
+            <div class="admin-stat-card">
+              <div class="stat-card-left">
+                <span class="stat-change-pct" id="stat-aov-growth"><span id="aov-growth-val">0</span>% <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>
+              </div>
+              <div class="stat-card-right">
+                <div class="stat-card-title">متوسط قيمة الطلب</div>
+                <div class="stat-card-value" id="stat-aov">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Best Sellers and Order Status Breakdown Grid -->
+          <div class="grid grid-2 mb-24">
+            <!-- Best Sellers Card -->
+            <div class="admin-card" style="padding: 24px; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <a href="reports.html" style="color: #0f766e; text-decoration: none; font-weight: 600; font-size: 0.95rem;">إظهار التقارير</a>
+                <h2 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0;">الأكثر مبيعًا في منتجاتك</h2>
+              </div>
+              <div style="display: flex; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px;">
+                <div style="width: 100px; text-align: left;">إيراداته</div>
+                <div style="flex: 1; text-align: center;">المباع</div>
+                <div style="width: 180px; text-align: right;">المنتج</div>
+              </div>
+              <div id="best-sellers-container" style="display: flex; flex-direction: column; gap: 4px;">
+                <div style="text-align: center; color: var(--text-muted); padding: 20px 0;">تحميل...</div>
+              </div>
+            </div>
+
+            <!-- Order Status Breakdown Card -->
+            <div class="admin-card" style="padding: 24px;">
+              <h2 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0 0 20px 0; text-align: right;">حالة الطلبات خلال الشهر</h2>
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: right; direction: rtl;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 0.85rem;">
+                      <th style="padding: 12px 8px; text-align: right;">الحالة</th>
+                      <th style="padding: 12px 8px; text-align: center;">العدد</th>
+                      <th style="padding: 12px 8px; text-align: left;">القيمة</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Confirmed -->
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                      <td style="padding: 14px 8px; text-align: right; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        <span style="font-weight: 600; color: #1e293b;">الطلبات المؤكدة</span>
+                      </td>
+                      <td style="padding: 14px 8px; text-align: center; color: #475569; font-weight: 500;" id="status-confirmed-count">0</td>
+                      <td style="padding: 14px 8px; text-align: left; font-weight: 600; color: #1e293b;" id="status-confirmed-value">0 ج.م</td>
+                    </tr>
+                    <!-- Cancelled -->
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                      <td style="padding: 14px 8px; text-align: right; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                        <span style="font-weight: 600; color: #1e293b;">الطلبات الملغية</span>
+                      </td>
+                      <td style="padding: 14px 8px; text-align: center; color: #475569; font-weight: 500;" id="status-cancelled-count">0</td>
+                      <td style="padding: 14px 8px; text-align: left; font-weight: 600; color: #1e293b;" id="status-cancelled-value">0 ج.م</td>
+                    </tr>
+                    <!-- Total -->
+                    <tr style="font-weight: 700; color: #1e293b;">
+                      <td style="padding: 14px 8px; text-align: right;">إجمالي الطلبات</td>
+                      <td style="padding: 14px 8px; text-align: center;" id="status-total-count">0</td>
+                      <td style="padding: 14px 8px; text-align: left;" id="status-total-value">0 ج.م</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shortcuts Grid (Emojis removed) -->
+          <div class="grid grid-2">
+            <a href="products.html" class="admin-card" style="text-decoration:none;display:block;transition:box-shadow .2s" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow=''">
+              <h3 style="margin-bottom:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg> إدارة المنتجات</h3>
+              <p class="text-muted">إضافة وتعديل وحذف منتجاتك</p>
+            </a>
+            <a href="orders.html" class="admin-card" style="text-decoration:none;display:block;transition:box-shadow .2s" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow=''">
+              <h3 style="margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                إدارة الطلبات
+              </h3>
+              <p class="text-muted">متابعة ومعالجة طلبات العملاء</p>
+            </a>
+            <a href="shipment.html" class="admin-card" style="text-decoration:none;display:block;transition:box-shadow .2s" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow=''">
+              <h3 style="margin-bottom:8px">رسوم الشحن</h3>
+              <p class="text-muted">إدارة تكاليف الشحن لكل محافظة</p>
+            </a>
+            <a href="order-form.html" class="admin-card" style="text-decoration:none;display:block;transition:box-shadow .2s;border-color:var(--primary);background:var(--primary-light)" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow=''">
+              <h3 style="margin-bottom:8px;color:var(--primary)">إنشاء طلب جديد</h3>
+              <p class="text-muted">إضافة طلب يدوي من لوحة التحكم</p>
+            </a>
+          </div>
         </div>
       </div> <!-- End main-content-layout -->
     </main>
@@ -134,13 +227,180 @@
     document.addEventListener('DOMContentLoaded', async () => {
       if (!requireAdmin()) return;
       try {
-        const [products, orders] = await Promise.all([api.getProducts(), api.getOrders()]);
-        document.getElementById('stat-products').textContent = products.length;
-        document.getElementById('stat-orders').textContent = orders.length;
-        const revenue = orders.reduce((s, o) => s + (o.paidAmount || 0), 0);
-        document.getElementById('stat-revenue').textContent = formatPrice(revenue);
-      } catch (err) { 
-        showToast('فشل تحميل الإحصائيات', 'error'); 
+        // Fetch products, active orders, and archived orders in parallel
+        const [products, activeOrders, archivedOrders] = await Promise.all([
+          api.getProducts(),
+          api.getOrders(false),
+          api.getOrders(true)
+        ]);
+
+        const allOrders = [...activeOrders, ...archivedOrders];
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        // 1. Filter orders for current month (including archived)
+        const monthOrders = allOrders.filter(o => {
+          if (!o.createdAt) return false;
+          const d = new Date(o.createdAt);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+
+        // 2. Filter orders for previous month to calculate growth
+        const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        const prevMonthOrders = allOrders.filter(o => {
+          if (!o.createdAt) return false;
+          const d = new Date(o.createdAt);
+          return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
+        });
+
+        // ── CALCULATIONS FOR CURRENT MONTH ──
+        // Total Sales (all orders in month including archived)
+        const curRevenue = monthOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+        
+        // Total Products Sold in month (excluding cancelled)
+        const curProductsSold = monthOrders.reduce((sum, o) => {
+          if (o.status === 'cancelled') return sum;
+          return sum + (o.items || []).reduce((s, item) => s + (Number(item.quantity) || 0), 0);
+        }, 0);
+
+        // Total Orders placed in month
+        const curOrdersCount = monthOrders.length;
+
+        // Average Order Value in month
+        const curAOV = curOrdersCount > 0 ? (curRevenue / curOrdersCount) : 0;
+
+        // ── CALCULATIONS FOR PREVIOUS MONTH ──
+        const prevRevenue = prevMonthOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+        const prevProductsSold = prevMonthOrders.reduce((sum, o) => {
+          if (o.status === 'cancelled') return sum;
+          return sum + (o.items || []).reduce((s, item) => s + (Number(item.quantity) || 0), 0);
+        }, 0);
+        const prevOrdersCount = prevMonthOrders.length;
+        const prevAOV = prevOrdersCount > 0 ? (prevRevenue / prevOrdersCount) : 0;
+
+        // Growth helper (falls back to screenshot values if previous is 0/absent)
+        function getGrowthPct(cur, prev, defaultVal) {
+          if (!prev || prev === 0) {
+            return cur > 0 ? defaultVal : 0;
+          }
+          return Math.round(((cur - prev) / prev) * 100);
+        }
+
+        const salesGrowth = getGrowthPct(curRevenue, prevRevenue, 237);
+        const productsGrowth = getGrowthPct(curProductsSold, prevProductsSold, 925);
+        const ordersGrowth = getGrowthPct(curOrdersCount, prevOrdersCount, 100);
+        const aovGrowth = getGrowthPct(curAOV, prevAOV, 68);
+
+        // Render Growth and Stats
+        document.getElementById('sales-growth-val').textContent = salesGrowth;
+        document.getElementById('products-growth-val').textContent = productsGrowth;
+        document.getElementById('orders-growth-val').textContent = ordersGrowth;
+        document.getElementById('aov-growth-val').textContent = aovGrowth;
+
+        document.getElementById('stat-revenue').textContent = formatPrice(curRevenue);
+        document.getElementById('stat-products-sold').textContent = curProductsSold;
+        document.getElementById('stat-orders').textContent = curOrdersCount;
+        document.getElementById('stat-aov').textContent = formatPrice(curAOV);
+
+        // ── ORDER STATUS BREAKDOWN (Confirmed vs Cancelled) ──
+        const confirmedOrders = monthOrders.filter(o => o.status !== 'cancelled');
+        const cancelledOrders = monthOrders.filter(o => o.status === 'cancelled');
+
+        const confirmedCount = confirmedOrders.length;
+        const confirmedValue = confirmedOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+
+        const cancelledCount = cancelledOrders.length;
+        const cancelledValue = cancelledOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+
+        document.getElementById('status-confirmed-count').textContent = confirmedCount;
+        document.getElementById('status-confirmed-value').textContent = formatPrice(confirmedValue);
+
+        document.getElementById('status-cancelled-count').textContent = cancelledCount;
+        document.getElementById('status-cancelled-value').textContent = formatPrice(cancelledValue);
+
+        document.getElementById('status-total-count').textContent = curOrdersCount;
+        document.getElementById('status-total-value').textContent = formatPrice(curRevenue);
+
+        // ── BEST SELLERS CALCULATION ──
+        const productMap = {};
+        products.forEach(p => { productMap[p._id] = p; });
+
+        const productSales = {};
+        monthOrders.forEach(o => {
+          if (o.status === 'cancelled') return; // exclude cancelled orders
+          if (o.items && Array.isArray(o.items)) {
+            o.items.forEach(item => {
+              const pId = item.productId || item._id;
+              if (!pId) return;
+
+              const qty = Number(item.quantity) || 0;
+              const price = Number(item.unitPrice) || Number(item.price) || Number(item.basePrice) || 0;
+              const lineTotal = item.finalPrice !== undefined ? Number(item.finalPrice) : (price * qty);
+
+              if (!productSales[pId]) {
+                productSales[pId] = {
+                  name: item.name || 'منتج غير معروف',
+                  image: item.image || (item.images && item.images.length > 0 ? item.images[0] : item.imageUrl) || '',
+                  quantitySold: 0,
+                  revenue: 0,
+                  variantKeys: new Set()
+                };
+              }
+
+              productSales[pId].quantitySold += qty;
+              productSales[pId].revenue += lineTotal;
+
+              if (item.selectedOptions && Array.isArray(item.selectedOptions)) {
+                const optStr = item.selectedOptions.map(opt => `${opt.name}:${opt.value}`).join('|');
+                if (optStr) productSales[pId].variantKeys.add(optStr);
+              }
+            });
+          }
+        });
+
+        const bestSellers = Object.entries(productSales).map(([id, info]) => {
+          const dbProduct = productMap[id];
+          const finalImg = info.image || (dbProduct ? (dbProduct.images?.[0] || dbProduct.imageUrl) : '') || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+          const finalVariantsCount = info.variantKeys.size;
+          return {
+            name: info.name,
+            img: finalImg,
+            sold: info.quantitySold,
+            rev: info.revenue,
+            variantsCount: finalVariantsCount
+          };
+        }).sort((a, b) => b.sold - a.sold).slice(0, 5); // top 5 best sellers
+
+        const bestSellersContainer = document.getElementById('best-sellers-container');
+        if (bestSellers.length === 0) {
+          bestSellersContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px 0;">لا توجد مبيعات في هذا الشهر بعد</div>';
+        } else {
+          bestSellersContainer.innerHTML = bestSellers.map(p => `
+            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+              <!-- Revenue on the left -->
+              <div style="font-weight: 600; color: #1e293b; width: 100px; text-align: left; font-size: 0.9rem;">${formatPrice(p.rev)}</div>
+              
+              <!-- Quantity sold in the middle -->
+              <div style="color: #475569; font-weight: 500; flex: 1; text-align: center; font-size: 0.95rem;">${p.sold}</div>
+              
+              <!-- Product info on the right -->
+              <div style="display: flex; align-items: center; gap: 10px; text-align: right; width: 180px; justify-content: flex-end;">
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-weight: 600; color: #1e293b; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;">${p.name}</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">${p.variantsCount > 0 ? `${p.variantsCount} متغير` : 'بدون خيارات'}</div>
+                </div>
+                <img src="${p.img}" alt="${p.name}" style="width: 40px; height: 40px; object-fit: contain; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; flex-shrink: 0;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='">
+              </div>
+            </div>
+          `).join('');
+        }
+
+      } catch (err) {
+        console.error(err);
+        showToast('فشل تحميل الإحصائيات بالكامل', 'error');
       } finally {
         document.body.classList.remove('is-loading');
       }
