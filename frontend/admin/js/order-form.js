@@ -294,6 +294,8 @@ async function recoverAbandonedCart(cartId) {
       renderCart();
     }
 
+    recalcSummary();
+
     // Set customer mode to 'new' since this is recovered data and not a selected existing customer profile
     const radioNew = document.querySelector('input[name="customer_type"][value="new"]');
     if (radioNew) {
