@@ -304,6 +304,11 @@ async function recoverAbandonedCart(cartId) {
       existingSection.style.display = 'none';
     }
 
+    // Automatically trigger the "Unsaved Changes" bar/alert
+    if (window.markAsModified) {
+      window.markAsModified();
+    }
+
     showToast('تم استعادة بيانات السلة المتروكة بنجاح');
   } catch (err) {
     console.error('Failed to recover abandoned cart:', err);
