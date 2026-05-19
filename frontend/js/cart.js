@@ -121,8 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
         <div style="display:flex;align-items:center;gap:8px;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
           <h3 style="margin:0; font-size:1.15rem; font-weight:700">السلة</h3>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         </div>
       </div>
       <div class="slide-cart-body" id="slide-cart-body"></div>
@@ -211,12 +211,22 @@ Cart.renderSlideCart = function() {
     const opts = item.selectedOptions.map(o => `${o.groupName}: ${o.label}`).join(', ');
     return `
       <div class="sc-item">
-        <div class="sc-item-top" style="margin-bottom: 0;">
+        <div class="sc-item-top" style="margin-bottom: 0; align-items: stretch;">
           ${imgSrc ? `<img src="${imgSrc}" class="sc-item-img" alt="${item.name}" onerror="this.style.display='none'">` : '<div class="sc-item-img sc-item-img-placeholder"></div>'}
-          <div class="sc-item-info">
-            <div class="sc-item-name">${item.name}</div>
-            ${opts ? `<div class="sc-item-opts">${opts}</div>` : ''}
+          
+          <div class="sc-item-info" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <!-- Top row: Name/Options & Delete button -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+              <div style="flex: 1; min-width: 0; text-align: right;">
+                <div class="sc-item-name">${item.name}</div>
+                ${opts ? `<div class="sc-item-opts">${opts}</div>` : ''}
+              </div>
+              <button class="sc-delete-btn" onclick="Cart.removeItem('${item.key}'); Cart.renderSlideCart()" title="حذف" style="margin-top: 0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
             
+            <!-- Bottom row: Price & Qty count button -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
               <div class="sc-item-total" style="font-weight: 700; font-size: 1.05rem; color: #111827;">${formatPrice(item.unitPrice * item.quantity)}</div>
               
@@ -230,15 +240,11 @@ Cart.renderSlideCart = function() {
             ${(function() {
               const available = getAvailable(item);
               if (available !== Infinity && item.quantity > available) {
-                return `<div style="font-size:0.75rem; color:#ef4444; margin-top:4px; font-weight:600; background:#fee2e2; padding:2px 8px; border-radius:4px; display:inline-block;">عذراً، يتوفر ${available} قطعة فقط</div>`;
+                return `<div style="font-size:0.75rem; color:#ef4444; margin-top:4px; font-weight:600; background:#fee2e2; padding:2px 8px; border-radius:4px; display:inline-block; align-self: flex-start;">عذراً، يتوفر ${available} قطعة فقط</div>`;
               }
               return '';
             })()}
           </div>
-
-          <button class="sc-delete-btn" onclick="Cart.removeItem('${item.key}'); Cart.renderSlideCart()" title="حذف">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
         </div>
       </div>
     `;

@@ -1448,7 +1448,7 @@ input[type=number] {
   display: flex;
   align-items: center;
   border: 1.5px solid #e5e7eb;
-  border-radius: 999px;
+  border-radius: 0;
   overflow: hidden;
   height: 34px;
 }
