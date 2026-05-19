@@ -15,7 +15,11 @@ const cache = {
 
   async set(key, value, ttl = DEFAULT_TTL) {
     try {
-      await redis.set(key, JSON.stringify(value), 'EX', ttl);
+      if (ttl === null || ttl === 0) {
+        await redis.set(key, JSON.stringify(value));
+      } else {
+        await redis.set(key, JSON.stringify(value), 'EX', ttl);
+      }
     } catch (err) {
       console.error(`[Redis] Set failed for ${key}:`, err.message);
     }

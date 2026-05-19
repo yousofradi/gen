@@ -39,7 +39,8 @@ router.get('/:key', async (req, res) => {
     const value = setting ? setting.value : null;
     
     if (!bypassCache) {
-      await cache.set(cacheKey, value);
+      const ttl = key === 'homepage_sections' ? null : undefined;
+      await cache.set(cacheKey, value, ttl);
     }
     res.json(value);
   } catch (err) {

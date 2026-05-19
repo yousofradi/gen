@@ -41,7 +41,7 @@ async function refreshShippingCache() {
       };
     });
 
-    await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(finalFees), 'EX', 86400);
+    await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(finalFees));
 
     // Also clear all cached zones to keep them in sync
     try {
@@ -103,7 +103,7 @@ router.get('/', async (req, res) => {
     
     // 4. Set Cache (24 hour TTL for persistent feel)
     try {
-      await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(finalFees), 'EX', 86400);
+      await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(finalFees));
     } catch (err) {
       console.error('[Redis] Shipping cache set failed:', err.message);
     }
@@ -185,7 +185,7 @@ router.get('/zones/:cityId', async (req, res) => {
 
     // 3. Set Cache (24 hour TTL)
     try {
-      await redis.set(cacheKey, JSON.stringify(zones), 'EX', 86400);
+      await redis.set(cacheKey, JSON.stringify(zones));
     } catch (err) {
       console.error('[Redis] Zones cache set failed:', err.message);
     }
