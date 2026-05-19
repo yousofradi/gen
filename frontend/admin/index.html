@@ -335,7 +335,7 @@
           if (o.status === 'cancelled') return; // exclude cancelled orders
           if (o.items && Array.isArray(o.items)) {
             o.items.forEach(item => {
-              const pId = item.productId || item._id;
+              const pId = (item.name || 'منتج غير معروف').trim();
               if (!pId) return;
 
               const qty = Number(item.quantity) || 0;
@@ -356,7 +356,7 @@
               productSales[pId].revenue += lineTotal;
 
               if (item.selectedOptions && Array.isArray(item.selectedOptions) && item.selectedOptions.length > 0) {
-                const optFormatted = item.selectedOptions.map(opt => opt.value).join(' / ');
+                const optFormatted = item.selectedOptions.map(opt => opt.label || opt.value || '').filter(Boolean).join(' / ');
                 if (optFormatted) {
                   productSales[pId].optionsList.add(optFormatted);
                 }
@@ -366,7 +366,7 @@
         });
 
         const bestSellers = Object.entries(productSales).map(([id, info]) => {
-          const dbProduct = productMap[id];
+          const dbProduct = products.find(p => p.name === id);
           const finalImg = info.image || (dbProduct ? (dbProduct.images?.[0] || dbProduct.imageUrl) : '') || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
           const optionsText = info.optionsList.size > 0 ? Array.from(info.optionsList).join(', ') : '';
           return {

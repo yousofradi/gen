@@ -319,7 +319,7 @@ window.showConfirmModal = function (title, message, isWhatsapp = false) {
 
 // ── Currency formatter ─────────────────────────────────
 function formatPrice(p) {
-  return `${Number(p || 0).toLocaleString('ar-EG', { useGrouping: false })} ج.م`;
+  return `${Math.round(Number(p || 0)).toLocaleString('ar-EG', { useGrouping: false })} ج.م`;
 }
 
 // ── Mobile sidebar toggle (auto-init) ─────────────────
