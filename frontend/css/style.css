@@ -107,9 +107,9 @@ a {
   transition: color var(--transition);
 }
 
-a:hover {
+/*a:hover {
   color: var(--primary-hover);
-}
+}*/
 
 img {
   max-width: 100%;

@@ -14,14 +14,13 @@
 <body class="has-bottom-nav">
   <header class="store-header">
     <div class="container">
-      <a href="/" class="header-icon back-btn"
-        onclick="if(history.length > 1) { history.back(); return false; }"><svg viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; color: var(--text-muted);">
+      <a href="/" class="header-icon back-btn" onclick="if(history.length > 1) { history.back(); return false; }"><svg
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="width: 24px; height: 24px; color: var(--text-muted);">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6" />
         </svg></a>
-      <a href="/" class="store-logo-link"><img
-          src=""
-          alt="Logo" class="store-logo-img" style="opacity:0; transition: opacity 0.2s;"></a>
+      <a href="/" class="store-logo-link"><img src="" alt="Logo" class="store-logo-img"
+          style="opacity:0; transition: opacity 0.2s;"></a>
 
       <div class="header-icons">
         <button class="header-icon search-icon-btn" onclick="api.openSearch()">
@@ -74,7 +73,7 @@
       </div>
       <div id="product-detail" class="hidden"></div>
 
-      <div id="related-products-container" class="hidden" style="padding-top:40px; border-top:1px solid #e2e8f0;">
+      <div id="related-products-container" class="hidden" style="padding-top:20px; border-top:1px solid #e2e8f0;">
         <h2 class="home-section-title">منتجات مشابهة</h2>
         <div class="products-grid" id="related-products-grid" style="--cols:5;"></div>
       </div>
@@ -126,7 +125,9 @@
         <span>واتساب</span>
       </a>
       <a href="#" target="_blank" class="nav-item" id="nav-tg-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+        </svg>
         <span>تليجرام</span>
       </a>
     </div>
