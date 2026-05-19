@@ -563,8 +563,8 @@
   display: block;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 5px 11px;
-  min-width: 80px;
+  padding: 5px 10px;
+  min-width: 70px;
   text-align: center;
   cursor: pointer;
   font-size: 0.9rem;
