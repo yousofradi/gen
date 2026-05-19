@@ -87,7 +87,18 @@
       }
 
       .carts-table-wrap table thead {
-        display: none !important;
+        display: block !important;
+        border-bottom: 2px solid #e2e8f0;
+      }
+
+      .carts-table-wrap table thead tr {
+        display: flex !important;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        background: #f8fafc;
+        padding: 12px 16px;
+        border-bottom: none;
       }
 
       .carts-table-wrap tbody {
@@ -119,24 +130,34 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       }
 
-      /* Hide TD 4 (Products list), TD 6 (Date), and standard TD 7 (Actions) */
+      /* Hide TD/TH 4 (Products list), 6 (Date), and standard 7 (Actions) */
       .carts-table-wrap td:nth-child(4),
       .carts-table-wrap td:nth-child(6),
-      .carts-table-wrap td:nth-child(7) {
+      .carts-table-wrap td:nth-child(7),
+      .carts-table-wrap th:nth-child(4),
+      .carts-table-wrap th:nth-child(6),
+      .carts-table-wrap th:nth-child(7) {
         display: none !important;
       }
 
-      /* Style TD 2: Customer Info */
-      .carts-table-wrap td:nth-child(2) {
+      /* Style TD/TH 2: Customer Info */
+      .carts-table-wrap td:nth-child(2),
+      .carts-table-wrap th:nth-child(2) {
         flex: 2;
         padding: 0 !important;
         border: none !important;
         text-align: right;
         order: 1;
       }
+      .carts-table-wrap th:nth-child(2) {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 700;
+      }
 
-      /* Style TD 3: Governorate Name */
-      .carts-table-wrap td:nth-child(3) {
+      /* Style TD/TH 3: Governorate Name */
+      .carts-table-wrap td:nth-child(3),
+      .carts-table-wrap th:nth-child(3) {
         flex: 1.2;
         padding: 0 !important;
         border: none !important;
@@ -146,17 +167,28 @@
         font-weight: 600;
         order: 2;
       }
+      .carts-table-wrap th:nth-child(3) {
+        font-weight: 700;
+      }
 
-      /* Style TD 5: Total Price */
-      .carts-table-wrap td:nth-child(5) {
+      /* Style TD/TH 5: Total Price */
+      .carts-table-wrap td:nth-child(5),
+      .carts-table-wrap th:nth-child(5) {
         flex: 1;
         padding: 0 !important;
         border: none !important;
         text-align: left;
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: #0f766e;
         order: 3;
+      }
+      .carts-table-wrap td:nth-child(5) {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #0f766e;
+      }
+      .carts-table-wrap th:nth-child(5) {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 700;
       }
 
       /* Mobile delete button cell */
@@ -168,14 +200,15 @@
         justify-content: center;
         order: 4;
         /* FAR LEFT in RTL flex row */
+        flex: 0 0 24px;
       }
 
       .mobile-delete-btn {
         display: flex !important;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         background: #fee2e2;
         color: #ef4444;
@@ -331,7 +364,7 @@
                     class="tab-badge" id="count-all">0</span></span>
               </div>
 
-              <div style="position:relative; width:300px; max-width:100%;">
+              <div class="hide-mobile" style="position:relative; width:300px; max-width:100%;">
                 <input type="text" id="cart-search" placeholder="ابحث باسم العميل أو الهاتف..."
                   style="width:100%; padding:8px 16px; padding-left:40px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem;"
                   oninput="filterCarts()">
@@ -349,6 +382,7 @@
               <table style="width:100%; border-collapse:collapse; text-align:right; min-width:900px;">
                 <thead>
                   <tr>
+                    <th class="mobile-delete-btn-cell" style="display: none; padding: 0; width: auto; border: none; align-items: center; justify-content: center;"></th>
                     <th>العميل</th>
                     <th>العنوان / المنطقة</th>
                     <th>المنتجات بالعربة</th>

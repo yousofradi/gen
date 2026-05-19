@@ -104,7 +104,7 @@ function renderCarts(list) {
         <!-- Mobile Delete Button (renders on the far left) -->
         <td class="mobile-delete-btn-cell" style="display: none; padding: 0; width: auto; border: none; align-items: center; justify-content: center;">
           <button class="mobile-delete-btn" onclick="deleteCart('${cart._id}', event)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
