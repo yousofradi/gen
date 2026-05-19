@@ -1421,8 +1421,8 @@ input[type=number] {
 
 .sc-delete-btn {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 1px solid #fee2e2;
   background: #fff5f5;
@@ -1481,7 +1481,7 @@ input[type=number] {
 
 .sc-item-total {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 14px;
   color: #111827;
 }
 

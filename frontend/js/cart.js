@@ -222,13 +222,13 @@ Cart.renderSlideCart = function() {
                 ${opts ? `<div class="sc-item-opts">${opts}</div>` : ''}
               </div>
               <button class="sc-delete-btn" onclick="Cart.removeItem('${item.key}'); Cart.renderSlideCart()" title="حذف" style="margin-top: 0;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
             
             <!-- Bottom row: Price & Qty count button -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-              <div class="sc-item-total" style="font-weight: 700; font-size: 1.05rem; color: #111827;">${formatPrice(item.unitPrice * item.quantity)}</div>
+              <div class="sc-item-total" style="font-weight: 700; font-size: 14px; color: #111827;">${formatPrice(item.unitPrice * item.quantity)}</div>
               
               <div class="sc-qty-control">
                 <button class="sc-qty-btn" onclick="Cart.updateQty('${item.key}', ${item.quantity + 1}); Cart.renderSlideCart()">+</button>
