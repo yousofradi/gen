@@ -224,7 +224,7 @@ async function generateInvoiceInnerHtml(order, settings, options = {}) {
 
 <tr>
 <td class="label-column">المحافظة</td>
-<td class="value-column">${safe(order.customer.government)}</td>
+<td class="value-column">${safe(order.customer.government)}${order.customer.zone ? ` - ${safe(order.customer.zone)}` : ''}</td>
 </tr>
 
 <tr>
