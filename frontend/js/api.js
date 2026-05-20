@@ -40,6 +40,8 @@ const API_BASE = 'API_URL_PLACEHOLDER';
 const api = {
   _adminKey() { return localStorage.getItem('adminKey') || ''; },
 
+  _pendingRequests: {}, // Deduplicate in-flight requests
+
   async _request(path, opts = {}) {
     const cacheKey = `api_cache_${path}`;
     if (opts.useCache) {
@@ -50,16 +52,36 @@ const api = {
       }
     }
 
-    const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
-    if (opts.admin) headers['x-admin-key'] = this._adminKey();
-    const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const method = (opts.method || 'GET').toUpperCase();
+    const reqKey = `${method}_${path}`;
 
-    if (opts.useCache) {
-      sessionStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() }));
+    if (method === 'GET' && this._pendingRequests[reqKey]) {
+      return this._pendingRequests[reqKey];
     }
-    return data;
+
+    const promise = (async () => {
+      const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+      if (opts.admin) headers['x-admin-key'] = this._adminKey();
+      const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+      if (opts.useCache) {
+        sessionStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() }));
+      }
+      return data;
+    })();
+
+    if (method === 'GET') {
+      this._pendingRequests[reqKey] = promise;
+      promise.finally(() => {
+        if (this._pendingRequests[reqKey] === promise) {
+          delete this._pendingRequests[reqKey];
+        }
+      });
+    }
+
+    return promise;
   },
 
   // Products
