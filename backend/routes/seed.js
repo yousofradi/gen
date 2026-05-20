@@ -566,6 +566,16 @@ router.get('/migrate-cloudinary', async (req, res) => {
       }
     }
 
+    // Clear storefront list products and collections cache
+    try {
+      const cache = require('../utils/cache');
+      await cache.clearPrefix('storefront:products:list:');
+      await cache.del('storefront:collections:list');
+      console.log('Cleared storefront products and collections cache after Cloudinary migration');
+    } catch (e) {
+      console.log('Failed to clear storefront cache after migration:', e.message);
+    }
+
     console.log('🏁 Cloudinary migration complete!');
     res.json({
       success: true,

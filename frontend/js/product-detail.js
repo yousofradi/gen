@@ -60,7 +60,7 @@ function renderProduct(p) {
   const images = getImages(p);
   const salePrice = p.salePrice || p.basePrice;
   const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
-  const mainImg = images[0] || '';
+  const mainImg = api.optimizeImageUrl(images[0] || '', 800);
 
   const isUnlimited = p.quantity === null || p.quantity === undefined;
   const isAvailable = isUnlimited || p.quantity > 0;
@@ -104,7 +104,7 @@ function renderProduct(p) {
 
   const thumbsHTML = images.length > 1 ? `
     <div class="product-gallery-thumbs">
-      ${images.map((img, i) => `<img src="${img}" class="product-gallery-thumb ${i === 0 ? 'active' : ''}" onclick="switchMainImage(${i})" alt="thumb" loading="lazy">`).join('')}
+      ${images.map((img, i) => `<img src="${api.optimizeImageUrl(img, 150)}" class="product-gallery-thumb ${i === 0 ? 'active' : ''}" onclick="switchMainImage(${i})" alt="thumb" loading="lazy">`).join('')}
     </div>` : '';
 
   const descText = (p.description || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim();
@@ -114,8 +114,8 @@ function renderProduct(p) {
       <div>
         <div class="product-gallery-main">
           ${images.length > 1 ? `
-            <button class="gallery-nav-btn prev" onclick="switchMainImageByOffset(-1)">‹</button>
-            <button class="gallery-nav-btn next" onclick="switchMainImageByOffset(1)">›</button>
+            <button type="button" class="gallery-nav-btn prev" onclick="event.preventDefault(); switchMainImageByOffset(-1); this.blur();">‹</button>
+            <button type="button" class="gallery-nav-btn next" onclick="event.preventDefault(); switchMainImageByOffset(1); this.blur();">›</button>
           ` : ''}
           <img id="main-product-img" src="${mainImg}" alt="${p.name}" data-index="0" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZjVmNSIvPjwvc3ZnPg=='">
         </div>
@@ -263,11 +263,12 @@ window.updateTotalPrice = function() {
   if (targetImg) {
     const mainImg = document.getElementById('main-product-img');
     if (mainImg) {
-      mainImg.src = targetImg;
+      mainImg.src = api.optimizeImageUrl(targetImg, 800);
       // Also update thumbnail active states if we switched to a specific image
       const thumbs = document.querySelectorAll('.product-gallery-thumb');
+      const imagesList = getImages(currentProduct);
       thumbs.forEach((t, i) => {
-        t.classList.toggle('active', t.src === targetImg);
+        t.classList.toggle('active', imagesList[i] === targetImg);
       });
     }
   }
@@ -321,7 +322,7 @@ window.switchMainImage = function(index) {
   const images = getImages(currentProduct);
   const mainImg = document.getElementById('main-product-img');
   if (mainImg && images[index]) {
-    mainImg.src = images[index];
+    mainImg.src = api.optimizeImageUrl(images[index], 800);
     mainImg.setAttribute('data-index', index);
   }
   document.querySelectorAll('.product-gallery-thumb').forEach((t, i) => {
@@ -440,7 +441,7 @@ async function loadRelatedProducts(colId, currentId) {
 
 function renderRelatedProductCard(p) {
   const images = p.images && p.images.length > 0 ? p.images : (p.imageUrl ? [p.imageUrl] : []);
-  const img = images[0] || '';
+  const img = api.optimizeImageUrl(images[0] || '', 400);
   const salePrice = p.salePrice || p.basePrice;
   const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
   const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;

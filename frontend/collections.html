@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>التصنيفات | </title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/store.css">
 </head>
@@ -11,7 +15,7 @@
   <header class="store-header">
     <div class="container">
       <button class="header-icon hamburger-btn" onclick="api.openMenu()">☰</button>
-      <a href="/" class="store-logo-link"><img src="https://assets.wuiltstore.com/cmo1fsgmc060f01lwhwpn6ga7__D8_B3_D9_86_D8_AF_D9_88_D8_B1.webp" alt="" class="store-logo-img"></a>
+      <a href="/" class="store-logo-link"><img src="" alt="Logo" class="store-logo-img" style="opacity:0; transition: opacity 0.2s;"></a>
       
       <div class="header-icons">
         <button class="header-icon search-icon-btn" onclick="api.openSearch()">
@@ -104,7 +108,7 @@
         }
         
         grid.innerHTML = collections.map(c => {
-          const img = c.imageUrl || 'https://assets.wuiltstore.com/cmo1fsgmc060f01lwhwpn6ga7__D8_B3_D9_86_D8_AF_D9_88_D8_B1.webp';
+          const img = api.optimizeImageUrl(c.imageUrl, 250);
           const link = c.urlName ? `collection/${c.urlName}` : `collection?id=${c._id}`;
           return `
             <a href="${link}" class="collection-card" style="margin-bottom:0">

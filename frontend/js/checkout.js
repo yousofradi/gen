@@ -477,7 +477,7 @@ function updatePriceSummary() {
     listEl.innerHTML = items.map(item => `
       <div class="summary-item">
         <div class="summary-item-img-wrapper">
-          ${item.imageUrl ? `<img src="${item.imageUrl}" class="summary-item-img">` : `
+          ${item.imageUrl ? `<img src="${api.optimizeImageUrl(item.imageUrl, 150)}" class="summary-item-img">` : `
             <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f8fafc;color:#94a3b8">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             </div>

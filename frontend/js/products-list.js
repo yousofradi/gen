@@ -40,7 +40,7 @@ async function loadProducts(page) {
 
     if (countSpan) countSpan.textContent = total;
     
-    const html = products.map(p => renderProductCard(p)).join('');
+    const html = products.map((p, idx) => renderProductCard(p, idx < 4 ? false : true)).join('');
     grid.innerHTML = html;
     
     renderPagination();
@@ -85,8 +85,8 @@ function getImg(product) {
   return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 }
 
-function renderProductCard(p) {
-  const img = getImg(p);
+function renderProductCard(p, lazy = true) {
+  const img = api.optimizeImageUrl(getImg(p), 400);
   const salePrice = p.salePrice || p.basePrice;
   const hasDiscount = p.salePrice && p.salePrice < p.basePrice;
   const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
@@ -101,11 +101,12 @@ function renderProductCard(p) {
     ? `<a href="${productLink}" class="btn btn-secondary btn-block" style="margin-top:8px;text-align:center;padding:6px;font-size:0.9rem">حدد اختيارك</a>`
     : `<button class="btn btn-primary btn-block" style="margin-top:8px;padding:6px;font-size:0.9rem" data-product="${pJson}" onclick="quickAddToCart(event, this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span>أضف للسلة</span></button>`;
 
+  const lazyAttr = lazy ? 'loading="lazy"' : '';
   return `
     <div class="store-product-card" style="display:flex;flex-direction:column;">
       <a href="${productLink}" style="display:block; text-decoration:none; color:inherit; flex:1;">
         <div class="store-product-img" style="position:relative">
-          ${img ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain" loading="lazy" onerror="this.style.display='none'">` : ''}
+          ${img ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain" ${lazyAttr} onerror="this.style.display='none'">` : ''}
           ${hasDiscount ? '<span class="discount-badge">خصم</span>' : ''}
         </div>
         <div class="store-product-info">

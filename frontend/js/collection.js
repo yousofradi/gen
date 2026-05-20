@@ -76,7 +76,7 @@ async function loadCollectionProducts(page) {
       return;
     }
 
-    grid.innerHTML = products.map(p => renderProductCard(p)).join('');
+    grid.innerHTML = products.map((p, idx) => renderProductCard(p, idx < 4 ? false : true)).join('');
     renderPagination();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
@@ -117,8 +117,8 @@ function getImg(product) {
   return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 }
 
-function renderProductCard(p) {
-  const img = getImg(p);
+function renderProductCard(p, lazy = true) {
+  const img = api.optimizeImageUrl(getImg(p), 400);
   const hasVariants = p.variants && p.variants.length > 0;
   const hasOptions = p.options && p.options.length > 0;
   
@@ -138,12 +138,13 @@ function renderProductCard(p) {
     ? `<a href="${productLink}" class="btn btn-secondary btn-block" style="margin-top:8px;text-align:center;padding:8px;font-size:0.9rem;border-radius:8px;">حدد اختيارك</a>`
     : `<button class="btn btn-primary btn-block" style="margin-top:8px;padding:8px;font-size:0.9rem;border-radius:8px;" data-product="${pJson}" onclick="quickAddToCart(event, this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span>أضف للسلة</span></button>`;
 
+  const lazyAttr = lazy ? 'loading="lazy"' : '';
   return `
     <div class="store-product-card" style="display:flex;flex-direction:column;">
       <a href="${productLink}" style="display:block; text-decoration:none; color:inherit; flex:1;">
         <div class="store-product-img" style="position:relative; background:#f8fafc; overflow:hidden; border-radius:12px;">
           ${img ? `
-            <img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;transition:transform 0.3s;" loading="lazy" class="product-hover-img">
+            <img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;transition:transform 0.3s;" ${lazyAttr} class="product-hover-img">
           ` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f1f5f9;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
           ${hasDiscount ? '<span class="discount-badge">خصم</span>' : ''}
         </div>

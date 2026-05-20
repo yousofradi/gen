@@ -207,7 +207,7 @@ Cart.renderSlideCart = function() {
   }
 
   body.innerHTML = items.map(item => {
-    const imgSrc = item.imageUrl || '';
+    const imgSrc = item.imageUrl ? api.optimizeImageUrl(item.imageUrl, 150) : '';
     const opts = item.selectedOptions.map(o => `${o.groupName}: ${o.label}`).join(', ');
     return `
       <div class="sc-item">
