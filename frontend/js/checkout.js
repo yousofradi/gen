@@ -180,7 +180,10 @@ async function loadCities() {
     if (!searchInput || !dropdown) return;
 
     searchInput.addEventListener('focus', () => renderGovDropdown());
-    searchInput.addEventListener('input', () => renderGovDropdown());
+    searchInput.addEventListener('input', () => {
+      hiddenInput.value = '';
+      renderGovDropdown();
+    });
     
     document.addEventListener('click', (e) => {
       if (!document.getElementById('gov-search-container').contains(e.target)) {
@@ -513,115 +516,137 @@ function setupForm() {
       group.appendChild(errEl);
     }
     
+    const wrapper = input.closest('.phone-input-wrapper');
+    
     if (msg) {
       input.classList.add('invalid');
+      if (wrapper) wrapper.classList.add('invalid');
       errEl.textContent = msg;
       errEl.style.display = 'block';
     } else {
       input.classList.remove('invalid');
+      if (wrapper) wrapper.classList.remove('invalid');
       errEl.style.display = 'none';
     }
   }
   window.setErrorOnCheckout = setError;
 
-  // Real-time validation listeners
-  nameInput.addEventListener('input', () => {
+  function validateName() {
     const val = nameInput.value.trim();
-    if (!val) { setError(nameInput, 'أدخل اسمك كاملاً'); return; }
-    if (!/^[\u0600-\u06FF\s]+$/.test(val)) { setError(nameInput, 'يرجى إدخال الاسم باللغة العربية فقط'); return; }
-    if (val.split(/\s+/).filter(Boolean).length < 2) { setError(nameInput, 'أدخل اسمك كاملاً'); return; }
+    if (!val) { setError(nameInput, 'أدخل اسمك كاملاً'); return false; }
+    if (!/^[\u0600-\u06FF\s]+$/.test(val)) { setError(nameInput, 'يرجى إدخال الاسم باللغة العربية فقط'); return false; }
+    if (val.split(/\s+/).filter(Boolean).length < 2) { setError(nameInput, 'أدخل اسمك كاملاً'); return false; }
     setError(nameInput, null);
-  });
+    return true;
+  }
 
-  phoneInput.addEventListener('input', () => {
+  function validatePhone() {
     const val = phoneInput.value.trim();
-    if (!val) { setError(phoneInput, 'رقم الهاتف مطلوب'); return; }
-    if (!/^[0-9]+$/.test(val)) { setError(phoneInput, 'يرجى إدخال الأرقام بالإنجليزية فقط'); return; }
-    if (!/^01[0-9]{9}$/.test(val)) { setError(phoneInput, 'يجب أن يكون 11 رقم ويبدأ بـ 01'); return; }
+    if (!val) { setError(phoneInput, 'رقم الهاتف مطلوب'); return false; }
+    if (!/^[0-9]+$/.test(val)) { setError(phoneInput, 'يرجى إدخال الأرقام بالإنجليزية فقط'); return false; }
+    if (!/^01[0-9]{9}$/.test(val)) { setError(phoneInput, 'يجب أن يكون 11 رقم ويبدأ بـ 01'); return false; }
     setError(phoneInput, null);
-  });
+    return true;
+  }
 
-  addressInput.addEventListener('input', () => {
+  function validatePhone2() {
+    const val = phone2Input.value.trim();
+    if (!val) { setError(phone2Input, null); return true; }
+    if (!/^[0-9]+$/.test(val)) { setError(phone2Input, 'يرجى إدخال الأرقام بالإنجليزية فقط'); return false; }
+    if (!/^01[0-9]{9}$/.test(val)) { setError(phone2Input, 'يجب أن يكون 11 رقم ويبدأ بـ 01'); return false; }
+    setError(phone2Input, null);
+    return true;
+  }
+
+  function validateAddress() {
     const val = addressInput.value.trim();
-    if (!val) { setError(addressInput, 'العنوان مطلوب بالتفصيل'); return; }
-    if (val.split(/\s+/).filter(Boolean).length < 2) { setError(addressInput, 'يرجى إدخال العنوان بالتفصيل'); return; }
+    if (!val) { setError(addressInput, 'العنوان مطلوب بالتفصيل'); return false; }
+    if (val.split(/\s+/).filter(Boolean).length < 2) { setError(addressInput, 'يرجى إدخال العنوان بالتفصيل'); return false; }
     setError(addressInput, null);
-  });
+    return true;
+  }
+
+  function validateGov() {
+    if (!govHiddenInput.value || !govSearchInput.value.trim()) {
+      setError(govSearchInput, 'من فضلك اختر من القائمه');
+      return false;
+    }
+    setError(govSearchInput, null);
+    return true;
+  }
+
+  function validateZone() {
+    const zoneGroup = document.getElementById('zone-form-group');
+    if (zoneGroup && zoneGroup.style.display !== 'none') {
+      const val = zoneInput.value.trim();
+      if (!val) {
+        setError(zoneInput, 'من فضلك اختر من القائمه');
+        return false;
+      }
+      
+      const isEgyptPost = window._selectedCarrier === 'egyptpost';
+      if (!isEgyptPost) {
+        const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
+        if (!zoneOptions.includes(val)) {
+          setError(zoneInput, 'من فضلك اختر من القائمه');
+          return false;
+        }
+      }
+    }
+    setError(zoneInput, null);
+    return true;
+  }
+
+  // Real-time validation listeners
+  nameInput.addEventListener('input', validateName);
+  phoneInput.addEventListener('input', validatePhone);
+  phone2Input.addEventListener('input', validatePhone2);
+  addressInput.addEventListener('input', validateAddress);
 
   govSearchInput.addEventListener('blur', () => {
     setTimeout(() => {
-      if (!govHiddenInput.value) setError(govSearchInput, 'من فضلك اختر من القائمه');
-      else setError(govSearchInput, null);
+      validateGov();
     }, 200);
   });
 
   zoneInput.addEventListener('blur', () => {
     setTimeout(() => {
-      const zoneGroup = document.getElementById('zone-form-group');
-      if (zoneGroup && zoneGroup.style.display !== 'none') {
-        const isEgyptPost = window._selectedCarrier === 'egyptpost';
-        if (!zoneInput.value) {
-          setError(zoneInput, 'من فضلك اختر من القائمه');
-        } else if (!isEgyptPost) {
-          const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
-          if (!zoneOptions.includes(zoneInput.value)) {
-            setError(zoneInput, 'من فضلك اختر من القائمه');
-          } else {
-            setError(zoneInput, null);
-          }
-        } else {
-          setError(zoneInput, null);
-        }
-      }
+      validateZone();
     }, 200);
   });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Final check for all fields
-    const name = nameInput.value.trim();
-    const phone = phoneInput.value.trim();
-    const phone2 = phone2Input.value.trim();
-    const address = addressInput.value.trim();
-    const cityId = govHiddenInput.value;
-    const zone = zoneInput.value;
-    const payment = document.querySelector('input[name="payment"]:checked');
+    // Trigger validation for all fields
+    const isNameValid = validateName();
+    const isPhoneValid = validatePhone();
+    const isPhone2Valid = validatePhone2();
+    const isGovValid = validateGov();
+    const isZoneValid = validateZone();
+    const isAddressValid = validateAddress();
 
-    // Re-validate everything
-    let hasError = false;
-    if (name.split(/\s+/).filter(Boolean).length < 2 || !/^[\u0600-\u06FF\s]+$/.test(name)) { setError(nameInput, 'أدخل اسمك كاملاً'); hasError = true; }
-    if (!/^01[0-9]{9}$/.test(phone)) { setError(phoneInput, 'يجب أن يكون 11 رقم ويبدأ بـ 01'); hasError = true; }
-    if (address.split(/\s+/).filter(Boolean).length < 2) { setError(addressInput, 'يرجى إدخال العنوان بالتفصيل'); hasError = true; }
-    if (!cityId) { setError(govSearchInput, 'من فضلك اختر من القائمه'); hasError = true; }
-    
-    const zoneGroup = document.getElementById('zone-form-group');
-    if (zoneGroup && zoneGroup.style.display !== 'none') {
-        if (!zone) {
-          setError(zoneInput, 'من فضلك اختر من القائمه');
-          hasError = true;
-        } else if (window._selectedCarrier !== 'egyptpost') {
-          const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
-          if (!zoneOptions.includes(zone)) {
-            setError(zoneInput, 'من فضلك اختر من القائمه');
-            hasError = true;
-          }
-        }
-    }
+    const isValid = isNameValid && isPhoneValid && isPhone2Valid && isGovValid && isZoneValid && isAddressValid;
 
-    if (hasError) {
-      const firstError = document.querySelector('.error-message[style*="display: block"]');
-      if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!isValid) {
+      const firstInvalid = form.querySelector('.invalid');
+      if (firstInvalid) {
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
+    const payment = document.querySelector('input[name="payment"]:checked');
     if (!payment) { showToast('اختر طريقة الدفع', 'error'); return; }
 
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'جاري تنفيذ طلبك...';
 
+    const cityId = govHiddenInput.value;
     const govData = (window._fullShippingData || []).find(s => s._id === cityId);
     const cityName = govData ? (govData.cityOtherName || govData.city) : '';
+    const zone = zoneInput.value;
 
     const items = Cart.getItems().map(item => {
       const effectiveBase = (item.salePrice && item.salePrice < item.basePrice) ? item.salePrice : item.basePrice;
@@ -638,10 +663,10 @@ function setupForm() {
 
     const orderData = {
       customer: {
-        name,
-        phone,
-        secondPhone: phone2,
-        address,
+        name: nameInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        secondPhone: phone2Input.value.trim(),
+        address: addressInput.value.trim(),
         government: cityName,
         zone: zone,
         notes: document.getElementById('cust-notes').value.trim()
