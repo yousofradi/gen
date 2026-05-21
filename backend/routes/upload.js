@@ -74,6 +74,8 @@ router.post('/', adminAuth, upload.single('image'), (req, res) => {
     
     if (isCloudinaryConfigured) {
       const { optimizeCloudinaryUrl } = require('../utils/cloudinary');
+      // Force the URL to end in .webp so it explicitly shows as WebP
+      imageUrl = imageUrl.replace(/\.(png|jpe?g|gif)$/i, '.webp');
       imageUrl = optimizeCloudinaryUrl(imageUrl);
     } else {
       const host = req.get('host');
