@@ -907,7 +907,7 @@ window.saveOrderChanges = async function (silent = false) {
 
   // Zone validation
   const hasZones = window._modalZones && window._modalZones.length > 0;
-  if (hasZones && currentOrder.carrier !== 'egyptpost') {
+  if (hasZones) {
     if (!currentOrder.customer.zone) {
       showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
       if (!silent && btn) {

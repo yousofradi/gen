@@ -835,7 +835,7 @@ window.submitOrder = async function () {
 
   // Zone validation
   const zoneOptions = window._currentCityZones || [];
-  if (carrier !== 'egyptpost' && zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
+  if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
     showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
     return;
   }

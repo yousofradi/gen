@@ -578,9 +578,9 @@ function setupForm() {
         return false;
       }
       
-      const isEgyptPost = window._selectedCarrier === 'egyptpost';
-      if (!isEgyptPost) {
-        const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
+      // Strict zone validation: if zones exist for this city, the typed value MUST be in the list
+      const zoneOptions = (window._currentZones || []).map(z => api.formatZoneName(z));
+      if (zoneOptions.length > 0) {
         if (!zoneOptions.includes(val)) {
           setError(zoneInput, 'من فضلك اختر من القائمه');
           return false;

@@ -929,9 +929,10 @@ window.saveOrderChanges = async function (silent = false) {
   }
 
   // Zone validation
-  if (currentOrder.customer.zone && currentOrder.carrier !== 'egyptpost') {
-    const zoneOptions = (window._modalZones || []).map(z => z.otherName || z.name);
-    if (zoneOptions.length > 0 && !zoneOptions.includes(currentOrder.customer.zone)) {
+  const hasZones = window._modalZones && window._modalZones.length > 0;
+  if (hasZones) {
+    const zoneOptions = (window._modalZones || []).map(z => api.formatZoneName(z));
+    if (!zoneOptions.includes(currentOrder.customer.zone)) {
       showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
       if (!silent && btn) {
         btn.disabled = false;
