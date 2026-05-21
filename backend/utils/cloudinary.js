@@ -61,9 +61,15 @@ function isDriveUrl(url) {
 function optimizeCloudinaryUrl(url) {
   if (!url || typeof url !== 'string') return url;
   
-  // Check if it's actually a Cloudinary URL and doesn't already have the flags
-  if (url.includes('res.cloudinary.com') && !url.includes('f_auto') && url.includes('/upload/')) {
-    return url.replace('/upload/', '/upload/f_auto,q_auto/');
+  // Check if it's actually a Cloudinary URL
+  if (url.includes('res.cloudinary.com')) {
+    // 1. Force the URL to explicitly end in .webp
+    url = url.replace(/\.(png|jpe?g|gif)$/i, '.webp');
+    
+    // 2. Add f_auto,q_auto if not present
+    if (!url.includes('f_auto') && url.includes('/upload/')) {
+      url = url.replace('/upload/', '/upload/f_auto,q_auto/');
+    }
   }
   
   return url;

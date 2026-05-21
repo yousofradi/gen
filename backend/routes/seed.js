@@ -7,7 +7,7 @@ const Collection = require('../models/Collection');
 const Shipping = require('../models/Shipping');
 const Setting = require('../models/Setting');
 const adminAuth = require('../middleware/adminAuth');
-const { uploadToCloudinary, isCloudinaryConfigured } = require('../utils/cloudinary');
+const { uploadToCloudinary, isCloudinaryConfigured, optimizeCloudinaryUrl } = require('../utils/cloudinary');
 
 // GET /api/seed/test — test endpoint
 router.get('/test', (req, res) => res.json({ message: 'Seed route is active' }));
@@ -441,16 +441,24 @@ router.get('/migrate-cloudinary', async (req, res) => {
       let isUpdated = false;
 
       // Migrate Main Image
-      if (product.imageUrl && product.imageUrl.includes('assets.wuiltstore.com')) {
-        try {
-          console.log(`Uploading product image for: ${product.name}`);
-          const newUrl = await uploadToCloudinary(product.imageUrl, 'ecommerce-products');
-          if (newUrl && newUrl !== product.imageUrl) {
-            product.imageUrl = newUrl;
+      if (product.imageUrl) {
+        if (product.imageUrl.includes('assets.wuiltstore.com')) {
+          try {
+            console.log(`Uploading product image for: ${product.name}`);
+            const newUrl = await uploadToCloudinary(product.imageUrl, 'ecommerce-products');
+            if (newUrl && newUrl !== product.imageUrl) {
+              product.imageUrl = newUrl;
+              isUpdated = true;
+            }
+          } catch (err) {
+            report.errors.push(`Product main image error (${product.name}): ${err.message}`);
+          }
+        } else if (product.imageUrl.includes('res.cloudinary.com')) {
+          const optUrl = optimizeCloudinaryUrl(product.imageUrl);
+          if (optUrl !== product.imageUrl) {
+            product.imageUrl = optUrl;
             isUpdated = true;
           }
-        } catch (err) {
-          report.errors.push(`Product main image error (${product.name}): ${err.message}`);
         }
       }
 
@@ -459,18 +467,24 @@ router.get('/migrate-cloudinary', async (req, res) => {
         const newImages = [];
         let galleryChanged = false;
         for (const imgUrl of product.images) {
-          if (imgUrl && imgUrl.includes('assets.wuiltstore.com')) {
-            try {
-              console.log(`Uploading gallery image for product: ${product.name}`);
-              const newUrl = await uploadToCloudinary(imgUrl, 'ecommerce-products');
-              newImages.push(newUrl);
-              galleryChanged = true;
-            } catch (err) {
-              newImages.push(imgUrl); // Keep original on error
-              report.errors.push(`Product gallery image error (${product.name}): ${err.message}`);
+          if (imgUrl) {
+            if (imgUrl.includes('assets.wuiltstore.com')) {
+              try {
+                console.log(`Uploading gallery image for product: ${product.name}`);
+                const newUrl = await uploadToCloudinary(imgUrl, 'ecommerce-products');
+                newImages.push(newUrl);
+                galleryChanged = true;
+              } catch (err) {
+                newImages.push(imgUrl); // Keep original on error
+                report.errors.push(`Product gallery image error (${product.name}): ${err.message}`);
+              }
+            } else if (imgUrl.includes('res.cloudinary.com')) {
+              const optUrl = optimizeCloudinaryUrl(imgUrl);
+              newImages.push(optUrl);
+              if (optUrl !== imgUrl) galleryChanged = true;
+            } else {
+              newImages.push(imgUrl);
             }
-          } else {
-            newImages.push(imgUrl);
           }
         }
         if (galleryChanged) {
@@ -490,17 +504,26 @@ router.get('/migrate-cloudinary', async (req, res) => {
     report.collectionsProcessed = collections.length;
 
     for (const collection of collections) {
-      if (collection.imageUrl && collection.imageUrl.includes('assets.wuiltstore.com')) {
-        try {
-          console.log(`Uploading collection image for: ${collection.name}`);
-          const newUrl = await uploadToCloudinary(collection.imageUrl, 'ecommerce-collections');
-          if (newUrl && newUrl !== collection.imageUrl) {
-            collection.imageUrl = newUrl;
+      if (collection.imageUrl) {
+        if (collection.imageUrl.includes('assets.wuiltstore.com')) {
+          try {
+            console.log(`Uploading collection image for: ${collection.name}`);
+            const newUrl = await uploadToCloudinary(collection.imageUrl, 'ecommerce-collections');
+            if (newUrl && newUrl !== collection.imageUrl) {
+              collection.imageUrl = newUrl;
+              await collection.save();
+              report.collectionsUpdated++;
+            }
+          } catch (err) {
+            report.errors.push(`Collection image error (${collection.name}): ${err.message}`);
+          }
+        } else if (collection.imageUrl.includes('res.cloudinary.com')) {
+          const optUrl = optimizeCloudinaryUrl(collection.imageUrl);
+          if (optUrl !== collection.imageUrl) {
+            collection.imageUrl = optUrl;
             await collection.save();
             report.collectionsUpdated++;
           }
-        } catch (err) {
-          report.errors.push(`Collection image error (${collection.name}): ${err.message}`);
         }
       }
     }
@@ -512,38 +535,62 @@ router.get('/migrate-cloudinary', async (req, res) => {
       const settingsVal = { ...globalSettings.value };
 
       // Logo
-      if (settingsVal.storeLogo && settingsVal.storeLogo.includes('assets.wuiltstore.com')) {
-        try {
-          console.log('Uploading store logo to Cloudinary...');
-          const newUrl = await uploadToCloudinary(settingsVal.storeLogo, 'ecommerce-branding');
-          settingsVal.storeLogo = newUrl;
-          settingsChanged = true;
-        } catch (err) {
-          report.errors.push(`Logo upload error: ${err.message}`);
+      if (settingsVal.storeLogo) {
+        if (settingsVal.storeLogo.includes('assets.wuiltstore.com')) {
+          try {
+            console.log('Uploading store logo to Cloudinary...');
+            const newUrl = await uploadToCloudinary(settingsVal.storeLogo, 'ecommerce-branding');
+            settingsVal.storeLogo = newUrl;
+            settingsChanged = true;
+          } catch (err) {
+            report.errors.push(`Logo upload error: ${err.message}`);
+          }
+        } else if (settingsVal.storeLogo.includes('res.cloudinary.com')) {
+          const optUrl = optimizeCloudinaryUrl(settingsVal.storeLogo);
+          if (optUrl !== settingsVal.storeLogo) {
+            settingsVal.storeLogo = optUrl;
+            settingsChanged = true;
+          }
         }
       }
 
       // Favicon
-      if (settingsVal.storeFavicon && settingsVal.storeFavicon.includes('assets.wuiltstore.com')) {
-        try {
-          console.log('Uploading store favicon to Cloudinary...');
-          const newUrl = await uploadToCloudinary(settingsVal.storeFavicon, 'ecommerce-branding');
-          settingsVal.storeFavicon = newUrl;
-          settingsChanged = true;
-        } catch (err) {
-          report.errors.push(`Favicon upload error: ${err.message}`);
+      if (settingsVal.storeFavicon) {
+        if (settingsVal.storeFavicon.includes('assets.wuiltstore.com')) {
+          try {
+            console.log('Uploading store favicon to Cloudinary...');
+            const newUrl = await uploadToCloudinary(settingsVal.storeFavicon, 'ecommerce-branding');
+            settingsVal.storeFavicon = newUrl;
+            settingsChanged = true;
+          } catch (err) {
+            report.errors.push(`Favicon upload error: ${err.message}`);
+          }
+        } else if (settingsVal.storeFavicon.includes('res.cloudinary.com')) {
+          const optUrl = optimizeCloudinaryUrl(settingsVal.storeFavicon);
+          if (optUrl !== settingsVal.storeFavicon) {
+            settingsVal.storeFavicon = optUrl;
+            settingsChanged = true;
+          }
         }
       }
 
       // Preview Image
-      if (settingsVal.storePreview && settingsVal.storePreview.includes('assets.wuiltstore.com')) {
-        try {
-          console.log('Uploading store preview image to Cloudinary...');
-          const newUrl = await uploadToCloudinary(settingsVal.storePreview, 'ecommerce-branding');
-          settingsVal.storePreview = newUrl;
-          settingsChanged = true;
-        } catch (err) {
-          report.errors.push(`Preview image upload error: ${err.message}`);
+      if (settingsVal.storePreview) {
+        if (settingsVal.storePreview.includes('assets.wuiltstore.com')) {
+          try {
+            console.log('Uploading store preview image to Cloudinary...');
+            const newUrl = await uploadToCloudinary(settingsVal.storePreview, 'ecommerce-branding');
+            settingsVal.storePreview = newUrl;
+            settingsChanged = true;
+          } catch (err) {
+            report.errors.push(`Preview image upload error: ${err.message}`);
+          }
+        } else if (settingsVal.storePreview.includes('res.cloudinary.com')) {
+          const optUrl = optimizeCloudinaryUrl(settingsVal.storePreview);
+          if (optUrl !== settingsVal.storePreview) {
+            settingsVal.storePreview = optUrl;
+            settingsChanged = true;
+          }
         }
       }
 
