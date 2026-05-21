@@ -28,7 +28,7 @@ if (isCloudinaryConfigured) {
     cloudinary: cloudinary,
     params: {
       folder: 'ecommerce-uploads',
-      format: 'webp',
+      format: async (req, file) => 'webp',
       allowed_formats: ['jpg', 'png', 'gif', 'webp', 'jpeg'],
       public_id: (req, file) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -72,7 +72,10 @@ router.post('/', adminAuth, upload.single('image'), (req, res) => {
     // For local, we construct the URL
     let imageUrl = req.file.path;
     
-    if (!isCloudinaryConfigured) {
+    if (isCloudinaryConfigured) {
+      const { optimizeCloudinaryUrl } = require('../utils/cloudinary');
+      imageUrl = optimizeCloudinaryUrl(imageUrl);
+    } else {
       const host = req.get('host');
       // Force https if we are on render or if the host suggests it
       const protocol = (req.headers['x-forwarded-proto'] || req.protocol || 'http').split(',')[0];
