@@ -41,7 +41,8 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
   exposedHeaders: ['Content-Disposition'],
-  credentials: true
+  credentials: true,
+  maxAge: 86400
 };
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '5mb' }));

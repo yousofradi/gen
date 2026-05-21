@@ -154,6 +154,14 @@ function renderProduct(p) {
       ` : ''}
     </div>`;
     
+    // Preload gallery images to avoid delay on switch
+    if (images.length > 1) {
+      images.forEach(img => {
+        const pImg = new Image();
+        pImg.src = api.optimizeImageUrl(img, 800);
+      });
+    }
+
     updateTotalPrice();
 }
 

@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     cartEl.innerHTML = `
       <div class="slide-cart-header">
-        <button class="slide-cart-back" onclick="Cart.closeCart()">
+        <button class="slide-cart-back" aria-label="Close Cart" onclick="Cart.closeCart()">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
         <div style="display:flex;align-items:center;gap:8px;">
