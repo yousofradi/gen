@@ -28,6 +28,7 @@ if (isCloudinaryConfigured) {
     cloudinary: cloudinary,
     params: {
       folder: 'ecommerce-uploads',
+      format: 'webp',
       allowed_formats: ['jpg', 'png', 'gif', 'webp', 'jpeg'],
       public_id: (req, file) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);

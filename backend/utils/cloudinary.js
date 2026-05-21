@@ -28,7 +28,8 @@ async function uploadToCloudinary(source, folder = 'ecommerce-products') {
   try {
     const result = await cloudinary.uploader.upload(source, {
       folder: folder,
-      resource_type: 'auto'
+      resource_type: 'auto',
+      format: 'webp'
     });
     return result.secure_url;
   } catch (err) {
