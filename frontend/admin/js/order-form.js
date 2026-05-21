@@ -1183,9 +1183,8 @@ window.setupZoneSearch = function () {
       return;
     }
     
-    // If exact match, show all so user can still see list/change
-    const isExactMatch = (window._currentCityZones || []).some(z => z.toLowerCase() === q);
-    const filtered = isExactMatch ? window._currentCityZones : (window._currentCityZones || []).filter(z => z.toLowerCase().includes(q));
+    // Remove exact match short-circuit so we only show matched options
+    const filtered = (window._currentCityZones || []).filter(z => smartMatch(z, q));
     
     renderZoneDropdown(filtered);
     dropdown.classList.add('active');

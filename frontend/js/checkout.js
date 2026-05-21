@@ -281,16 +281,10 @@ function renderZoneDropdown() {
     return;
   }
 
-  const isExactMatch = window._currentZones.some(z => {
+  const filtered = window._currentZones.filter(z => {
     const zoneLabel = api.formatZoneName(z);
-    return zoneLabel.toLowerCase().trim() === query.toLowerCase().trim();
+    return smartMatch(zoneLabel, query);
   });
-
-  const filtered = isExactMatch ? window._currentZones : window._currentZones.filter(z => 
-    smartMatch(z.name, query) || 
-    (z.otherName && smartMatch(z.otherName, query)) ||
-    (z.districtOtherName && smartMatch(z.districtOtherName, query))
-  );
 
   if (filtered.length === 0 && query !== '') {
     dropdown.innerHTML = '<div style="padding: 10px; color: #94a3b8; text-align: center;">لا توجد مناطق مطابقة</div>';

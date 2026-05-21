@@ -604,16 +604,8 @@ window.renderModalZoneDropdown = function () {
     return;
   }
 
-  // Exact match logic (still useful for persistence)
-  const isExactMatch = window._modalZones.some(z => {
-    const label = api.formatZoneName(z);
-    return label.toLowerCase() === query.toLowerCase();
-  });
-
-  const filtered = isExactMatch ? window._modalZones : window._modalZones.filter(z =>
-    smartMatch(z.name, query) ||
-    (z.otherName && smartMatch(z.otherName, query)) ||
-    (z.districtOtherName && smartMatch(z.districtOtherName, query))
+  const filtered = window._modalZones.filter(z =>
+    smartMatch(api.formatZoneName(z), query)
   );
 
   dropdown.style.display = 'block';
