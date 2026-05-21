@@ -31,7 +31,12 @@ async function uploadToCloudinary(source, folder = 'ecommerce-products') {
       resource_type: 'auto',
       format: 'webp'
     });
-    return result.secure_url;
+    
+    let finalUrl = result.secure_url;
+    // Force the URL to end in .webp explicitly
+    finalUrl = finalUrl.replace(/\.(png|jpe?g|gif)$/i, '.webp');
+    // Ensure f_auto and q_auto are applied
+    return optimizeCloudinaryUrl(finalUrl);
   } catch (err) {
     console.error('❌ Cloudinary Upload Error:', err);
     return source; // Fallback to original
