@@ -116,6 +116,7 @@ async function generateBostaPayload(order, bostaConfig) {
   return {
     type: 10, // Package Delivery
     specs: {
+      size: 'MEDIUM' ,
       packageDetails: {
         itemsCount: order.items.reduce((sum, i) => sum + i.quantity, 0),
         description: order.items.map(i => `${i.name}  ( ${i.quantity} )`).join(' , ')
