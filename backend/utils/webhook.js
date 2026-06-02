@@ -112,9 +112,8 @@ async function sendWebhookInner(event, data) {
             let customerMessage = '';
 
             if (event === 'order.created') {
-              const paymentMethodsText = (settings.paymentMethods || [])
-                .map(m => `* ${m.label}`)
-                .join('\n');
+              const selectedPaymentMethod = (settings.paymentMethods || []).find(m => m.label === data.paymentMethod);
+              const paymentNumber = selectedPaymentMethod ? selectedPaymentMethod.number : '';
               const subtotal = data.totalPrice - data.shippingFee;
               const carrierName = data.carrier === 'egyptpost' ? 'البريد المصري' : 'بوسطة';
 
@@ -122,10 +121,7 @@ async function sendWebhookInner(event, data) {
 
 رقم الطلب: ${data.orderId}
 إجمالي المبلغ: ${data.totalPrice} EGP
-
-طرق الدفع:
-${paymentMethodsText}
-التحويل على رقم: ${settings.socialWa || ''}
+طريقة الدفع: ${data.paymentMethod}${paymentNumber ? `\nرقم الدفع: ${paymentNumber}` : ''}
 
 ${settings.paymentNotes || ''}
 
