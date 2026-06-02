@@ -260,6 +260,62 @@ window.updateArchiveButton = function () {
     if (filterBar) filterBar.style.display = 'flex';
     if (bulkBar) bulkBar.style.display = 'none';
   }
+
+  // Update UI for Bulk Menu based on current state and selection
+  const archiveBtn = document.querySelector('.dropdown-item-btn[onclick="bulkAction(\\\'archive\\\')"]');
+  if (archiveBtn) {
+    if (showingArchived) {
+      archiveBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8v13H3V8" />
+          <path d="M1 3h22v5H1z" />
+          <path d="m10 12 2-2 2 2" />
+          <path d="M12 10v7" />
+        </svg>
+        <span>إلغاء الأرشفة</span>
+      `;
+    } else {
+      archiveBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+          <path d="m3.3 7 8.7 5 8.7-5" />
+          <path d="M12 22V12" />
+        </svg>
+        <span>أرشفة</span>
+      `;
+    }
+  }
+
+  // Handle Cancel vs Activate
+  const cancelBtn = document.querySelector('.dropdown-item-btn[onclick="bulkAction(\\\'cancel\\\')"]') || document.querySelector('.dropdown-item-btn[onclick="bulkAction(\\\'activate\\\')"]');
+  if (cancelBtn) {
+    const selectedOrderIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+    const selectedOrders = allOrdersData.filter(o => selectedOrderIds.includes(o.orderId));
+    const allCancelled = selectedOrders.length > 0 && selectedOrders.every(o => o.status === 'cancelled');
+
+    if (allCancelled) {
+      cancelBtn.setAttribute('onclick', "bulkAction('activate')");
+      cancelBtn.classList.remove('danger');
+      cancelBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span style="color:#16a34a;">تنشيط</span>
+      `;
+    } else {
+      cancelBtn.setAttribute('onclick', "bulkAction('cancel')");
+      cancelBtn.classList.add('danger');
+      cancelBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="15" y1="9" x2="9" y2="15" />
+          <line x1="9" y1="9" x2="15" y2="15" />
+        </svg>
+        <span>إلغاء الطلب</span>
+      `;
+    }
+  }
 };
 
 window.toggleBulkMenu = function (event) {
@@ -303,6 +359,16 @@ window.bulkAction = async function (action) {
       loadOrders();
     } catch (err) {
       showToast(err.message || 'فشل إلغاء الطلبات', 'error');
+    }
+  } else if (action === 'activate') {
+    const confirmed = await window.showConfirmModal('تنشيط الطلبات', `هل أنت متأكد من تنشيط ${orderIds.length} طلبات؟`);
+    if (!confirmed) return;
+    try {
+      await api.activateOrdersBatch(orderIds);
+      showToast('تم تنشيط الطلبات بنجاح', 'success');
+      loadOrders();
+    } catch (err) {
+      showToast(err.message || 'فشل تنشيط الطلبات', 'error');
     }
   } else if (action === 'delete') {
     const confirmed = await window.showConfirmModal('تأكيد الحذف', `هل أنت متأكد من حذف ${orderIds.length} طلبات نهائياً؟`);

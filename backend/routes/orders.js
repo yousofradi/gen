@@ -671,6 +671,30 @@ router.post('/unarchive/batch', adminAuth, async (req, res) => {
   }
 });
 
+// POST /api/orders/activate/batch — activate multiple orders
+router.post('/activate/batch', adminAuth, async (req, res) => {
+  try {
+    const { orderIds } = req.body;
+    if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
+    
+    // Deduct stock for each order before activating (re-reserving stock)
+    for (const id of orderIds) {
+      const order = await Order.findOne({ orderId: id });
+      if (order && order.status === 'cancelled') {
+        for (const item of order.items) {
+          await adjustStock(item.productId, item.selectedOptions, -item.quantity);
+        }
+      }
+    }
+
+    await Order.updateMany({ orderId: { $in: orderIds }, status: 'cancelled' }, { $set: { status: 'pending' } });
+
+    res.json({ message: 'Orders activated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to activate orders' });
+  }
+});
+
 // POST /api/orders/cancel/batch — cancel multiple orders
 router.post('/cancel/batch', adminAuth, async (req, res) => {
   try {
