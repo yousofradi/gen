@@ -63,7 +63,6 @@ router.post('/:key', adminAuth, async (req, res) => {
     if (req.params.key === 'shipping_options') {
       try {
         const Shipping = require('../models/Shipping');
-        const redis = require('../utils/redis');
         const SHIPPING_CACHE_KEY = 'storefront:shipping:list';
         
         const options = req.body.value || [];
@@ -102,16 +101,9 @@ router.post('/:key', adminAuth, async (req, res) => {
             }
           }
           
-          // Clear Redis cache so `/api/shipping` immediately reflects the new fees!
-          try {
-            await redis.del(SHIPPING_CACHE_KEY);
-            const keys = await redis.keys('storefront:shipping:zones:*');
-            if (keys && keys.length > 0) {
-              await redis.del(keys);
-            }
-          } catch (err) {
-            console.error('[Redis] Shipping list cache clear failed:', err.message);
-          }
+          // Clear cache so `/api/shipping` immediately reflects the new fees!
+          await cache.del(SHIPPING_CACHE_KEY);
+          await cache.clearPrefix('storefront:shipping:zones:');
         }
       } catch (syncErr) {
         console.error('[Sync] Failed to synchronize shipping options to DB collection:', syncErr.message);

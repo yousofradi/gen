@@ -195,6 +195,7 @@ function renderProductsList(productsToRender = collectionProducts) {
   list.innerHTML = productsToRender.filter(p => p.status !== 'draft').map(p => {
     const isSelected = selectedCollectionProductIds.has(p._id);
     const inStock = p.stock > 0 || (p.variants && p.variants.some(v => v.stock > 0));
+    const optimizedImageUrl = (p.imageUrl || p.images?.[0]) ? api.optimizeImageUrl(p.imageUrl || p.images?.[0], 80) : '';
     
     return `
     <div class="product-row ${isSelected ? 'selected-for-drag' : ''}" data-id="${p._id}" style="transition: background 0.2s;">
@@ -206,7 +207,7 @@ function renderProductsList(productsToRender = collectionProducts) {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
         </div>
       </div>
-      <img src="${p.imageUrl || p.images?.[0] || ''}" onerror="this.style.display='none'" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid #f1f5f9;">
+      <img src="${optimizedImageUrl}" onerror="this.style.display='none'" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid #f1f5f9;">
       <div style="flex:1;">
         <div style="font-weight:600; font-size:0.95rem; color:#1e293b; margin-bottom:4px;">${p.name}</div>
         <div style="display:flex; gap:8px; align-items:center;">
@@ -319,24 +320,30 @@ function renderSelectModalLists(query = '') {
   const selectedBox = document.getElementById('selected-products-box');
   const availableBox = document.getElementById('available-products-box');
 
-  selectedBox.innerHTML = collectionProducts.map(p => `
+  selectedBox.innerHTML = collectionProducts.map(p => {
+    const optimizedUrl = (p.imageUrl || p.images?.[0]) ? api.optimizeImageUrl(p.imageUrl || p.images?.[0], 50) : '';
+    return `
     <div class="product-item">
       <button type="button" class="btn-remove" onclick="toggleProductSelect('${p._id}', false)">×</button>
       <div style="flex:1;font-size:0.9rem">${p.name}</div>
-      <img src="${p.imageUrl || p.images?.[0] || ''}" style="width:30px;height:30px;object-fit:contain;border-radius:4px">
+      <img src="${optimizedUrl}" style="width:30px;height:30px;object-fit:contain;border-radius:4px">
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   const available = allProducts.filter(p => !collectionProducts.some(cp => cp._id === p._id) && p.status !== 'draft');
   const filteredAvailable = query ? available.filter(p => p.name.toLowerCase().includes(query)) : available;
 
-  availableBox.innerHTML = filteredAvailable.map(p => `
+  availableBox.innerHTML = filteredAvailable.map(p => {
+    const optimizedUrl = (p.imageUrl || p.images?.[0]) ? api.optimizeImageUrl(p.imageUrl || p.images?.[0], 50) : '';
+    return `
     <div class="product-item">
       <button type="button" style="color:green;background:none;border:none;font-size:1.2rem;cursor:pointer" onclick="toggleProductSelect('${p._id}', true)">+</button>
       <div style="flex:1;font-size:0.9rem">${p.name}</div>
-      <img src="${p.imageUrl || p.images?.[0] || ''}" style="width:30px;height:30px;object-fit:contain;border-radius:4px">
+      <img src="${optimizedUrl}" style="width:30px;height:30px;object-fit:contain;border-radius:4px">
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 window.toggleProductSelect = async function (id, add) {

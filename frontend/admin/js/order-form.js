@@ -694,8 +694,9 @@ function renderCart() {
       finalImageUrl = (p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || '');
     }
 
-    const imgHtml = finalImageUrl
-      ? `<img src="${finalImageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${p.name}" loading="lazy">`
+    const optimizedOrderFormImageUrl = finalImageUrl ? api.optimizeImageUrl(finalImageUrl, 52) : null;
+    const imgHtml = optimizedOrderFormImageUrl
+      ? `<img src="${optimizedOrderFormImageUrl}" style="width:52px; height:52px; border-radius:8px; object-fit:contain; border:1px solid #f1f5f9;" alt="${p.name}" loading="lazy">`
       : `<div style="width:52px; height:52px; border-radius:8px; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; border:1px solid #f1f5f9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>`;
 
     const optText = (c.selectedOptions || []).map(op => op.label).join(' / ');
@@ -724,7 +725,7 @@ function renderCart() {
           
           <!-- Left side: Unit Price Block and Total Price -->
           <div style="display: flex; align-items: center; gap: 16px; flex: 1; justify-content: space-between;">
-            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${c.quantity} x ${formatPrice(effectiveUnitPrice)}</div>
+            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${c.quantity} x ${formatPrice(getUnitPriceAfterDiscount(c))}</div>
             <div style="font-weight: 700; font-size: 1rem; color: #1e293b; min-width: 80px; text-align: left; flex: 1;">${formatPrice(itemTotal(c))}</div>
           </div>
         </div>
@@ -757,6 +758,13 @@ function renderCart() {
 function itemTotal(c) {
   const effectiveUnitPrice = c.price !== undefined ? c.price : ((c.product.salePrice && c.product.salePrice < c.product.basePrice) ? c.product.salePrice : c.product.basePrice);
   return Math.max(0, effectiveUnitPrice * c.quantity - (c.discount || 0));
+}
+
+// Calculate unit price after discount
+function getUnitPriceAfterDiscount(c) {
+  const effectiveUnitPrice = c.price !== undefined ? c.price : ((c.product.salePrice && c.product.salePrice < c.product.basePrice) ? c.product.salePrice : c.product.basePrice);
+  if (c.quantity === 0) return effectiveUnitPrice;
+  return (effectiveUnitPrice * c.quantity - (c.discount || 0)) / c.quantity;
 }
 
 window.handleCityChange = async function() {

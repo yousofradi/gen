@@ -653,15 +653,18 @@ api.openSearch = function () {
             results.innerHTML = '<div class="search-empty">لا توجد نتائج</div>';
             return;
           }
-          results.innerHTML = filtered.map(p => `
+          results.innerHTML = filtered.map(p => {
+            const optimizedUrl = p.imageUrl ? api.optimizeImageUrl(p.imageUrl, 100) : '';
+            return `
             <a href="product?id=${p._id}" class="search-result-item">
-              <img src="${p.imageUrl}" class="search-result-img" onerror="this.style.display='none'">
+              <img src="${optimizedUrl}" class="search-result-img" onerror="this.style.display='none'">
               <div class="search-result-info">
                 <div class="search-result-name">${p.name}</div>
                 <div class="search-result-price">${p.salePrice || p.basePrice} ج.م</div>
               </div>
             </a>
-          `).join('');
+          `;
+          }).join('');
         } catch (err) {
           results.innerHTML = '<div class="search-empty">خطأ في التحميل</div>';
         }
