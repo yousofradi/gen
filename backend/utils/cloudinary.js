@@ -29,7 +29,9 @@ async function uploadToCloudinary(source, folder = 'ecommerce-products') {
     const result = await cloudinary.uploader.upload(source, {
       folder: folder,
       resource_type: 'auto',
-      format: 'webp'
+      format: 'webp',
+      quality: 85,  // High quality setting
+      fetch_format: 'webp'
     });
     
     let finalUrl = result.secure_url;
@@ -66,9 +68,9 @@ function optimizeCloudinaryUrl(url) {
     // 1. Force the URL to explicitly end in .webp
     url = url.replace(/\.(png|jpe?g|gif)$/i, '.webp');
     
-    // 2. Add f_auto,q_auto if not present
+    // 2. Add f_auto,q_85 if not present (high quality instead of auto)
     if (!url.includes('f_auto') && url.includes('/upload/')) {
-      url = url.replace('/upload/', '/upload/f_auto,q_auto/');
+      url = url.replace('/upload/', '/upload/f_auto,q_85/');
     }
   }
   

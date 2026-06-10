@@ -336,11 +336,11 @@ api.optimizeImageUrl = function(url, width) {
       const firstSegment = segments[0];
       
       if (firstSegment.match(/^v\d+$/)) {
-        return `${prefix}/f_auto,q_auto,w_${width},c_limit/${rest}`;
+        return `${prefix}/f_auto,q_85,w_${width},c_limit/${rest}`;
       } else {
         const trans = firstSegment.split(',');
         const filteredTrans = trans.filter(t => !t.startsWith('w_') && !t.startsWith('c_') && !t.startsWith('f_') && !t.startsWith('q_'));
-        filteredTrans.push('f_auto', 'q_auto', `w_${width}`, 'c_limit');
+        filteredTrans.push('f_auto', 'q_85', `w_${width}`, 'c_limit');
         segments[0] = filteredTrans.join(',');
         return `${prefix}/${segments.join('/')}`;
       }
