@@ -802,7 +802,27 @@ window.openItemDiscountModal = function (idx) {
   const item = currentOrder.items[idx];
   document.getElementById('modal-item-idx').value = idx;
   document.getElementById('modal-item-discount').value = item.discount || '';
+  previewItemDiscount();
   openModal('item-discount-modal');
+};
+
+window.previewItemDiscount = function () {
+  const val = parseFloat(document.getElementById('modal-item-discount').value) || 0;
+  const preview = document.getElementById('discount-preview');
+  
+  if (val === 0 || isNaN(val)) {
+    preview.style.display = 'none';
+    return;
+  }
+  
+  preview.style.display = 'block';
+  if (val > 0) {
+    preview.textContent = `خصم: ${val.toLocaleString('ar-EG')} ج.م`;
+    preview.style.color = '#dc2626';
+  } else {
+    preview.textContent = `زياده: ${Math.abs(val).toLocaleString('ar-EG')} ج.م`;
+    preview.style.color = '#10b981';
+  }
 };
 
 window.applyItemDiscount = async function (type) {
@@ -1410,7 +1430,7 @@ window.markAsReady = function () {
   };
 
   renderFulfillmentList();
-  openModal('ready-confirm-modal');
+  confirmMarkAsReady();
 };
 
 window.confirmMarkAsReady = async function (btn) {
