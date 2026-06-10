@@ -620,15 +620,22 @@ window.openItemDiscountModal = function (idx) {
   openModal('item-discount-modal');
 };
 
-window.applyItemDiscount = function () {
+window.applyItemDiscount = function (type) {
   const idx = parseInt(document.getElementById('modal-item-idx').value);
-  const val = document.getElementById('modal-item-discount').value;
+  const val = parseFloat(document.getElementById('modal-item-discount').value) || 0;
   const item = cartItems[idx];
   if (item) {
-    item.discount = parseFloat(val) || 0;
+    if (type === 'discount') {
+      // خصم: store as positive value (will be subtracted)
+      item.discount = val;
+    } else if (type === 'increase') {
+      // زياده: store as negative value (will be added)
+      item.discount = -val;
+    }
     closeModal('item-discount-modal');
     recalcSummary();
     renderCart();
+    if (window.markAsModified) window.markAsModified();
   }
 };
 

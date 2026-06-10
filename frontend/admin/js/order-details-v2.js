@@ -805,12 +805,18 @@ window.openItemDiscountModal = function (idx) {
   openModal('item-discount-modal');
 };
 
-window.applyItemDiscount = async function (btn) {
+window.applyItemDiscount = async function (type) {
   const idx = parseInt(document.getElementById('modal-item-idx').value, 10);
-  const discount = parseFloat(document.getElementById('modal-item-discount').value) || 0;
+  const val = parseFloat(document.getElementById('modal-item-discount').value) || 0;
   
   if (currentOrder.items[idx]) {
-    currentOrder.items[idx].discount = discount;
+    if (type === 'discount') {
+      // خصم: store as positive value (will be subtracted)
+      currentOrder.items[idx].discount = val;
+    } else if (type === 'increase') {
+      // زياده: store as negative value (will be added)
+      currentOrder.items[idx].discount = -val;
+    }
     updateTotals();
     renderOrder();
     closeModal('item-discount-modal');
