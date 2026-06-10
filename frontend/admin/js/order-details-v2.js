@@ -876,9 +876,6 @@ window.applyOrderDiscount = async function (btn) {
 
 window.resendPaymentConfirmationDirect = async function (btn) {
   if (!currentOrder) return;
-  
-  const confirmed = await window.showConfirmModal('ارسال تأكيد واتساب', 'هل تريد إرسال تأكيد الطلب/الدفع للعميل الآن؟', true);
-  if (!confirmed) return;
 
   if (btn) {
     btn.disabled = true;
@@ -1430,7 +1427,7 @@ window.markAsReady = function () {
   };
 
   renderFulfillmentList();
-  confirmMarkAsReady();
+  openModal('ready-confirm-modal');
 };
 
 window.confirmMarkAsReady = async function (btn) {
