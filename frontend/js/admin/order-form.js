@@ -416,7 +416,7 @@ function renderCart() {
           
           <!-- Left side: Unit Price Block and Total Price -->
           <div style="display: flex; align-items: center; gap: 16px; flex: 1; justify-content: space-between;">
-            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${c.quantity} x ${formatPrice(getUnitPriceAfterDiscount(c))}</div>
+            <div style="font-size: 0.85rem; color: #64748b; white-space: nowrap; font-weight: 500; text-align: center; flex: 1;" dir="ltr">${formatPrice(effectiveUnitPrice)} × ${c.quantity}</div>
             <div style="font-weight: 700; font-size: 1rem; color: #1e293b; min-width: 80px; text-align: left; flex: 1;">${formatPrice(itemTotal(c))}</div>
           </div>
         </div>
@@ -449,13 +449,6 @@ function renderCart() {
 function itemTotal(c) {
   const effectiveUnitPrice = c.price !== undefined ? c.price : ((c.product.salePrice && c.product.salePrice < c.product.basePrice) ? c.product.salePrice : c.product.basePrice);
   return Math.max(0, effectiveUnitPrice * c.quantity - (c.discount || 0));
-}
-
-// Calculate unit price after discount
-function getUnitPriceAfterDiscount(c) {
-  const effectiveUnitPrice = c.price !== undefined ? c.price : ((c.product.salePrice && c.product.salePrice < c.product.basePrice) ? c.product.salePrice : c.product.basePrice);
-  if (c.quantity === 0) return effectiveUnitPrice;
-  return (effectiveUnitPrice * c.quantity - (c.discount || 0)) / c.quantity;
 }
 
 window.recalcSummary = function () {

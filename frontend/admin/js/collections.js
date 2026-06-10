@@ -58,14 +58,12 @@ async function loadCollections() {
       return;
     }
 
-    list.innerHTML = cols.map(c => {
-      const optimizedCollectionUrl = c.imageUrl ? api.optimizeImageUrl(c.imageUrl, 120) : '';
-      return `
+    list.innerHTML = cols.map(c => `
       <div class="collection-row" data-id="${c._id}" data-name="${c.name.toLowerCase()}" style="grid-template-columns: 40px 60px 1fr 60px; gap: 12px;" onclick="if(!event.target.closest('.action-menu') && !event.target.closest('.action-dropdown') && !event.target.closest('input[type=checkbox]')) window.location.href='collection-form?id=${c._id}'">
         <div style="display: flex; align-items: center; justify-content: center;"><input type="checkbox" class="collection-checkbox" data-id="${c._id}" onchange="updateBulkBar()"></div>
         <div style="display:flex; justify-content:center;">
           ${c.imageUrl 
-            ? `<img src="${optimizedCollectionUrl}" class="collection-img" alt="${c.name}">`
+            ? `<img src="${c.imageUrl}" class="collection-img" alt="${c.name}">`
             : `<div class="collection-img-placeholder">بدون صورة</div>`
           }
         </div>

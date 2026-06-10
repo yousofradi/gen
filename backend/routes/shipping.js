@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const Shipping = require('../models/Shipping');
 const adminAuth = require('../middleware/adminAuth');
 
-const cache = require('../utils/cache');
+const redis = require('../utils/redis');
 const SHIPPING_CACHE_KEY = 'storefront:shipping:list';
 
 async function refreshShippingCache() {
@@ -41,11 +41,14 @@ async function refreshShippingCache() {
       };
     });
 
-    await cache.set(SHIPPING_CACHE_KEY, finalFees, 86400); // 24 hour TTL
+    await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(finalFees));
 
     // Also clear all cached zones to keep them in sync
     try {
-      await cache.clearPrefix('storefront:shipping:zones:');
+      const keys = await redis.keys('storefront:shipping:zones:*');
+      if (keys && keys.length > 0) {
+        await redis.del(keys);
+      }
     } catch (redisErr) {
       console.warn('[Redis] Failed to clear zone keys during refresh:', redisErr.message);
     }
@@ -57,11 +60,15 @@ async function refreshShippingCache() {
 // GET /api/shipping — return all governorates (minimal data with zones cached)
 router.get('/', async (req, res) => {
   try {
-    // 1. Try Cache first
-    const cached = await cache.get(SHIPPING_CACHE_KEY);
-    if (cached) return res.json(cached);
+    // 1. Try Cache
+    try {
+      const cached = await redis.get(SHIPPING_CACHE_KEY);
+      if (cached) return res.json(JSON.parse(cached));
+    } catch (err) {
+      console.error('[Redis] Shipping cache get failed:', err.message);
+    }
 
-    // 2. Fallback to DB if cache miss or Redis down
+    // 2. Fetch from DB (Include zones for immediate caching)
     const fees = await Shipping.find({}, 'city cityOtherName fee zones');
 
     // 3. Resolve active fees dynamically from shipping_options setting
@@ -94,8 +101,12 @@ router.get('/', async (req, res) => {
       };
     });
     
-    // 4. Set Cache (24 hour TTL)
-    await cache.set(SHIPPING_CACHE_KEY, finalFees, 86400);
+    // 4. Set Cache (24 hour TTL for persistent feel)
+    try {
+      await redis.set(SHIPPING_CACHE_KEY, JSON.stringify(finalFees));
+    } catch (err) {
+      console.error('[Redis] Shipping cache set failed:', err.message);
+    }
 
     res.json(finalFees);
   } catch (error) {
@@ -146,15 +157,19 @@ router.get('/egyptpost', async (req, res) => {
   }
 });
 
-// GET /api/shipping/zones/:cityId — return zones for a gov (fetched from cache or DB)
+// GET /api/shipping/zones/:cityId — return zones for a gov (fetched instantly from Redis cache)
 router.get('/zones/:cityId', async (req, res) => {
   try {
     const { cityId } = req.params;
     
-    // 1. Try Cache first
+    // 1. Try Redis Cache first
     const cacheKey = `storefront:shipping:zones:${cityId}`;
-    const cached = await cache.get(cacheKey);
-    if (cached) return res.json(cached);
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) return res.json(JSON.parse(cached));
+    } catch (err) {
+      console.error('[Redis] Zones cache get failed:', err.message);
+    }
 
     // 2. Fallback to DB
     let gov;
@@ -169,7 +184,11 @@ router.get('/zones/:cityId', async (req, res) => {
     const zones = gov.zones || [];
 
     // 3. Set Cache (24 hour TTL)
-    await cache.set(cacheKey, zones, 86400);
+    try {
+      await redis.set(cacheKey, JSON.stringify(zones));
+    } catch (err) {
+      console.error('[Redis] Zones cache set failed:', err.message);
+    }
 
     res.json(zones);
   } catch (error) {

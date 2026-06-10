@@ -312,7 +312,7 @@ function renderCollectionsEditor(s) {
     return c ? `<div class="col-picker-item selected" style="justify-content:space-between" data-cid="${cid}">
                   <div style="display:flex;align-items:center;gap:10px">
                     <div class="col-drag-handle" style="cursor:grab;color:#94a3b8;padding:0 8px">⠿</div>
-                    ${c.imageUrl ? `<img src="${api.optimizeImageUrl(c.imageUrl, 60)}" alt="" style="width:30px;height:30px;border-radius:4px">` : ''}
+                    ${c.imageUrl ? `<img src="${c.imageUrl}" alt="" style="width:30px;height:30px;border-radius:4px">` : ''}
                     <span>${c.name}</span>
                   </div>
                   <button onclick="removeSelectedCol('${s.id}','${cid}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:1.2rem;padding:4px 10px">×</button>
@@ -356,7 +356,7 @@ function renderBannerEditor(s) {
               <input type="file" id="banner-upload" hidden accept="image/*" onchange="handleBannerUpload(this)">
             </div>
             <div id="banner-preview" style="text-align:center">
-              ${s.imageUrl ? `<img src="${api.optimizeImageUrl(s.imageUrl, 300)}" style="max-width:100%;border-radius:12px;max-height:150px;box-shadow:0 4px 12px rgba(0,0,0,0.1)" onerror="this.style.display='none'">` : '<div style="height:100px; background:#f8fafc; border:1px dashed #e2e8f0; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.85rem">لا توجد صورة بعد</div>'}
+              ${s.imageUrl ? `<img src="${s.imageUrl}" style="max-width:100%;border-radius:12px;max-height:150px;box-shadow:0 4px 12px rgba(0,0,0,0.1)" onerror="this.style.display='none'">` : '<div style="height:100px; background:#f8fafc; border:1px dashed #e2e8f0; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.85rem">لا توجد صورة بعد</div>'}
             </div>
           </div>
 
@@ -577,7 +577,7 @@ window.openCollectionPicker = function (sectionId) {
               <div class="col-picker-item ${selectedIds.includes(c._id) ? 'selected' : ''}" onclick="toggleColSelection('${sectionId}','${c._id}', this)">
                 <input type="checkbox" ${selectedIds.includes(c._id) ? 'checked' : ''} style="pointer-events:none">
                 <span>${c.name}</span>
-                ${c.imageUrl ? `<img src="${api.optimizeImageUrl(c.imageUrl, 100)}" alt="" style="margin-right:auto">` : ''}
+                ${c.imageUrl ? `<img src="${c.imageUrl}" alt="" style="margin-right:auto">` : ''}
               </div>
             `).join('')}
           </div>

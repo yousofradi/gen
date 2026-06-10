@@ -20,11 +20,7 @@ const redis = new Redis(redisUrl, {
     })
 });
 
-// Track connection status
-redis.isConnected = false;
-
 redis.on('connect', async () => {
-    redis.isConnected = true;
     console.log('✅ Connected to Redis successfully');
     try {
         await redis.config('SET', 'maxmemory-policy', 'noeviction');
@@ -33,15 +29,6 @@ redis.on('connect', async () => {
         console.log('[Redis] Note: Could not set maxmemory-policy dynamically (CONFIG command might be restricted):', err.message);
     }
 });
-
-redis.on('close', () => {
-    redis.isConnected = false;
-    console.warn('⚠️ Redis connection closed');
-});
-
-redis.on('error', (err) => {
-    redis.isConnected = false;
-    console.error('❌ Redis Error:', err.message);
-});
+redis.on('error', (err) => console.error('❌ Redis Error:', err));
 
 module.exports = redis;

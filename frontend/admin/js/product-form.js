@@ -804,7 +804,7 @@ function renderVariantsTable() {
             <div style="display:flex; align-items:center;">
               <button type="button" class="btn-gallery-teal" onclick="openGalleryModal(${c.originalIndex})">
                 ${c.imageUrl
-          ? `<img src="${api.optimizeImageUrl(c.imageUrl, 80)}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;">`
+          ? `<img src="${c.imageUrl}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;">`
           : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`
         }
               </button>
@@ -950,7 +950,7 @@ function openBulkEditModal() {
         <td style="font-weight:500; color:#101828">${name}</td>
         <td style="text-align:center">
           <div class="img-icon-btn" onclick="openGalleryModal(${idx})">
-            ${v.imageUrl ? `<img src="${api.optimizeImageUrl(v.imageUrl, 80)}">` : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>'}
+            ${v.imageUrl ? `<img src="${v.imageUrl}">` : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>'}
           </div>
         </td>
         <td>

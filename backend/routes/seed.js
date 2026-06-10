@@ -364,11 +364,11 @@ router.post('/shipping', adminAuth, async (req, res) => {
     );
     console.log('Successfully injected zones into Egypt Post and Bosta shipping options');
 
-    // Refresh cache using cache utility
-    const cache = require('../utils/cache');
-    const fees = await Shipping.find({}, 'city cityOtherName fee zones');
-    await cache.set('storefront:shipping:list', fees, 86400);
-    await cache.del('storefront:settings:shipping_options');
+    // Refresh cache
+    const redis = require('../utils/redis');
+    const fees = await Shipping.find({}, 'city cityOtherName fee');
+    await redis.set('storefront:shipping:list', JSON.stringify(fees));
+    await redis.del('storefront:settings:shipping_options');
 
     res.json({ message: `Successfully seeded ${newData.length} cities and ${totalZones} zones from Shipment.txt` });
   } catch (err) {
@@ -600,13 +600,15 @@ router.get('/migrate-cloudinary', async (req, res) => {
         await globalSettings.save();
         report.settingsUpdated = true;
         
-        // Clear cache so settings refresh instantly
+        // Also clear Redis cache if it exists so settings refresh instantly!
         try {
-          const cache = require('../utils/cache');
-          await cache.del('storefront:settings:sundura_global_settings');
-          console.log('Cleared settings cache');
+          const redis = require('../utils/redis');
+          if (redis && typeof redis.del === 'function') {
+            await redis.del('setting:sundura_global_settings');
+            console.log('Cleared settings Redis cache');
+          }
         } catch (e) {
-          console.warn('Couldn\'t clear settings cache:', e.message);
+          console.log('No Redis or couldn\'t clear settings cache:', e.message);
         }
       }
     }
