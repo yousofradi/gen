@@ -211,7 +211,7 @@ router.get('/public/:orderId', async (req, res) => {
 // GET /api/orders/bulk/download-pdf — Bulk PDF download using PDFBolt
 router.get('/bulk/download-pdf', adminAuth, async (req, res) => {
   try {
-    const orders = await Order.find({ archived: { $ne: true }, status: { $ne: 'cancelled' } }).sort({ createdAt: -1 });
+    const orders = await Order.find({ archived: { $ne: true }, status: { $ne: 'cancelled' } }).sort({ createdAt: 1 });
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
