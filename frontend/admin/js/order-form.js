@@ -792,7 +792,7 @@ window.handleCityChange = async function() {
   
   const zoneContainer = document.getElementById('c-zone-container');
   if (zoneContainer) {
-    if (window._currentCityZones && window._currentCityZones.length > 0) {
+    if (window._globalSettings?.enableZones !== false && window._currentCityZones && window._currentCityZones.length > 0) {
       zoneContainer.style.display = 'block';
       zoneInput.required = true;
     } else {
