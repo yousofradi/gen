@@ -53,6 +53,7 @@ async function sendWebhookInner(event, data) {
         "Phone": data.customer.phone,
         "Second Phone": data.customer.secondPhone || "",
         "Address": data.customer.address,
+        "Zone" : data.customer.zone || "",
         "Gov-ar": data.customer.government,
         "Gov-en": cityMap[data.customer.government] || data.customer.government,
         "notes": data.customer.notes || "",
