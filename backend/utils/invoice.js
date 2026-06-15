@@ -53,9 +53,9 @@ async function generateInvoiceInnerHtml(order, settings, options = {}) {
 
   // ================== PRODUCTS ==================
   const productsHtml = itemsWithProducts.map(({ item: p, product }) => {
-    const unitPrice = Number(p.unitPrice) || Number(p.price) || Number(p.basePrice) || 0;
     const optionsText = (p.selectedOptions || []).map(o => o.label).join(' / ');
     const lineTotal = p.finalPrice;
+    const actualUnitPrice = p.quantity > 0 ? (lineTotal / p.quantity) : 0;
 
     let imgHtml = '';
     if (includeImages) {
@@ -89,7 +89,7 @@ async function generateInvoiceInnerHtml(order, settings, options = {}) {
         </div>
       </td>
       <td>${safe(p.quantity)}</td>
-      <td>${num(unitPrice)}</td>
+      <td>${num(actualUnitPrice)}</td>
       <td>${num(lineTotal)} ج</td>
     </tr>
     `;
