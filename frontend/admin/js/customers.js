@@ -9,7 +9,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadCustomers() {
   try {
-    allCustomers = await api.getCustomers();
+    const [custRes, settingsRes] = await Promise.all([
+      api.getCustomers(),
+      api.getSetting('sundura_global_settings').catch(() => ({}))
+    ]);
+    allCustomers = custRes;
+    window._globalSettings = settingsRes || {};
     renderCustomers(allCustomers);
     document.getElementById('count-all').textContent = allCustomers.length;
   } catch (err) {
@@ -47,7 +52,7 @@ function renderCustomers(customers) {
         </td>
         <td class="hide-mobile">
           <div style="color:#1e293b;">${c.government || '—'}</div>
-          <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">${c.zone || ''}</div>
+          ${window._globalSettings?.enableZones !== false && c.zone ? `<div style="font-size:0.8rem; color:#64748b; margin-top:2px;">${c.zone}</div>` : ''}
         </td>
         <td class="hide-mobile">${c.orderCount} طلب</td>
         <td class="hide-mobile" style="color:#64748b;">${lastOrderDate}</td>

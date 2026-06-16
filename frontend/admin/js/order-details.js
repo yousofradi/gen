@@ -332,7 +332,15 @@ function renderOrder() {
     }
   }
 
-  document.getElementById('view-c-zone').textContent = o.customer.zone || 'لا توجد منطقة';
+  const viewZone = document.getElementById('view-c-zone');
+  if (window._globalSettings?.enableZones === false) {
+    if (viewZone) viewZone.style.display = 'none';
+  } else {
+    if (viewZone) {
+      viewZone.style.display = 'block';
+      viewZone.textContent = o.customer.zone || 'لا توجد منطقة';
+    }
+  }
 
   const notesEl = document.getElementById('view-c-notes');
   const notesContainer = document.getElementById('view-c-notes-container');
@@ -543,6 +551,11 @@ window.openCustomerModal = function () {
     searchGov.value = govName;
   }
 
+  const zoneContainer = document.getElementById('modal-c-zone-container');
+  if (zoneContainer) {
+    zoneContainer.style.display = window._globalSettings?.enableZones === false ? 'none' : 'block';
+  }
+
   document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
   document.getElementById('modal-c-address').value = currentOrder.customer.address || '';
   document.getElementById('modal-c-notes').value = currentOrder.customer.notes || '';
@@ -572,6 +585,16 @@ window.handleModalCityChange = async function (skipZoneClear = false) {
     } catch (err) {
       console.error('Failed to fetch modal zones:', err);
       window._modalZones = [];
+    }
+  }
+
+  const zoneContainer = document.getElementById('modal-c-zone-container');
+  if (zoneContainer) {
+    if (window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0) {
+      zoneContainer.style.display = 'block';
+    } else {
+      zoneContainer.style.display = 'none';
+      zoneInput.value = '';
     }
   }
 
@@ -650,8 +673,9 @@ window.applyCustomerChanges = async function (btn) {
   let govData = (window._fullShippingData || []).find(s => s._id === cityId);
   const cityName = govData ? (govData.cityOtherName || govData.city) : cityNameFromSearch;
 
-  if (!name || !phone || !cityName || !zone) {
-    showToast('الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة', 'error');
+  const hasZones = window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0;
+  if (!name || !phone || !cityName || (hasZones && !zone)) {
+    showToast(hasZones ? 'الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة' : 'الاسم ورقم الهاتف والمدينة مطلوبة', 'error');
     if (btn) {
       btn.disabled = false;
       btn.textContent = 'حفظ التغييرات';
@@ -929,7 +953,7 @@ window.saveOrderChanges = async function (silent = false) {
   }
 
   // Zone validation
-  const hasZones = window._modalZones && window._modalZones.length > 0;
+  const hasZones = window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0;
   if (hasZones) {
     const zoneOptions = (window._modalZones || []).map(z => api.formatZoneName(z));
     if (!zoneOptions.includes(currentOrder.customer.zone)) {

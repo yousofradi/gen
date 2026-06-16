@@ -15,13 +15,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const [data, shipping] = await Promise.all([
+    const [data, shipping, settings] = await Promise.all([
       api.getCustomer(phone),
-      api.getShippingList().catch(() => [])
+      api.getShippingList().catch(() => []),
+      api.getSetting('sundura_global_settings').catch(() => ({}))
     ]);
     currentCustomer = data.customer;
     currentOrders = data.orders;
     window._fullShippingData = shipping;
+    window._globalSettings = settings || {};
 
     renderCustomer();
 
@@ -81,7 +83,14 @@ function renderCustomer() {
   document.getElementById('view-c-phone2').textContent = c.secondPhone || 'لا يوجد هاتف آخر';
   document.getElementById('view-c-address').textContent = c.address || 'لا يوجد عنوان';
   document.getElementById('view-c-gov').textContent = c.government || 'لا يوجد محافظة';
-  document.getElementById('view-c-zone').textContent = c.zone || 'لا يوجد منطقة';
+  
+  const zoneWrapper = document.getElementById('view-c-zone-wrapper');
+  if (window._globalSettings?.enableZones === false) {
+    if (zoneWrapper) zoneWrapper.style.display = 'none';
+  } else {
+    if (zoneWrapper) zoneWrapper.style.display = 'inline';
+    document.getElementById('view-c-zone').textContent = c.zone || 'لا يوجد منطقة';
+  }
 
   const initials = c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const avatar = document.getElementById('view-c-avatar');
@@ -133,6 +142,11 @@ window.openEditModal = async function () {
     hiddenGov.value = govData ? govData._id : '';
   }
   
+  const zoneContainer = document.getElementById('modal-c-zone-container');
+  if (zoneContainer) {
+    zoneContainer.style.display = window._globalSettings?.enableZones === false ? 'none' : 'block';
+  }
+
   await handleModalCityChange(true); // skipZoneClear = true
   document.getElementById('modal-c-zone').value = c.zone || '';
   document.getElementById('modal-c-address').value = c.address || '';
@@ -156,6 +170,15 @@ window.handleModalCityChange = async function (skipZoneClear = false) {
     } catch (err) {
       console.error('Failed to fetch modal zones:', err);
       window._modalZones = [];
+    }
+  }
+
+  const zoneContainer = document.getElementById('modal-c-zone-container');
+  if (zoneContainer) {
+    if (window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0) {
+      zoneContainer.style.display = 'block';
+    } else {
+      zoneContainer.style.display = 'none';
     }
   }
   
@@ -228,8 +251,9 @@ async function applyChanges(btn) {
   const govData = (window._fullShippingData || []).find(s => s._id === cityId);
   const cityName = govData ? (govData.cityOtherName || govData.city) : '';
 
-  if (!name || !phone || !cityName || !zone) {
-    showToast('الاسم ورقم الهاتف والمحافظة والمنطقة مطلوبة', 'error');
+  const hasZones = window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0;
+  if (!name || !phone || !cityName || (hasZones && !zone)) {
+    showToast(hasZones ? 'الاسم ورقم الهاتف والمحافظة والمنطقة مطلوبة' : 'الاسم ورقم الهاتف والمحافظة مطلوبة', 'error');
     return;
   }
 
