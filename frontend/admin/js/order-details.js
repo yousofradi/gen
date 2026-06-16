@@ -6,19 +6,26 @@ let allProducts = [];
 let collectionsMap = {};
 let shippingMap = {};
 
-function resolveShippingDetails(cityName, zoneName) {
+function getCarrierInternalValue(name) {
+  if (!name) return 'bosta';
+  if (name.includes('بوسطة') || name.toLowerCase().includes('bosta')) return 'bosta';
+  if (name.includes('البريد') || name.toLowerCase().includes('post')) return 'egyptpost';
+  return name;
+}
+
+function resolveShippingDetails(cityName, zoneName, forcedCarrier) {
   const isCityEqual = (a, b) => {
     if (!a || !b) return false;
     const norm = (s) => s.replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, '').toLowerCase().trim();
     return norm(a) === norm(b);
   };
 
-  let carrier = 'bosta';
+  let carrier = forcedCarrier || 'bosta';
   let govData = (window._fullShippingData || []).find(s => 
     isCityEqual(s.city, cityName) || isCityEqual(s.cityOtherName, cityName)
   );
 
-  if (zoneName && govData && govData.zones && govData.zones.length > 0) {
+  if (!forcedCarrier && zoneName && govData && govData.zones && govData.zones.length > 0) {
     const selectedZoneObj = govData.zones.find(z => api.formatZoneName(z) === zoneName);
     if (!selectedZoneObj || selectedZoneObj.bostaAvailable === false || selectedZoneObj.dropOffAvailability === false) {
       carrier = 'egyptpost';
@@ -29,25 +36,14 @@ function resolveShippingDetails(cityName, zoneName) {
   if (!window._shippingOptions || window._shippingOptions.length === 0) {
     fee = govData ? (govData.fee || 0) : 0;
   } else {
-    if (carrier === 'egyptpost') {
-      const postOption = window._shippingOptions.find(o => 
-        o.name.includes('البريد') || o.name.toLowerCase().includes('post')
-      ) || window._shippingOptions[0];
-      
-      const cityObj = postOption ? (postOption.cities || []).find(c => 
-        isCityEqual(c.city, cityName)
-      ) : null;
-      fee = cityObj ? cityObj.fee : (postOption ? postOption.cost : 60);
-    } else {
-      const bostaOption = window._shippingOptions.find(o => 
-        o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
-      ) || window._shippingOptions[1] || window._shippingOptions[0];
-      
-      const cityObj = bostaOption ? (bostaOption.cities || []).find(c => 
-        isCityEqual(c.city, cityName)
-      ) : null;
-      fee = cityObj ? cityObj.fee : (bostaOption ? bostaOption.cost : 150);
+    const selectedOption = window._shippingOptions.find(o => getCarrierInternalValue(o.name) === carrier) || window._shippingOptions[0];
+    if (!forcedCarrier && selectedOption) {
+      carrier = getCarrierInternalValue(selectedOption.name);
     }
+    const cityObj = selectedOption ? (selectedOption.cities || []).find(c => 
+      isCityEqual(c.city, cityName)
+    ) : null;
+    fee = cityObj ? cityObj.fee : (selectedOption ? selectedOption.cost : 0);
   }
 
   return { fee, carrier };
@@ -551,6 +547,25 @@ window.openCustomerModal = function () {
     searchGov.value = govName;
   }
 
+  const carrierSelect = document.getElementById('modal-c-carrier');
+  if (carrierSelect) {
+    if (window._shippingOptions && window._shippingOptions.length > 0) {
+      carrierSelect.innerHTML = window._shippingOptions.map(o => {
+        const val = getCarrierInternalValue(o.name);
+        return `<option value="${val}">${o.name}</option>`;
+      }).join('');
+    }
+    
+    // Set current value
+    const currentVal = currentOrder.carrier || 'bosta';
+    const matchingOpt = Array.from(carrierSelect.options).find(opt => opt.value === currentVal);
+    if (matchingOpt) {
+      carrierSelect.value = matchingOpt.value;
+    } else if (carrierSelect.options.length > 0) {
+      carrierSelect.value = carrierSelect.options[0].value;
+    }
+  }
+
   const zoneContainer = document.getElementById('modal-c-zone-container');
   if (zoneContainer) {
     zoneContainer.style.display = window._globalSettings?.enableZones === false ? 'none' : 'block';
@@ -588,17 +603,22 @@ window.handleModalCityChange = async function (skipZoneClear = false) {
     }
   }
 
+  window.handleModalCarrierChange();
+  renderModalZoneDropdown();
+};
+
+window.handleModalCarrierChange = function() {
+  const carrier = document.getElementById('modal-c-carrier')?.value || 'bosta';
   const zoneContainer = document.getElementById('modal-c-zone-container');
   if (zoneContainer) {
-    if (window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0) {
+    if (carrier === 'bosta' && window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0) {
       zoneContainer.style.display = 'block';
     } else {
       zoneContainer.style.display = 'none';
-      zoneInput.value = '';
+      const zoneInput = document.getElementById('modal-c-zone');
+      if (zoneInput) zoneInput.value = '';
     }
   }
-
-  renderModalZoneDropdown();
 };
 
 window.renderModalZoneDropdown = function () {
@@ -670,10 +690,11 @@ window.applyCustomerChanges = async function (btn) {
   const cityNameFromSearch = document.getElementById('modal-c-gov-search').value.trim();
   const zone = document.getElementById('modal-c-zone').value;
 
+  const carrier = document.getElementById('modal-c-carrier')?.value || 'bosta';
   let govData = (window._fullShippingData || []).find(s => s._id === cityId);
   const cityName = govData ? (govData.cityOtherName || govData.city) : cityNameFromSearch;
 
-  const hasZones = window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0;
+  const hasZones = carrier === 'bosta' && window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0;
   if (!name || !phone || !cityName || (hasZones && !zone)) {
     showToast(hasZones ? 'الاسم ورقم الهاتف والمدينة والمنطقة مطلوبة' : 'الاسم ورقم الهاتف والمدينة مطلوبة', 'error');
     if (btn) {
@@ -720,7 +741,7 @@ window.applyCustomerChanges = async function (btn) {
   currentOrder.customer.zone = zone;
 
   // Determine carrier and override shipping fee using resolveShippingDetails
-  const shipDetails = resolveShippingDetails(cityName, zone);
+  const shipDetails = resolveShippingDetails(cityName, zone, carrier);
   currentOrder.carrier = shipDetails.carrier;
   currentOrder.shippingFee = shipDetails.fee;
 
@@ -953,7 +974,8 @@ window.saveOrderChanges = async function (silent = false) {
   }
 
   // Zone validation
-  const hasZones = window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0;
+  const currentCarrier = currentOrder.carrier || 'bosta';
+  const hasZones = currentCarrier === 'bosta' && window._globalSettings?.enableZones !== false && window._modalZones && window._modalZones.length > 0;
   if (hasZones) {
     const zoneOptions = (window._modalZones || []).map(z => api.formatZoneName(z));
     if (!zoneOptions.includes(currentOrder.customer.zone)) {

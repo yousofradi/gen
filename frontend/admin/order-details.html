@@ -582,6 +582,13 @@
             </div>
           </div>
         </div>
+        <div class="form-group mb-16">
+          <label class="form-label">طريقة الشحن (Transport Method)</label>
+          <select id="modal-c-carrier" class="form-control" onchange="handleModalCarrierChange()">
+            <option value="bosta">بوسطة (Bosta)</option>
+            <option value="egyptpost">البريد المصري (Egypt Post)</option>
+          </select>
+        </div>
         <div class="form-group mb-16" id="modal-c-zone-container">
           <label class="form-label">المنطقة</label>
           <div id="modal-c-zone-search-container" onclick="document.getElementById('modal-c-zone').focus()"
