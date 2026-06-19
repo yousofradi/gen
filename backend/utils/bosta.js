@@ -135,7 +135,9 @@ async function generateBostaPayload(order, bostaConfig) {
     notes: 'يرجى التواصل مع العميل قبل التحرك بساعتين علي الاقل - قابل للكسر ',
     cod: (function () {
       const remaining = order.totalPrice - (order.paidAmount || 0);
-      return remaining > 0 ? remaining + 10 : 0;
+      if (remaining <= 0) return 0;
+      const codFee = Math.max(10, Math.ceil((remaining * 0.01) / 5) * 5);
+      return remaining + codFee;
     })(),
     businessReference: order.orderId
   };

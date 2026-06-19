@@ -112,8 +112,12 @@ async function generateInvoiceInnerHtml(order, settings, options = {}) {
   const total = num(order.totalPrice);
   const paid = num(order.paidAmount);
   const remaining = total - paid;
-  // Add 10 EGP extra fee if not fully paid (COD fee logic)
-  const displayRemaining = remaining > 0 ? (remaining + 10) : 0;
+  // Add extra fee if not fully paid (COD fee logic: 1% with 10 EGP min, rounded to nearest 5)
+  let codFee = 0;
+  if (remaining > 0) {
+    codFee = Math.max(10, Math.ceil((remaining * 0.01) / 5) * 5);
+  }
+  const displayRemaining = remaining > 0 ? (remaining + codFee) : 0;
 
   // ================== PHONE ==================
   let phone = safe(order.customer.phone);
@@ -122,7 +126,7 @@ async function generateInvoiceInnerHtml(order, settings, options = {}) {
   }
 
   // ================== REMAINING TEXT ==================
-  let remtext = 'المتبقي عند الاستلام (+10 ج رسوم)';
+  let remtext = `المتبقي عند الاستلام (+${codFee} ج رسوم)`;
   if (remaining === 0) {
     remtext = 'مدفوع بالكامل';
   }

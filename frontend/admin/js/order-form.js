@@ -33,51 +33,47 @@ let allCustomers = [];
 let shippingMap = {};
 let cartItems = []; // [{ product, quantity, selectedOptions, discount }]
 
-function getShippingFeeForCityAndZone(cityName, zoneName) {
-  if (!window._shippingOptions || window._shippingOptions.length === 0) {
-    const govData = (window._fullShippingData || []).find(s => 
-      isCityEqual(s.city, cityName) || isCityEqual(s.cityOtherName, cityName)
-    );
-    return govData ? (govData.fee || 0) : 0;
-  }
+function getCarrierInternalValue(name) {
+  if (!name) return 'bosta';
+  if (name.includes('بوسطة') || name.toLowerCase().includes('bosta')) return 'bosta';
+  if (name.includes('البريد') || name.toLowerCase().includes('post')) return 'egyptpost';
+  return name;
+}
 
+function resolveShippingDetails(cityName, zoneName, forcedCarrier) {
   const isCityEqual = (a, b) => {
     if (!a || !b) return false;
     const norm = (s) => s.replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, '').toLowerCase().trim();
     return norm(a) === norm(b);
   };
 
-  let carrier = 'bosta';
+  let carrier = forcedCarrier || 'bosta';
   let govData = (window._fullShippingData || []).find(s => 
     isCityEqual(s.city, cityName) || isCityEqual(s.cityOtherName, cityName)
   );
 
-  if (zoneName && govData && govData.zones && govData.zones.length > 0) {
+  if (!forcedCarrier && zoneName && govData && govData.zones && govData.zones.length > 0) {
     const selectedZoneObj = govData.zones.find(z => api.formatZoneName(z) === zoneName);
     if (!selectedZoneObj || selectedZoneObj.bostaAvailable === false || selectedZoneObj.dropOffAvailability === false) {
       carrier = 'egyptpost';
     }
   }
 
-  if (carrier === 'egyptpost') {
-    const postOption = window._shippingOptions.find(o => 
-      o.name.includes('البريد') || o.name.toLowerCase().includes('post')
-    ) || window._shippingOptions[0];
-    
-    const cityObj = postOption ? (postOption.cities || []).find(c => 
-      isCityEqual(c.city, cityName)
-    ) : null;
-    return cityObj ? cityObj.fee : (postOption ? postOption.cost : 80);
+  let fee = 0;
+  if (!window._shippingOptions || window._shippingOptions.length === 0) {
+    fee = govData ? (govData.fee || 0) : 0;
   } else {
-    const bostaOption = window._shippingOptions.find(o => 
-      o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
-    ) || window._shippingOptions[1] || window._shippingOptions[0];
-    
-    const cityObj = bostaOption ? (bostaOption.cities || []).find(c => 
+    const selectedOption = window._shippingOptions.find(o => getCarrierInternalValue(o.name) === carrier) || window._shippingOptions[0];
+    if (!forcedCarrier && selectedOption) {
+      carrier = getCarrierInternalValue(selectedOption.name);
+    }
+    const cityObj = selectedOption ? (selectedOption.cities || []).find(c => 
       isCityEqual(c.city, cityName)
     ) : null;
-    return cityObj ? cityObj.fee : (bostaOption ? bostaOption.cost : 150);
+    fee = cityObj ? cityObj.fee : (selectedOption ? selectedOption.cost : 0);
   }
+
+  return { fee, carrier };
 }
 
 // ── Init ──────────────────────────────────────────────
@@ -114,6 +110,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     window._fullShippingData = shipping; // Store full objects
+
+    const carrierSelect = document.getElementById('c-carrier');
+    if (carrierSelect && window._shippingOptions && window._shippingOptions.length > 0) {
+      carrierSelect.innerHTML = window._shippingOptions.map(o => {
+        const val = getCarrierInternalValue(o.name);
+        return `<option value="${val}">${o.name}</option>`;
+      }).join('');
+    }
 
     const searchInput = document.getElementById('c-gov-search');
     const dropdown = document.getElementById('gov-dropdown');
@@ -790,14 +794,25 @@ window.handleCityChange = async function() {
     renderZoneDropdown(window._currentCityZones);
   }
   
+  window.handleCarrierChange();
+};
+
+window.handleCarrierChange = function() {
+  const carrier = document.getElementById('c-carrier')?.value || 'bosta';
+  const isBosta = carrier === 'bosta' || carrier.toLowerCase().includes('bosta') || carrier.includes('بوسطة');
+  
   const zoneContainer = document.getElementById('c-zone-container');
+  const zoneInput = document.getElementById('c-zone');
   if (zoneContainer) {
-    if (window._globalSettings?.enableZones !== false && window._currentCityZones && window._currentCityZones.length > 0) {
+    if (isBosta && window._globalSettings?.enableZones !== false && window._currentCityZones && window._currentCityZones.length > 0) {
       zoneContainer.style.display = 'block';
-      zoneInput.required = true;
+      if (zoneInput) zoneInput.required = true;
     } else {
       zoneContainer.style.display = 'none';
-      zoneInput.required = false;
+      if (zoneInput) {
+        zoneInput.required = false;
+        zoneInput.value = '';
+      }
     }
   }
   
@@ -812,7 +827,9 @@ window.recalcSummary = function () {
   const cityName = data ? (data.cityOtherName || data.city) : '';
   const zoneName = document.getElementById('c-zone').value;
 
-  const shipping = getShippingFeeForCityAndZone(cityName, zoneName);
+  const carrierVal = document.getElementById('c-carrier')?.value || 'bosta';
+  const shipDetails = resolveShippingDetails(cityName, zoneName, carrierVal);
+  const shipping = shipDetails.fee;
 
   const orderDiscount = parseFloat(document.getElementById('order-discount').value) || 0;
   const total = Math.max(0, subtotal + shipping - orderDiscount);
@@ -852,17 +869,17 @@ window.submitOrder = async function () {
   }
 
   // Resolve carrier first
-  let carrier = 'bosta';
-  if (zone && window._currentCityZonesList && window._currentCityZonesList.length > 0) {
-    const selectedZoneObj = window._currentCityZonesList.find(z => api.formatZoneName(z) === zone);
-    if (!selectedZoneObj || selectedZoneObj.bostaAvailable === false || selectedZoneObj.dropOffAvailability === false) {
-      carrier = 'egyptpost';
-    }
-  }
+  const carrierVal = document.getElementById('c-carrier')?.value || 'bosta';
+  const shipDetails = resolveShippingDetails(cityName, zone, carrierVal);
+  const carrier = shipDetails.carrier;
+  const shippingFee = shipDetails.fee;
 
   // Zone validation
   const zoneOptions = window._currentCityZones || [];
-  if (zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
+  const hasZones = carrier === 'bosta' && window._globalSettings?.enableZones !== false && window._currentCityZones && window._currentCityZones.length > 0;
+  if (!name || !phone || !address || !cityName || (hasZones && !zone)) return showToast('يرجى ملء جميع الحقول المطلوبة للعميل', 'error');
+
+  if (hasZones && zoneOptions.length > 0 && !zoneOptions.includes(zone)) {
     showToast('يرجى اختيار منطقة صحيحة من القائمة', 'error');
     return;
   }
@@ -897,8 +914,6 @@ window.submitOrder = async function () {
       finalPrice: itemTotal(c)
     };
   });
-
-  const shippingFee = getShippingFeeForCityAndZone(cityName, zone);
 
   const payload = {
     customer: { 

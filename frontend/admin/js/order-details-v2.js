@@ -906,6 +906,20 @@ window.applyOrderDiscount = async function (btn) {
   if (window.markAsModified) window.markAsModified();
 };
 
+window.openShippingEditModal = function () {
+  openModal('edit-shipping-modal');
+  document.getElementById('modal-shipping-fee').value = currentOrder.shippingFee || 0;
+};
+
+window.applyShippingFeeChanges = async function (btn) {
+  const val = document.getElementById('modal-shipping-fee').value;
+  currentOrder.shippingFee = parseFloat(val) || 0;
+  updateTotals();
+  renderOrder();
+  closeModal('edit-shipping-modal');
+  if (window.markAsModified) window.markAsModified();
+};
+
 
 
 window.resendPaymentConfirmationDirect = async function (btn) {
