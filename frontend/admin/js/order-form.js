@@ -855,8 +855,6 @@ window.submitOrder = async function () {
   const govData = (window._fullShippingData || []).find(s => s._id === cityId);
   const cityName = govData ? (govData.cityOtherName || govData.city) : '';
 
-  const hasZones = window._currentCityZones && window._currentCityZones.length > 0;
-  if (!name || !phone || !address || !cityName || (hasZones && !zone)) return showToast('يرجى ملء جميع الحقول المطلوبة للعميل', 'error');
 
   // Arabic-only name validation
   if (!/^[\u0600-\u06FF\s]+$/.test(name)) {
