@@ -12,6 +12,11 @@
   <link rel="stylesheet" href="css/style.css?v=20260515_v2">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
+    .mobile-badges { display: none; }
+    @media (max-width: 768px) {
+      .hide-on-mobile { display: none !important; }
+      .mobile-badges { display: flex !important; }
+    }
     @media (max-width: 640px) {
       .admin-main {
         padding: 10px;
@@ -200,7 +205,7 @@
         </a></nav>
     </aside>
     <main class="admin-main">
-      <div style="max-width:1200px">
+      <div style="max-width:1200px; margin: 0 auto;">
         <div class="flex-between mb-24">
           <div>
             <h1 class="page-title" style="margin-bottom:4px">المنتجات</h1>
@@ -293,11 +298,14 @@
                   <th style="width: 40px;"><input type="checkbox" id="select-all" onclick="toggleSelectAll()"></th>
                   <th style="width: 60px; text-align: center;">الصورة</th>
                   <th style="text-align: right; padding-right: 12px;">الاسم</th>
+                  <th class="hide-on-mobile" style="text-align: center; width: 120px;">السعر</th>
+                  <th class="hide-on-mobile" style="text-align: center; width: 100px;">الكمية</th>
+                  <th class="hide-on-mobile" style="text-align: center; width: 100px;">الحالة</th>
                 </tr>
               </thead>
               <tbody id="products-tbody">
                 <tr>
-                  <td colspan="3" class="text-center">
+                  <td colspan="6" class="text-center">
                     <div class="spinner"></div>
                   </td>
                 </tr>

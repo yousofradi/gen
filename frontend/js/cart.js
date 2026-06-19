@@ -249,6 +249,24 @@ Cart.renderSlideCart = function() {
       </div>
     `;
   }).join('');
+
+  const hasInvalidStock = items.some(item => {
+    const available = getAvailable(item);
+    return available !== Infinity && item.quantity > available;
+  });
+
+  const checkoutBtn = document.querySelector('.slide-cart-checkout-btn');
+  if (checkoutBtn) {
+    if (hasInvalidStock) {
+      checkoutBtn.style.pointerEvents = 'none';
+      checkoutBtn.style.opacity = '0.5';
+      checkoutBtn.title = 'يرجى تعديل الكميات غير المتوفرة';
+    } else {
+      checkoutBtn.style.pointerEvents = 'auto';
+      checkoutBtn.style.opacity = '1';
+      checkoutBtn.title = '';
+    }
+  }
 };
 
 

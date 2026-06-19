@@ -26,7 +26,7 @@ let selectedProductIds = new Set();
 
 async function loadProducts() {
   const tbody = document.getElementById('products-tbody');
-  tbody.innerHTML = '<tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center"><div class="spinner"></div></td></tr>';
   try {
     // Pass the current filter directly as the status parameter
     const statusParam = currentFilter;
@@ -40,7 +40,7 @@ async function loadProducts() {
     totalPages = res.totalPages || 1;
 
     if (!products.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:40px">لا توجد منتجات مطابقة للبحث</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px">لا توجد منتجات مطابقة للبحث</td></tr>';
       updatePaginationInfo(0);
       return;
     }
@@ -59,7 +59,7 @@ async function loadProducts() {
 
   } catch (err) {
     console.error('Failed to load products:', err);
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">فشل تحميل المنتجات</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">فشل تحميل المنتجات</td></tr>';
   } finally {
     document.body.classList.remove('is-loading');
   }

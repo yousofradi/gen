@@ -603,6 +603,23 @@ function setupForm() {
       return;
     }
 
+    const itemsForValidation = Cart.getItems();
+    const hasInvalidStock = itemsForValidation.some(item => {
+      let available = Infinity;
+      if (item.selectedOptions && item.selectedOptions.length > 0 && item.variants && item.variants.length > 0) {
+        const v = item.variants.find(v => item.selectedOptions.every(so => v.combination[so.groupName] === so.label));
+        if (v && v.quantity !== null && v.quantity !== undefined) available = v.quantity;
+      } else if (item.availableQuantity !== null && item.availableQuantity !== undefined) {
+        available = item.availableQuantity;
+      }
+      return item.quantity > available;
+    });
+
+    if (hasInvalidStock) {
+      showToast('بعض المنتجات في السلة غير متوفرة بالكمية المطلوبة. يرجى تعديل السلة.', 'error');
+      return;
+    }
+
     const payment = document.querySelector('input[name="payment"]:checked');
     if (!payment) { showToast('اختر طريقة الدفع', 'error'); return; }
 

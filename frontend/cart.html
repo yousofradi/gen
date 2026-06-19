@@ -101,7 +101,24 @@
       emptyEl.classList.add('hidden');
       footerEl.classList.remove('hidden');
 
-      container.innerHTML = items.map(item => `
+      function getAvailable(item) {
+        if (item.selectedOptions && item.selectedOptions.length > 0 && item.variants && item.variants.length > 0) {
+          const v = item.variants.find(v => item.selectedOptions.every(so => v.combination[so.groupName] === so.label));
+          return (v && v.quantity !== null && v.quantity !== undefined) ? v.quantity : Infinity;
+        }
+        return (item.availableQuantity !== null && item.availableQuantity !== undefined) ? item.availableQuantity : Infinity;
+      }
+
+      let hasInvalidStock = false;
+
+      container.innerHTML = items.map(item => {
+        const available = getAvailable(item);
+        if (available !== Infinity && item.quantity > available) hasInvalidStock = true;
+        const stockWarning = (available !== Infinity && item.quantity > available) 
+          ? `<div style="font-size:0.75rem; color:#ef4444; margin-top:4px; font-weight:600; background:#fee2e2; padding:2px 8px; border-radius:4px; display:inline-block;">عذراً، يتوفر ${available} قطعة فقط</div>`
+          : '';
+
+        return `
         <div class="cart-item">
           <img class="cart-item-img" src="${item.imageUrl ? api.optimizeImageUrl(item.imageUrl, 150) : ''}" alt="${item.name}"
             onerror="this.style.background='#f5f5f5';this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZjVmNWY1Ii8+PC9zdmc+'">
@@ -109,6 +126,7 @@
             <div class="cart-item-name">${item.name}</div>
             <div class="cart-item-options">${item.selectedOptions.map(o => `${o.groupName}: ${o.label}`).join(' · ')}</div>
             <div class="cart-item-price">${formatPrice(item.unitPrice)} للوحدة</div>
+            ${stockWarning}
           </div>
           <div class="cart-item-actions">
             <div class="qty-control">
@@ -120,9 +138,22 @@
             <button class="btn btn-danger btn-sm" onclick="removeItem('${item.key}')">✕</button>
           </div>
         </div>
-      `).join('');
+      `}).join('');
 
       document.getElementById('cart-total').textContent = formatPrice(Cart.getTotal());
+
+      const checkoutBtn = document.getElementById('checkout-btn');
+      if (checkoutBtn) {
+        if (hasInvalidStock) {
+          checkoutBtn.style.pointerEvents = 'none';
+          checkoutBtn.style.opacity = '0.5';
+          checkoutBtn.title = 'يرجى تعديل الكميات غير المتوفرة';
+        } else {
+          checkoutBtn.style.pointerEvents = 'auto';
+          checkoutBtn.style.opacity = '1';
+          checkoutBtn.title = '';
+        }
+      }
     }
 
     function updateQty(key, qty) { Cart.updateQty(key, qty); renderCart(); }
