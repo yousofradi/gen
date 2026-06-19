@@ -944,6 +944,7 @@ tr:hover td {
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 600px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
