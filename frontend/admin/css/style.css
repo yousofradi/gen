@@ -95,6 +95,10 @@
   padding: 0;
 }
 
+input, button, select, textarea {
+  font-family: inherit;
+}
+
 body {
   font-family: var(--font-main);
   background: var(--bg-body);
