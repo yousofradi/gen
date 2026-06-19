@@ -150,12 +150,16 @@ window.updateFilterCounts = function () {
 function renderOrders(orders) {
   const tbody = document.getElementById('orders-tbody');
 
+  // Preserve selected checkboxes
+  const selectedIds = Array.from(document.querySelectorAll('.order-checkbox:checked')).map(cb => cb.value);
+
   if (!orders.length) {
     tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:40px">لا توجد طلبات هنا</td></tr>';
     return;
   }
 
   tbody.innerHTML = orders.map(o => {
+    const isChecked = selectedIds.includes(o.orderId) ? 'checked' : '';
     // Format date as "27 أبريل 2026"
     const dateObj = new Date(o.createdAt);
     const dateStr = dateObj.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -185,9 +189,9 @@ function renderOrders(orders) {
     const displayId = o.orderId.replace('Order-', '').replace('Scoop-', '');
 
     return `
-      <tr onclick="viewOrder('${o.orderId}')" style="cursor:pointer; transition:background 0.2s;" onmouseover="if(!this.querySelector('.order-checkbox').checked) this.style.backgroundColor='#f8fafc'" onmouseout="if(!this.querySelector('.order-checkbox').checked) this.style.backgroundColor='transparent'">
+      <tr onclick="viewOrder('${o.orderId}')" style="cursor:pointer; transition:background 0.2s; ${isChecked ? 'background-color:#f0fdf4;' : ''}" onmouseover="if(!this.querySelector('.order-checkbox').checked) this.style.backgroundColor='#f8fafc'" onmouseout="if(!this.querySelector('.order-checkbox').checked) this.style.backgroundColor='transparent'">
         <td style="text-align: center;" onclick="event.stopPropagation();">
-          <input type="checkbox" class="order-checkbox" value="${o.orderId}" onchange="updateArchiveButton()" style="width:16px; height:16px; border-radius:4px; accent-color:#0f766e;">
+          <input type="checkbox" class="order-checkbox" value="${o.orderId}" ${isChecked} onchange="updateArchiveButton()" style="width:16px; height:16px; border-radius:4px; accent-color:#0f766e;">
         </td>
         <td style="color:#0ea5e9; font-weight:600; font-size:0.95rem;" dir="ltr">#${displayId}</td>
         <td>
