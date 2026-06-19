@@ -897,9 +897,18 @@ window.openOrderDiscountModal = function () {
   document.getElementById('modal-order-discount').value = currentOrder.discount || '';
 };
 
-window.applyOrderDiscount = async function (btn) {
-  const val = document.getElementById('modal-order-discount').value;
-  currentOrder.discount = parseFloat(val) || 0;
+window.applyOrderDiscount = async function (type) {
+  const valRaw = document.getElementById('modal-order-discount').value;
+  let val = Math.abs(parseFloat(valRaw) || 0);
+
+  if (type === 'discount') {
+    currentOrder.discount = val; // Positive value reduces total
+  } else if (type === 'increase') {
+    currentOrder.discount = -val; // Negative value increases total
+  } else {
+    currentOrder.discount = 0;
+  }
+
   updateTotals();
   renderOrder();
   closeModal('order-discount-modal');
