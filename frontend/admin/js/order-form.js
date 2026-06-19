@@ -1127,8 +1127,8 @@ window.selectCustomer = async function (phone) {
   if (fields) fields.style.display = 'block';
 
   // Disable editing of primary info for selected customers
-  document.getElementById('c-name').readOnly = true;
-  document.getElementById('c-phone').readOnly = true;
+  document.getElementById('c-name').readOnly = false;
+  document.getElementById('c-phone').readOnly = false;
   
   if (window.recalcSummary) recalcSummary();
   if (window.markAsModified) window.markAsModified();
