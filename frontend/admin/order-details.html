@@ -656,9 +656,8 @@
   <div class="modal-overlay" id="item-discount-modal" style="display: none;">
     <div class="modal-box" style="max-width: 400px; border-radius: 16px;">
       <div class="modal-header" style="border:none; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <button type="button" onclick="closeModal('item-discount-modal')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#64748b;">&times;</button>
-        <h3 style="font-size:1.1rem; color:#1e293b; font-weight:600;">تعديل السعر</h3>
-        <div style="width:24px;"></div>
+        <h3 style="font-size:1.1rem; color:#1e293b; font-weight:600; margin:0;">تعديل السعر</h3>
+        <button type="button" onclick="closeModal('item-discount-modal')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
       </div>
       <div class="modal-body" style="padding: 12px 20px 20px 20px;">
         <input type="hidden" id="modal-item-idx">
@@ -719,9 +718,9 @@
   <!-- Order Discount Modal -->
   <div class="modal-overlay" id="order-discount-modal" style="display: none;">
     <div class="modal-box" style="max-width: 400px; border-radius: 16px;">
-      <div class="modal-header" style="border:none; padding-bottom:0;">
-        <h3 style="width:100%; text-align:right; font-size:1.1rem; color:#1e293b; font-weight:600;">تعديل إجمالي الطلب
-          (خصم / زيادة)</h3>
+      <div class="modal-header" style="border:none; padding-bottom:0; display:flex; align-items:center; justify-content:space-between;">
+        <h3 style="font-size:1.1rem; color:#1e293b; font-weight:600; margin:0;">تعديل إجمالي الطلب</h3>
+        <button type="button" onclick="closeModal('order-discount-modal')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
       </div>
       <div class="modal-body" style="padding-top:12px;">
         <div class="form-group">
