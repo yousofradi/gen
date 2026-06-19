@@ -148,11 +148,20 @@ function renderProducts(collections) {
         </td>
         <td style="text-align: right; padding-right: 12px;">
           <div style="font-weight:700; font-size:0.95rem; margin-bottom:4px; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name || 'بدون اسم'}</div>
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div class="mobile-badges" style="align-items: center; gap: 8px; flex-wrap: wrap;">
             <div style="font-size:0.85rem; color:var(--primary); font-weight:700">${priceDisplay}</div>
             <span class="badge ${statusClass}" style="font-size: 0.65rem; padding: 1px 6px;">${statusLabel}</span>
             <span style="font-size: 0.75rem; color: #64748b;">(Qty: ${p.quantity !== null && p.quantity !== undefined ? p.quantity : '∞'})</span>
           </div>
+        </td>
+        <td class="hide-on-mobile" style="text-align: center; color: var(--primary); font-weight: 700;">
+          ${priceDisplay}
+        </td>
+        <td class="hide-on-mobile" style="text-align: center; color: #64748b; font-size: 0.9rem;">
+          ${p.quantity !== null && p.quantity !== undefined ? p.quantity : '∞'}
+        </td>
+        <td class="hide-on-mobile" style="text-align: center;">
+          <span class="badge ${statusClass}" style="font-size: 0.75rem; padding: 4px 10px;">${statusLabel}</span>
         </td>
       </tr>
     `}).join('');
