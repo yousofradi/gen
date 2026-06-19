@@ -255,13 +255,11 @@ window.updateArchiveButton = function () {
   });
 
   if (checkedCheckboxes.length > 0) {
-    if (filterBar) filterBar.style.display = 'none';
     if (bulkBar) {
       bulkBar.style.display = 'flex';
       if (countBadge) countBadge.textContent = checkedCheckboxes.length;
     }
   } else {
-    if (filterBar) filterBar.style.display = 'flex';
     if (bulkBar) bulkBar.style.display = 'none';
   }
 
