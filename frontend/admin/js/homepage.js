@@ -350,9 +350,12 @@ function renderBannerEditor(s) {
           
           <div class="form-row" style="margin-top:16px">
             <label>صورة اللافتة</label>
-            <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px">
-              <input type="text" id="ed-imageUrl" value="${s.imageUrl || ''}" placeholder="رابط الصورة https://..." dir="ltr" style="flex:1">
-              <button class="btn btn-secondary" onclick="document.getElementById('banner-upload').click()" style="padding:8px 12px; font-size:0.85rem">رفع صورة</button>
+            <div style="display:flex; gap:12px; align-items:center; justify-content:center; margin-bottom:12px">
+              <input type="hidden" id="ed-imageUrl" value="${s.imageUrl || ''}">
+              <button class="btn btn-secondary" onclick="document.getElementById('banner-upload').click()" style="padding:10px 24px; font-size:1rem; border-radius:8px; display:flex; align-items:center; gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                اضف صوره
+              </button>
               <input type="file" id="banner-upload" hidden accept="image/*" onchange="handleBannerUpload(this)">
             </div>
             <div id="banner-preview" style="text-align:center">
@@ -536,6 +539,30 @@ window.saveBannerSection = function (id) {
   renderSections();
   closeModal();
   showToast('تم الحفظ');
+};
+
+window.handleBannerUpload = async function (input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  try {
+    const origHtml = document.getElementById('banner-preview').innerHTML;
+    document.getElementById('banner-preview').innerHTML = '<div style="height:100px; display:flex; align-items:center; justify-content:center; color:#94a3b8;"><div class="spinner"></div></div>';
+    
+    const result = await api.uploadFile(file);
+    if (result && result.url) {
+      document.getElementById('ed-imageUrl').value = result.url;
+      document.getElementById('banner-preview').innerHTML = `<img src="${result.url}" style="max-width:100%;border-radius:12px;max-height:150px;box-shadow:0 4px 12px rgba(0,0,0,0.1)" onerror="this.style.display='none'">`;
+    } else {
+      document.getElementById('banner-preview').innerHTML = origHtml;
+      showToast('فشل في رفع الصورة', 'error');
+    }
+  } catch (err) {
+    console.error('Upload failed:', err);
+    showToast('فشل في رفع الصورة', 'error');
+  }
+  
+  input.value = '';
 };
 
 window.saveTextSection = function (id) {
