@@ -69,14 +69,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     window._shippingOptions = [];
   }
 
-  // Hide zone field globally because all orders go to egyptpost
+  // Zone visibility will be handled by updatePriceSummary
   const zoneGroup = document.getElementById('zone-form-group');
   const zoneInputEl = document.getElementById('zone');
-  if (zoneGroup && zoneInputEl) {
-    zoneGroup.style.display = 'none';
-    zoneInputEl.required = false;
-    zoneInputEl.value = '';
-  }
 
   renderOrderSummary(items);
   await loadCities();
@@ -254,14 +249,7 @@ async function handleGovChange() {
   renderZoneDropdown();
   updatePriceSummary();
 
-  // Show/Hide Zone Group - forced hidden because we strictly use EgyptPost
-  const zoneGroup = document.getElementById('zone-form-group');
-  const zoneInputEl = document.getElementById('zone');
-  if (zoneGroup && zoneInputEl) {
-    zoneGroup.style.display = 'none';
-    zoneInputEl.required = false;
-    zoneInputEl.value = '';
-  }
+  // Show/Hide Zone Group is handled dynamically inside updatePriceSummary
 }
 
 function renderZoneDropdown() {
@@ -352,9 +340,36 @@ function updatePriceSummary() {
 
   let shippingFee = 0;
   let resolvedCarrier = 'egyptpost';
+  let isEgyptPost = true;
+
+  if (window._enableBosta && window._enableEgyptPost) {
+    resolvedCarrier = 'bosta';
+    isEgyptPost = false;
+    if (cityName && (!window._currentZones || window._currentZones.length === 0)) {
+      resolvedCarrier = 'egyptpost';
+      isEgyptPost = true;
+    }
+  } else if (window._enableBosta) {
+    resolvedCarrier = 'bosta';
+    isEgyptPost = false;
+  } else {
+    resolvedCarrier = 'egyptpost';
+    isEgyptPost = true;
+  }
 
   window._selectedCarrier = resolvedCarrier;
-  const isEgyptPost = true;
+
+  const zoneGroup = document.getElementById('zone-form-group');
+  const zoneInputEl = document.getElementById('zone');
+  if (zoneGroup && zoneInputEl) {
+    if (isEgyptPost || !window._enableZones) {
+      zoneGroup.style.display = 'none';
+      zoneInputEl.required = false;
+    } else {
+      zoneGroup.style.display = 'block';
+      zoneInputEl.required = true;
+    }
+  }
 
   const isCityEqual = (c1, c2) => {
     if (!c1 || !c2) return false;
@@ -592,7 +607,8 @@ function setupForm() {
     const isPhone2Valid = validatePhone2();
     const isGovValid = validateGov();
     const isAddressValid = validateAddress();
-    const isValid = isNameValid && isPhoneValid && isPhone2Valid && isGovValid && isAddressValid;
+    const isZoneValid = validateZone();
+    const isValid = isNameValid && isPhoneValid && isPhone2Valid && isGovValid && isAddressValid && isZoneValid;
 
     if (!isValid) {
       const firstInvalid = form.querySelector('.invalid');
@@ -656,7 +672,7 @@ function setupForm() {
       },
       items,
       paymentMethod: payment.value,
-      carrier: 'egyptpost',
+      carrier: window._selectedCarrier || 'egyptpost',
       shippingFee: window._currentShippingFee !== undefined ? window._currentShippingFee : 0
     };
 
