@@ -41,14 +41,14 @@ const api = {
   _adminKey() { return localStorage.getItem('adminKey') || ''; },
 
   _pendingRequests: {}, // Deduplicate in-flight requests
+  _memoryCache: {}, // In-memory cache
 
   async _request(path, opts = {}) {
     const cacheKey = `api_cache_${path}`;
     if (opts.useCache) {
-      const cached = sessionStorage.getItem(cacheKey);
+      const cached = this._memoryCache[cacheKey];
       if (cached) {
-        const { data, time } = JSON.parse(cached);
-        if (Date.now() - time < 60000) return data; // 1 min cache
+        if (Date.now() - cached.time < 60000) return cached.data; // 1 min cache
       }
     }
 
@@ -67,7 +67,7 @@ const api = {
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
       if (opts.useCache) {
-        sessionStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() }));
+        this._memoryCache[cacheKey] = { data, time: Date.now() };
       }
       return data;
     })();
