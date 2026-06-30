@@ -520,8 +520,8 @@ window.shipOrders = async function () {
   }
 
   try {
-    if (typeof XLSX === 'undefined') {
-      throw new Error('مكتبة XLSX لم يتم تحميلها بشكل صحيح');
+    if (typeof ExcelJS === 'undefined') {
+      throw new Error('مكتبة ExcelJS لم يتم تحميلها بشكل صحيح');
     }
 
     const cityMap = {
@@ -536,34 +536,53 @@ window.shipOrders = async function () {
       "الوادي الجديد": "NEW VALLLEY", "شمال سيناء": "NOURTH SINAI", "جنوب سيناء": "SOUTH SINAI"
     };
 
-    const data = ordersToShip.map(o => {
+    const res = await fetch('Template.xlsx');
+    if (!res.ok) throw new Error('لم يتم العثور على ملف Template.xlsx');
+    const buffer = await res.arrayBuffer();
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    
+    // Get the first worksheet
+    const sheet = workbook.getWorksheet(1) || workbook.worksheets[0];
+    
+    // Find column mapping from row 1
+    const headers = sheet.getRow(1).values;
+    const colMap = {};
+    for (let i = 1; i < headers.length; i++) {
+      if (headers[i]) colMap[headers[i].toString().trim()] = i;
+    }
+
+    let rowIdx = 2;
+    ordersToShip.forEach(o => {
       const remainingAmount = Math.max(0, o.totalPrice - (o.paidAmount || 0));
       const secondPhone = o.customer.secondPhone || '';
       const note = `تسليم بدون بطاقة - برجاء معامله المنتج برفق قابل للكسر${secondPhone ? ' | ت: ' + secondPhone : ''}`;
       const govEn = cityMap[o.customer.government] || o.customer.government;
 
-      return {
-        "Description": "ادوات مكتبية - قابل للكسر",
-        "Total_Weight": "1600",
-        "Package_volume": "Small",
-        "COD_Value": remainingAmount,
-        "Item_Special_Notes": note,
-        "Customer_Name": o.customer.name,
-        "Mobile_No": o.customer.phone,
-        "Street": o.customer.address,
-        "City": govEn,
-        "HasPOD": "no"
-      };
+      const row = sheet.getRow(rowIdx);
+
+      if (colMap['Description']) row.getCell(colMap['Description']).value = "ادوات مكتبية - قابل للكسر";
+      if (colMap['Total_Weight']) row.getCell(colMap['Total_Weight']).value = "1600";
+      if (colMap['Package_volume']) row.getCell(colMap['Package_volume']).value = "Small";
+      if (colMap['COD_Value']) row.getCell(colMap['COD_Value']).value = remainingAmount;
+      if (colMap['Item_Special_Notes']) row.getCell(colMap['Item_Special_Notes']).value = note;
+      if (colMap['Customer_Name']) row.getCell(colMap['Customer_Name']).value = o.customer.name;
+      if (colMap['Mobile_No']) row.getCell(colMap['Mobile_No']).value = o.customer.phone;
+      if (colMap['Street']) row.getCell(colMap['Street']).value = o.customer.address;
+      if (colMap['City']) row.getCell(colMap['City']).value = govEn;
+      if (colMap['HasPOD']) row.getCell(colMap['HasPOD']).value = "no";
+      
+      rowIdx++;
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const finalBuffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([finalBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     
     const d = new Date();
     const filename = `shipments_${d.getDate()}-${d.getMonth() + 1}.xlsx`;
-    
-    XLSX.writeFile(workbook, filename);
+    saveAs(blob, filename);
+
     showToast('تم تحميل الملف بنجاح', 'success');
   } catch (err) {
     console.error(`Failed to generate excel:`, err);
