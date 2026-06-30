@@ -91,6 +91,7 @@ async function sendWebhookInner(event, data, options = {}) {
 
       await Promise.all(promises);
     }
+    } // Close if (!skipHttp)
 
     if (skipWa) return;
 
