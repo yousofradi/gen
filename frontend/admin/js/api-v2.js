@@ -283,19 +283,25 @@ window.lockScroll = function() { document.body.style.overflow = 'hidden'; };
 window.unlockScroll = function() { document.body.style.overflow = ''; };
 
 // ── Global Confirm Modal ────────────────────────────────
-window.showConfirmModal = function (title, message, isWhatsapp = false) {
+window.showConfirmModal = function (title, message, type = 'danger') {
   return new Promise((resolve) => {
     lockScroll();
     
-    const isWa = isWhatsapp || (title && (title.includes('واتساب') || title.includes('WhatsApp')));
-    const iconBg = isWa ? '#dcfce7' : '#fef2f2';
-    const iconStroke = isWa ? '#22c55e' : '#ef4444';
-    const confirmBg = isWa ? '#22c55e' : '#ef4444';
-    const confirmHoverBg = isWa ? '#16a34a' : '#dc2626';
-    
-    const iconSvg = isWa 
-      ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${iconStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>`
-      : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${iconStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+    const isWa = type === true || (title && (title.includes('واتساب') || title.includes('WhatsApp')));
+    if (isWa) type = 'whatsapp';
+
+    let iconBg, iconStroke, confirmBg, confirmHoverBg, iconSvg;
+
+    if (type === 'whatsapp') {
+      iconBg = '#dcfce7'; iconStroke = '#22c55e'; confirmBg = '#22c55e';
+      iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${iconStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>`;
+    } else if (type === 'info') {
+      iconBg = '#e0f2fe'; iconStroke = '#0ea5e9'; confirmBg = '#0ea5e9';
+      iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${iconStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+    } else {
+      iconBg = '#fef2f2'; iconStroke = '#ef4444'; confirmBg = '#ef4444';
+      iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${iconStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+    }
 
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';

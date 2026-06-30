@@ -511,7 +511,7 @@ window.shipOrders = async function () {
     return;
   }
 
-  const confirmed = await window.showConfirmModal('تأكيد التحميل', `هل تريد تحميل ملف الشحنات لعدد ${ordersToShip.length} طلبات؟`);
+  const confirmed = await window.showConfirmModal('تأكيد التحميل', `هل تريد تحميل ملف الشحنات لعدد ${ordersToShip.length} طلبات؟`, 'info');
   if (!confirmed) return;
 
   if (btn) {
