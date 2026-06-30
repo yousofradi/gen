@@ -474,7 +474,8 @@ window.printInvoices = async function () {
     const downloadUrl = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = `bulk-invoices-${new Date().toISOString().split('T')[0]}.pdf`;
+    const d = new Date();
+    a.download = `ShippmentsOf_${d.getDate()}-${d.getMonth() + 1}.pdf`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(downloadUrl);
@@ -498,8 +499,6 @@ window.shipOrders = async function () {
   const btn = document.getElementById('ship-orders-btn');
   const originalHtml = btn ? btn.innerHTML : 'شحن الطلبات';
 
-  // Filter for "active and paid" orders (Full or Partial) that don't have a Bosta ID yet
-  // Exclude cancelled and archived orders
   const ordersToShip = allOrdersData.filter(o => 
     o.status !== 'cancelled' && 
     o.status !== 'archived' &&
@@ -512,7 +511,7 @@ window.shipOrders = async function () {
     return;
   }
 
-  const confirmed = await window.showConfirmModal('تأكيد الشحن', `هل تريد شحن ${ordersToShip.length} طلبات عبر Bosta؟`);
+  const confirmed = await window.showConfirmModal('تأكيد التحميل', `هل تريد تحميل ملف الشحنات لعدد ${ordersToShip.length} طلبات؟`);
   if (!confirmed) return;
 
   if (btn) {
@@ -521,18 +520,58 @@ window.shipOrders = async function () {
   }
 
   try {
-    const orderIds = ordersToShip.map(o => o.orderId);
-    const result = await api.shipOrdersBulk(orderIds);
-    showToast('تم شحن الطلبات بنجاح', 'success');
+    if (typeof XLSX === 'undefined') {
+      throw new Error('مكتبة XLSX لم يتم تحميلها بشكل صحيح');
+    }
+
+    const cityMap = {
+      "القاهره": "CAIRO", "الجيزه": "GIZA", "الإسكندريه": "ALEXANDRIA",
+      "البحيره": "BEHIRA", "القليوبيه": "QALIUBIA", "الغربيه": "GHARBIA",
+      "المنوفيه": "MONOUFIA", "دمياط": "DOMITTA", "الدقهليه": "DAKAHLIA",
+      "كفر الشيخ": "KAFR EL SHEIKH", "مطروح": "MARSA MATROUH", "الإسماعيليه": "ISMAILIA",
+      "السويس": "SUEZ", "بور سعيد": "PORT SAID", "الشرقيه": "SHARKIA",
+      "الفيوم": "FAYOUM", "بني سويف": "BANI SWEIF", "المنيا": "MENIA",
+      "اسيوط": "ASSIUT", "سوهاج": "SOUHAGE", "قنا": "QENA",
+      "اسوان": "ASWAN", "الاقصر": "LOUXOR", "البحر الاحمر": "RED SEA",
+      "الوادي الجديد": "NEW VALLLEY", "شمال سيناء": "NOURTH SINAI", "جنوب سيناء": "SOUTH SINAI"
+    };
+
+    const data = ordersToShip.map(o => {
+      const remainingAmount = Math.max(0, o.totalPrice - (o.paidAmount || 0));
+      const secondPhone = o.customer.secondPhone || '';
+      const note = `تسليم بدون بطاقة - برجاء معامله المنتج برفق قابل للكسر${secondPhone ? ' | ت: ' + secondPhone : ''}`;
+      const govEn = cityMap[o.customer.government] || o.customer.government;
+
+      return {
+        "Description": "ادوات مكتبية - قابل للكسر",
+        "Total_Weight": "1600",
+        "Package_volume": "Small",
+        "COD_Value": remainingAmount,
+        "Item_Special_Notes": note,
+        "Customer_Name": o.customer.name,
+        "Mobile_No": o.customer.phone,
+        "Street": o.customer.address,
+        "City": govEn,
+        "HasPOD": "no"
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    
+    const d = new Date();
+    const filename = `shipments_${d.getDate()}-${d.getMonth() + 1}.xlsx`;
+    
+    XLSX.writeFile(workbook, filename);
+    showToast('تم تحميل الملف بنجاح', 'success');
   } catch (err) {
-    console.error(`Failed to ship orders bulk:`, err);
-    showToast(err.message || 'فشل شحن الطلبات', 'error');
+    console.error(`Failed to generate excel:`, err);
+    showToast(err.message || 'فشل تحميل الملف', 'error');
   }
 
   if (btn) {
     btn.innerHTML = originalHtml;
     btn.disabled = false;
   }
-
-  loadOrders();
 };

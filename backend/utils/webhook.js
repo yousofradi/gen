@@ -25,15 +25,19 @@ const helpers = {
   }
 };
 
-async function sendWebhook(event, data) {
+async function sendWebhook(event, data, options = {}) {
   const context = { helpers };
-  return sendWebhookInner.call(context, event, data);
+  return sendWebhookInner.call(context, event, data, options);
 }
 
-async function sendWebhookInner(event, data) {
+async function sendWebhookInner(event, data, options = {}) {
   try {
-    const webhooks = await Webhook.find({ active: true, events: event });
-    console.log(`[Webhook] Found ${webhooks.length} active webhooks for event: ${event}`);
+    const skipHttp = options.whatsappOnly === true;
+    const skipWa = options.webhookOnly === true;
+
+    if (!skipHttp) {
+      const webhooks = await Webhook.find({ active: true, events: event });
+      console.log(`[Webhook] Found ${webhooks.length} active webhooks for event: ${event}`);
 
     if (webhooks.length > 0) {
       // Calculate subamount if needed
@@ -62,7 +66,9 @@ async function sendWebhookInner(event, data) {
         "total amount": data.totalPrice,
         "paid amount": data.paidAmount || 0,
         "remaining amount": data.totalPrice - (data.paidAmount || 0),
-        "products": products
+        "products": products,
+        "Month": new Date().toLocaleString('en-US', { month: 'long' }),
+        "month_number": new Date().getMonth() + 1
       };
 
       const payload = JSON.stringify({
@@ -85,6 +91,8 @@ async function sendWebhookInner(event, data) {
 
       await Promise.all(promises);
     }
+
+    if (skipWa) return;
 
     // ── WhatsApp Notification ──
     try {

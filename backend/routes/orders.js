@@ -51,12 +51,12 @@ router.post('/', async (req, res) => {
     // Respect explicitly provided carrier, or check if the selected zone is a non-Bosta zone (Egyptpost)
     let carrier = req.body.carrier || 'bosta';
     let shippingFee = providedShippingFee !== undefined ? Number(providedShippingFee) : 0;
-    
+
     try {
       const Setting = require('../models/Setting');
       const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
       const settingsVal = globalSettings ? globalSettings.value : {};
-      
+
       const enableBosta = settingsVal.enableBosta !== false;
       const enableEgyptPost = settingsVal.enableEgyptPost !== false;
       const enableZones = settingsVal.enableZones !== false;
@@ -79,10 +79,10 @@ router.post('/', async (req, res) => {
 
       const Shipping = require('../models/Shipping');
       const record = await Shipping.findOne({ $or: [{ city: customer.government }, { cityOtherName: customer.government }] });
-      
+
       if (record) {
         let resolvedCarrier = 'bosta';
-        
+
         if (enableZones && customer.zone && record.zones && record.zones.length > 0) {
           const zoneRecord = record.zones.find(z => {
             const compound = formatZoneName(z);
@@ -101,7 +101,7 @@ router.post('/', async (req, res) => {
             resolvedCarrier = carrier || 'bosta';
           }
         }
-        
+
         carrier = resolvedCarrier;
 
         if (providedShippingFee === undefined) {
@@ -109,24 +109,24 @@ router.post('/', async (req, res) => {
           const cityName = record.cityOtherName || record.city;
 
           if (isEgyptPost) {
-            const postOption = (shippingOptions || []).find(o => 
+            const postOption = (shippingOptions || []).find(o =>
               o.name.includes('البريد') || o.name.toLowerCase().includes('post')
             ) || (shippingOptions || [])[0];
-            
-            const cityObj = postOption ? (postOption.cities || []).find(c => 
-              isCityEqual(c.city, cityName) || 
-              isCityEqual(c.city, record.city) || 
+
+            const cityObj = postOption ? (postOption.cities || []).find(c =>
+              isCityEqual(c.city, cityName) ||
+              isCityEqual(c.city, record.city) ||
               isCityEqual(c.city, record.cityOtherName)
             ) : null;
             shippingFee = cityObj ? cityObj.fee : (postOption ? postOption.cost : 80);
           } else {
-            const bostaOption = (shippingOptions || []).find(o => 
+            const bostaOption = (shippingOptions || []).find(o =>
               o.name.includes('بوسطة') || o.name.toLowerCase().includes('bosta')
             ) || (shippingOptions || [])[1] || (shippingOptions || [])[0];
-            
-            const cityObj = bostaOption ? (bostaOption.cities || []).find(c => 
-              isCityEqual(c.city, cityName) || 
-              isCityEqual(c.city, record.city) || 
+
+            const cityObj = bostaOption ? (bostaOption.cities || []).find(c =>
+              isCityEqual(c.city, cityName) ||
+              isCityEqual(c.city, record.city) ||
               isCityEqual(c.city, record.cityOtherName)
             ) : null;
             shippingFee = cityObj ? cityObj.fee : (bostaOption ? bostaOption.cost : 150);
@@ -172,8 +172,8 @@ router.post('/', async (req, res) => {
     });
 
     await order.save();
-    
-    
+
+
     // Decrease stock
     for (const item of items) {
       try {
@@ -211,7 +211,7 @@ router.get('/public/:orderId', async (req, res) => {
 // GET /api/orders/bulk/download-pdf — Bulk PDF download using PDFBolt
 router.get('/bulk/download-pdf', adminAuth, async (req, res) => {
   try {
-    const orders = await Order.find({ archived: { $ne: true }, status: { $ne: 'cancelled' } }).sort({ createdAt: 1 });
+    const orders = await Order.find({ archived: { $ne: true }, status: { $ne: 'cancelled' }, paidAmount: { $gt: 0 } }).sort({ createdAt: 1 });
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
@@ -326,7 +326,9 @@ ${pagesHtml}
     const pdfBuffer = await response.arrayBuffer();
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=all-invoices.pdf`);
+    const d = new Date();
+    const filename = `Invoices_${d.getDate()}-${d.getMonth() + 1}.pdf`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(Buffer.from(pdfBuffer));
 
   } catch (err) {
@@ -335,10 +337,9 @@ ${pagesHtml}
   }
 });
 
-// GET /api/orders/bulk/invoice-html — Bulk invoice HTML (completely free and unlimited, used by html2pdf client-side)
 router.get('/bulk/invoice-html', adminAuth, async (req, res) => {
   try {
-    const orders = await Order.find({ archived: { $ne: true }, status: { $ne: 'cancelled' } }).sort({ createdAt: -1 });
+    const orders = await Order.find({ archived: { $ne: true }, status: { $ne: 'cancelled' }, paidAmount: { $gt: 0 } }).sort({ createdAt: -1 });
     const Setting = require('../models/Setting');
     const globalSettings = await Setting.findOne({ key: 'sundura_global_settings' });
     const settings = globalSettings ? globalSettings.value : {};
@@ -676,7 +677,7 @@ router.post('/activate/batch', adminAuth, async (req, res) => {
   try {
     const { orderIds } = req.body;
     if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
-    
+
     // Deduct stock for each order before activating (re-reserving stock)
     for (const id of orderIds) {
       const order = await Order.findOne({ orderId: id });
@@ -700,7 +701,7 @@ router.post('/cancel/batch', adminAuth, async (req, res) => {
   try {
     const { orderIds } = req.body;
     if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
-    
+
     // Restore stock for each order before cancelling
     for (const id of orderIds) {
       const order = await Order.findOne({ orderId: id });
@@ -793,8 +794,8 @@ router.post('/bulk/ship', adminAuth, async (req, res) => {
     const { orderIds } = req.body;
     if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
 
-    const orders = await Order.find({ 
-      orderId: { $in: orderIds }, 
+    const orders = await Order.find({
+      orderId: { $in: orderIds },
       bostaDeliveryId: { $exists: false },
       carrier: { $ne: 'egyptpost' }
     });
@@ -895,13 +896,26 @@ router.put('/:orderId', adminAuth, async (req, res) => {
     res.json(updatedOrder);
 
     // 4. Trigger Webhooks (WhatsApp, etc.) - Background
-    if (updatedOrder && (updates.forcePaymentWebhook || (!order.paid && updatedOrder.paid))) {
-      // Fire and forget, but with its own error handling to avoid "headers already sent"
+    if (updatedOrder) {
       (async () => {
         try {
           const event = (updatedOrder.paidAmount > 0) ? 'order.paid' : 'order.created';
-          console.log(`[Webhook] Force triggering ${event} for order ${updatedOrder.orderId}`);
-          await sendWebhook(event, updatedOrder.toObject());
+          const isNewlyPaid = !order.paid && updatedOrder.paid;
+
+          if (updates.forcePaymentWebhook) {
+            console.log(`[Webhook] Force triggering WhatsApp for ${event} - order ${updatedOrder.orderId}`);
+            await sendWebhook(event, updatedOrder.toObject(), { whatsappOnly: true });
+          } else {
+            // Normal update: Always send HTTP Webhook for the update
+            // Also if it just became paid, trigger the order.paid event for both WhatsApp and Webhook
+            console.log(`[Webhook] Triggering update webhook for order ${updatedOrder.orderId}`);
+            await sendWebhook('order.updated', updatedOrder.toObject(), { webhookOnly: true });
+
+            if (isNewlyPaid) {
+              console.log(`[Webhook] Triggering order.paid for order ${updatedOrder.orderId}`);
+              await sendWebhook('order.paid', updatedOrder.toObject());
+            }
+          }
         } catch (whErr) {
           console.error('[Webhook] Background trigger failed:', whErr.message);
         }
