@@ -555,7 +555,12 @@ window.shipOrders = async function () {
 
     let rowIdx = 2;
     ordersToShip.forEach(o => {
-      const remainingAmount = Math.max(0, o.totalPrice - (o.paidAmount || 0));
+      let remainingAmount = Math.max(0, o.totalPrice - (o.paidAmount || 0));
+      if (remainingAmount > 0) {
+        const codFee = Math.max(remainingAmount * 0.01, 10);
+        remainingAmount = Math.ceil((remainingAmount + codFee) / 5) * 5;
+      }
+
       const secondPhone = o.customer.secondPhone || '';
       const note = `تسليم بدون بطاقة - برجاء معامله المنتج برفق قابل للكسر${secondPhone ? ' | ت: ' + secondPhone : ''}`;
       const govEn = cityMap[o.customer.government] || o.customer.government;
