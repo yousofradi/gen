@@ -903,8 +903,8 @@ router.put('/:orderId', adminAuth, async (req, res) => {
           const isNewlyPaid = !order.paid && updatedOrder.paid;
 
           if (updates.forcePaymentWebhook) {
-            console.log(`[Webhook] Force triggering WhatsApp for ${event} - order ${updatedOrder.orderId}`);
-            await sendWebhook(event, updatedOrder.toObject(), { whatsappOnly: true });
+            console.log(`[Webhook] Force triggering webhooks and WhatsApp for ${event} - order ${updatedOrder.orderId}`);
+            await sendWebhook(event, updatedOrder.toObject());
           } else {
             // Normal update: Always send HTTP Webhook for the update
             // Also if it just became paid, trigger the order.paid event for both WhatsApp and Webhook
