@@ -7,11 +7,11 @@
 
 
   const apply = () => {
-    if (cachedName) {
-      document.querySelectorAll('.store-name-text').forEach(el => el.textContent = cachedName);
+    if (cachedName || true) { // Always execute
+      document.querySelectorAll('.store-name-text').forEach(el => el.textContent = 'SunduraShop');
       if (document.title.includes('—')) {
         const parts = document.title.split('—');
-        document.title = parts[0].trim() + ' — ' + cachedName;
+        document.title = parts[0].trim() + ' — SunduraShop';
       }
     }
     if (cachedColor) {
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (settings.storeUrl) localStorage.setItem('sundura_store_url', settings.storeUrl);
       if (settings.storeName) {
         localStorage.setItem('sundura_store_name', settings.storeName);
-        document.querySelectorAll('.store-name-text').forEach(el => el.textContent = settings.storeName);
+        document.querySelectorAll('.store-name-text').forEach(el => el.textContent = 'SunduraShop');
       }
 
       if (settings.storeUrl) {
@@ -433,29 +433,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       // 3. Store Name & Titles
-      if (settings.storeName) {
+      if (settings.storeName || true) {
         // Handle title updates with different separators (|, —)
         const separators = ['|', '—', '-'];
         let updated = false;
         for (const sep of separators) {
           if (document.title.includes(sep)) {
             const parts = document.title.split(sep);
-            document.title = parts[0].trim() + ' ' + sep + ' ' + settings.storeName;
+            document.title = parts[0].trim() + ' ' + sep + ' SunduraShop';
             updated = true;
             break;
           }
         }
         if (!updated) {
-          document.title = settings.storeName;
+          document.title = 'SunduraShop';
         }
 
         const adminBrand = document.querySelector('.admin-brand-title');
-        if (adminBrand) adminBrand.textContent = settings.storeName;
+        if (adminBrand) adminBrand.textContent = 'SunduraShop';
 
         // Update any generic placeholders in the DOM
         document.querySelectorAll('.store-name-text').forEach(el => {
-          if (el.tagName === 'INPUT') el.value = settings.storeName;
-          else el.textContent = settings.storeName;
+          if (el.tagName === 'INPUT') el.value = 'SunduraShop';
+          else el.textContent = 'SunduraShop';
         });
 
         // 3.1 SEO Meta Tags

@@ -39,7 +39,7 @@ function resolveShippingDetails(cityName, zoneName, forcedCarrier) {
   };
 
   let carrier = forcedCarrier || 'bosta';
-  let govData = (window._fullShippingData || []).find(s => 
+  let govData = (window._fullShippingData || []).find(s =>
     isCityEqual(s.city, cityName) || isCityEqual(s.cityOtherName, cityName)
   );
 
@@ -58,7 +58,7 @@ function resolveShippingDetails(cityName, zoneName, forcedCarrier) {
     if (!forcedCarrier && selectedOption) {
       carrier = getCarrierInternalValue(selectedOption.name);
     }
-    const cityObj = selectedOption ? (selectedOption.cities || []).find(c => 
+    const cityObj = selectedOption ? (selectedOption.cities || []).find(c =>
       isCityEqual(c.city, cityName)
     ) : null;
     fee = cityObj ? cityObj.fee : (selectedOption ? selectedOption.cost : 0);
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const result = await api.shipOrdersBulk([orderId]);
       if (result && result.count > 0) {
         showToast('تم شحن الاوردر بنجاح', 'success');
-        
+
         // Reload order data after a brief delay to show new status and tracking number
         setTimeout(() => window.location.reload(), 1000);
       } else {
@@ -283,10 +283,28 @@ function renderOrder() {
     document.getElementById('page-order-id').innerHTML += ' <span class="badge badge-danger">ملغي</span>';
   }
 
-  // Ready button visibility: only show if pending
+  // Ready button visibility: show if pending or ready
   const readyBtnContainer = document.getElementById('ready-btn-container');
   if (readyBtnContainer) {
-    readyBtnContainer.style.display = o.status === 'pending' ? 'block' : 'none';
+    if (o.status === 'pending' || o.status === 'ready') {
+      readyBtnContainer.style.display = 'block';
+      const btn = document.getElementById('btn-make-ready');
+      if (btn) {
+        if (o.status === 'ready') {
+          btn.textContent = 'إلغاء التجهيز';
+          btn.style.background = '#f59e0b';
+          btn.style.color = '#fff';
+          btn.setAttribute('onclick', 'markAsUnready()');
+        } else {
+          btn.textContent = 'جاهز';
+          btn.style.background = '#0f766e';
+          btn.style.color = '#fff';
+          btn.setAttribute('onclick', 'markAsReady()');
+        }
+      }
+    } else {
+      readyBtnContainer.style.display = 'none';
+    }
   }
   if (o.status === 'ready') {
     document.getElementById('page-order-id').innerHTML += ' <span class="badge badge-success" style="background:#0f766e; color:#fff; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; margin-right:8px;">جاهز</span>';
@@ -306,7 +324,7 @@ function renderOrder() {
 
   // Shipping Info
   document.getElementById('view-c-address').textContent = o.customer.address || 'لا يوجد عنوان';
-  
+
   const govEl = document.getElementById('view-c-gov');
   govEl.textContent = o.customer.government || 'لا يوجد محافظة';
   if (o.carrier === 'egyptpost') {
@@ -386,12 +404,12 @@ function renderItems() {
         finalImageUrl = matchingVariant.imageUrl;
       }
     }
-    
+
     // Fall back to product base image url
     if (!finalImageUrl && p) {
       finalImageUrl = p.imageUrl;
     }
-    
+
     // Fall back to order item's original imageUrl
     if (!finalImageUrl) {
       finalImageUrl = item.imageUrl;
@@ -412,10 +430,10 @@ function renderItems() {
             <div style="text-align: right; display: flex; flex-direction: column; justify-content: center;">
               <div style="font-weight: 700; font-size: 13px; color: #1e293b; line-height: 1.2;">${item.name}</div>
               ${optText ? `<div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${optText}</div>` : ''}
-              ${item.discount ? (item.discount > 0 
-                ? `<div style="font-size:0.75rem; color:#dc2626; margin-top:4px; font-weight:600;">خصم: ${formatPrice(item.discount)}</div>` 
-                : `<div style="font-size:0.75rem; color:#10b981; margin-top:4px; font-weight:600;">زياده ${Math.abs(item.discount)} ج.م</div>`
-              ) : ''}
+              ${item.discount ? (item.discount > 0
+        ? `<div style="font-size:0.75rem; color:#dc2626; margin-top:4px; font-weight:600;">خصم: ${formatPrice(item.discount)}</div>`
+        : `<div style="font-size:0.75rem; color:#10b981; margin-top:4px; font-weight:600;">زياده ${Math.abs(item.discount)} ج.م</div>`
+      ) : ''}
               ${lowStock ? `<div style="font-size:0.75rem; color:#ef4444; margin-top:4px; font-weight:600; background:#fee2e2; padding:2px 8px; border-radius:4px; display:inline-block;">عذراً، يتوفر ${available} قطعة فقط</div>` : ''}
             </div>
 
@@ -555,7 +573,7 @@ window.openCustomerModal = function () {
         return `<option value="${val}">${o.name}</option>`;
       }).join('');
     }
-    
+
     // Set current value
     const currentVal = currentOrder.carrier || 'bosta';
     const matchingOpt = Array.from(carrierSelect.options).find(opt => opt.value === currentVal);
@@ -574,7 +592,7 @@ window.openCustomerModal = function () {
   document.getElementById('modal-c-zone').value = currentOrder.customer.zone || '';
   document.getElementById('modal-c-address').value = currentOrder.customer.address || '';
   document.getElementById('modal-c-notes').value = currentOrder.customer.notes || '';
-  
+
   openModal('customer-modal');
 
   // Load the zones in the background without blocking the UI
@@ -607,7 +625,7 @@ window.handleModalCityChange = async function (skipZoneClear = false) {
   renderModalZoneDropdown();
 };
 
-window.handleModalCarrierChange = function() {
+window.handleModalCarrierChange = function () {
   const carrier = document.getElementById('modal-c-carrier')?.value || 'bosta';
   const zoneContainer = document.getElementById('modal-c-zone-container');
   if (zoneContainer) {
@@ -843,12 +861,12 @@ window.openItemDiscountModal = function (idx) {
 window.previewItemDiscount = function () {
   const val = parseFloat(document.getElementById('modal-item-discount').value) || 0;
   const preview = document.getElementById('discount-preview');
-  
+
   if (val === 0 || isNaN(val)) {
     preview.style.display = 'none';
     return;
   }
-  
+
   preview.style.display = 'block';
   if (val > 0) {
     preview.textContent = `خصم: ${val.toLocaleString('ar-EG')} ج.م`;
@@ -862,7 +880,7 @@ window.previewItemDiscount = function () {
 window.applyItemDiscount = async function (type) {
   const idx = parseInt(document.getElementById('modal-item-idx').value, 10);
   const val = parseFloat(document.getElementById('modal-item-discount').value) || 0;
-  
+
   if (currentOrder.items[idx]) {
     if (type === 'discount') {
       // خصم: store as positive value (will be subtracted)
@@ -974,7 +992,7 @@ window.markFullyPaid = async function (btn) {
 
 window.saveOrderChanges = async function (silent = false) {
   if (isSaving) return false;
-  
+
   const btn = document.getElementById('save-all-btn');
   const originalText = btn ? btn.textContent : '';
 
@@ -1193,7 +1211,7 @@ window.renderModalProducts = function () {
     }
 
     let variantsHtml = '';
-    
+
     if (p.variants && p.variants.length > 0) {
       variantsHtml = p.variants
         .filter(v => v.active !== false && (v.quantity === null || v.quantity > 0))
@@ -1205,7 +1223,7 @@ window.renderModalProducts = function () {
           const finalPrice = (v.salePrice !== null && v.salePrice !== undefined) ? v.salePrice : v.price;
           const comboStr = encodeURIComponent(JSON.stringify(comboList));
           const vKey = `${p._id}-${comboStr}`;
-          
+
           return `
             <label class="product-variant-item" style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--border-color); background:rgba(0,0,0,0.02); cursor:pointer; padding-right:48px; transition: background 0.2s;">
               <div style="display:flex; align-items:center; gap:12px;">
@@ -1354,7 +1372,7 @@ window.toggleDetailsMenu = function (e) {
 window.archiveCurrentOrder = async function (btn) {
   const confirmed = await window.showConfirmModal('تأكيد الأرشفة', 'هل أنت متأكد من أرشفة هذا الطلب؟');
   if (!confirmed) return;
-  
+
   try {
     document.body.classList.add('is-loading');
     await api.archiveOrders([currentOrder.orderId]);
@@ -1370,7 +1388,7 @@ window.archiveCurrentOrder = async function (btn) {
 window.deleteCurrentOrder = async function (btn) {
   const confirmed = await window.showConfirmModal('تأكيد الحذف', 'سيتم حذف هذا الطلب نهائياً. هل أنت متأكد؟');
   if (!confirmed) return;
-  
+
   try {
     document.body.classList.add('is-loading');
     await api.deleteOrder(currentOrder.orderId);
