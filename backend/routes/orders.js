@@ -81,7 +81,7 @@ router.post('/', async (req, res) => {
       const record = await Shipping.findOne({ $or: [{ city: customer.government }, { cityOtherName: customer.government }] });
 
       if (record) {
-        let resolvedCarrier = 'bosta';
+        let resolvedCarrier = carrier || 'bosta';
 
         if (enableZones && customer.zone && record.zones && record.zones.length > 0) {
           const zoneRecord = record.zones.find(z => {
@@ -91,15 +91,17 @@ router.post('/', async (req, res) => {
           if (!zoneRecord || zoneRecord.dropOffAvailability === false || zoneRecord.bostaAvailable === false) {
             resolvedCarrier = 'egyptpost';
           } else {
-            resolvedCarrier = 'bosta';
-          }
-        } else {
-          // If zones are disabled, resolve based on global carrier switches
-          if (!enableBosta) {
-            resolvedCarrier = 'egyptpost';
-          } else {
             resolvedCarrier = carrier || 'bosta';
           }
+        } else {
+          resolvedCarrier = carrier || 'bosta';
+        }
+
+        // Global overrides take precedence
+        if (!enableBosta) {
+          resolvedCarrier = 'egyptpost';
+        } else if (typeof enableEgyptPost !== 'undefined' && !enableEgyptPost && resolvedCarrier === 'egyptpost') {
+          resolvedCarrier = 'bosta';
         }
 
         carrier = resolvedCarrier;
