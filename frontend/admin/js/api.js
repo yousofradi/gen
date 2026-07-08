@@ -235,6 +235,20 @@ const api = {
     });
   },
 
+  async markOrdersShippedBatch(orderIds) {
+    return await this._request('/orders/ship/batch', {
+      method: 'POST',
+      body: JSON.stringify({ orderIds })
+    });
+  },
+
+  async unmarkOrdersShippedBatch(orderIds) {
+    return await this._request('/orders/unship/batch', {
+      method: 'POST',
+      body: JSON.stringify({ orderIds })
+    });
+  },
+
   formatZoneName(z) {
     if (!z) return '';
     const main = (z.zoneOtherName || z.otherName || z.name || '').trim();

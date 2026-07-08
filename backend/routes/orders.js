@@ -790,6 +790,32 @@ router.post('/:orderId/cancel', adminAuth, async (req, res) => {
   }
 });
 
+// POST /api/orders/ship/batch — mark multiple orders as shipped
+router.post('/ship/batch', adminAuth, async (req, res) => {
+  try {
+    const { orderIds } = req.body;
+    if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
+
+    await Order.updateMany({ orderId: { $in: orderIds }, status: { $ne: 'cancelled' } }, { $set: { status: 'shipped' } });
+    res.json({ message: 'Orders marked as shipped' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to mark orders as shipped' });
+  }
+});
+
+// POST /api/orders/unship/batch — unmark multiple orders as shipped (revert to ready or pending)
+router.post('/unship/batch', adminAuth, async (req, res) => {
+  try {
+    const { orderIds } = req.body;
+    if (!Array.isArray(orderIds)) return res.status(400).json({ error: 'orderIds must be an array' });
+
+    await Order.updateMany({ orderId: { $in: orderIds }, status: 'shipped' }, { $set: { status: 'ready' } });
+    res.json({ message: 'Orders unshipped' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to unship orders' });
+  }
+});
+
 // POST /api/orders/bulk/ship — ship multiple orders via Bosta Bulk API
 router.post('/bulk/ship', adminAuth, async (req, res) => {
   try {

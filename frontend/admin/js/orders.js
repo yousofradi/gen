@@ -76,10 +76,10 @@ window.filterOrdersClient = function () {
     filtered = filtered.filter(o => o.status === 'pending' && (o.paid || o.paidAmount > 0));
   } else if (currentFilter === 'ready') {
     filtered = filtered.filter(o => o.status === 'ready');
-  } else if (currentFilter === 'paid') {
-    filtered = filtered.filter(o => o.paid || o.paidAmount > 0);
+  } else if (currentFilter === 'shipped') {
+    filtered = filtered.filter(o => o.status === 'shipped');
   } else if (currentFilter === 'unpaid') {
-    filtered = filtered.filter(o => !o.paid && (!o.paidAmount || o.paidAmount === 0));
+    filtered = filtered.filter(o => !o.paid && (!o.paidAmount || o.paidAmount === 0) && o.status !== 'shipped');
   }
 
   if (query) {
@@ -139,14 +139,14 @@ window.updateFilterCounts = function () {
     const elAll = document.getElementById('count-all');
     const elPending = document.getElementById('count-pending');
     const elReady = document.getElementById('count-ready');
-    const elPaid = document.getElementById('count-paid');
+    const elShipped = document.getElementById('count-shipped');
     const elUnpaid = document.getElementById('count-unpaid');
 
     if (elAll) elAll.textContent = allOrdersData.length;
     if (elPending) elPending.textContent = allOrdersData.filter(o => o.status === 'pending' && (o.paid || o.paidAmount > 0)).length;
     if (elReady) elReady.textContent = allOrdersData.filter(o => o.status === 'ready').length;
-    if (elPaid) elPaid.textContent = allOrdersData.filter(o => o.paid || o.paidAmount > 0).length;
-    if (elUnpaid) elUnpaid.textContent = allOrdersData.filter(o => !o.paid && (!o.paidAmount || o.paidAmount === 0)).length;
+    if (elShipped) elShipped.textContent = allOrdersData.filter(o => o.status === 'shipped').length;
+    if (elUnpaid) elUnpaid.textContent = allOrdersData.filter(o => !o.paid && (!o.paidAmount || o.paidAmount === 0) && o.status !== 'shipped').length;
   }
 
   // Show number only for active tab
@@ -198,6 +198,8 @@ function renderOrders(orders) {
     let statusBadge = '';
     if (o.status === 'cancelled') {
       statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#fee2e2; color:#dc2626; font-size:0.85rem; font-weight:600;">ملغي</span>`;
+    } else if (o.status === 'shipped') {
+      statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#e0e7ff; color:#4338ca; font-size:0.85rem; font-weight:600;">تم الشحن</span>`;
     } else if (o.paid) {
       statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#dcfce7; color:#16a34a; font-size:0.85rem; font-weight:600;">مدفوع <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><polyline points="20 6 9 17 4 12"/></svg></span>`;
     } else if (o.paidAmount > 0) {
@@ -338,6 +340,46 @@ window.updateArchiveButton = function () {
       `;
     }
   }
+
+  // Handle Ship vs Unship
+  const shipBtn = document.getElementById('bulk-ship-btn');
+  if (shipBtn) {
+    const selectedOrderIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+    const selectedOrders = allOrdersData.filter(o => selectedOrderIds.includes(o.orderId));
+    
+    // Only show if ALL selected are (paid or partially paid) and NOT cancelled
+    const canShip = selectedOrders.length > 0 && selectedOrders.every(o => (o.paid || o.paidAmount > 0) && o.status !== 'cancelled');
+    
+    if (!canShip) {
+      shipBtn.style.display = 'none';
+    } else {
+      shipBtn.style.display = 'flex';
+      const allShipped = selectedOrders.every(o => o.status === 'shipped');
+      if (allShipped) {
+        shipBtn.setAttribute('onclick', "bulkAction('unship')");
+        shipBtn.classList.add('danger');
+        shipBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+          <span>إلغاء الشحن</span>
+        `;
+      } else {
+        shipBtn.setAttribute('onclick', "bulkAction('ship')");
+        shipBtn.classList.remove('danger');
+        shipBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="3" width="15" height="13" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
+          <span>تم الشحن</span>
+        `;
+      }
+    }
+  }
 };
 
 window.toggleBulkMenu = function (event) {
@@ -381,6 +423,26 @@ window.bulkAction = async function (action) {
       loadOrders();
     } catch (err) {
       showToast(err.message || 'فشل إلغاء الطلبات', 'error');
+    }
+  } else if (action === 'ship') {
+    const confirmed = await window.showConfirmModal('شحن الطلبات', `هل أنت متأكد من تحديد ${orderIds.length} طلبات كتم الشحن؟`);
+    if (!confirmed) return;
+    try {
+      await api.markOrdersShippedBatch(orderIds);
+      showToast('تم تحديد الطلبات كـ "تم الشحن" بنجاح', 'success');
+      loadOrders();
+    } catch (err) {
+      showToast(err.message || 'فشل تحديد الطلبات كتم الشحن', 'error');
+    }
+  } else if (action === 'unship') {
+    const confirmed = await window.showConfirmModal('إلغاء الشحن', `هل أنت متأكد من إلغاء شحن ${orderIds.length} طلبات؟`);
+    if (!confirmed) return;
+    try {
+      await api.unmarkOrdersShippedBatch(orderIds);
+      showToast('تم إلغاء حالة "تم الشحن" بنجاح', 'success');
+      loadOrders();
+    } catch (err) {
+      showToast(err.message || 'فشل إلغاء الشحن', 'error');
     }
   } else if (action === 'activate') {
     const confirmed = await window.showConfirmModal('تنشيط الطلبات', `هل أنت متأكد من تنشيط ${orderIds.length} طلبات؟`);
