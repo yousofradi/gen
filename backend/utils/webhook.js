@@ -372,6 +372,8 @@ ${shortLink}`;
                     html: fullHtml,
                     type: 'png',
                     width: 500,
+                    height: 200,
+                    full_page: true,
                     fullPage: true,
                     omitBackground: true,
                     selector: '.invoice',

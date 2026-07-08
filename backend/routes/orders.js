@@ -511,6 +511,8 @@ html, body { margin: 0; padding: 0; background: #fff; display: inline-block; }
         html: fullHtml,
         type: 'png',
         width: 500,
+        height: 200,
+        full_page: true,
         fullPage: true,
         omitBackground: true,
         selector: '.invoice',
