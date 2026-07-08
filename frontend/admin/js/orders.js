@@ -425,7 +425,7 @@ window.bulkAction = async function (action) {
       showToast(err.message || 'فشل إلغاء الطلبات', 'error');
     }
   } else if (action === 'ship') {
-    const confirmed = await window.showConfirmModal('شحن الطلبات', `هل أنت متأكد من تحديد ${orderIds.length} طلبات كتم الشحن؟`);
+    const confirmed = await window.showConfirmModal('شحن الطلبات', `هل أنت متأكد من تحديد ${orderIds.length} طلبات كتم الشحن؟`, 'success');
     if (!confirmed) return;
     try {
       await api.markOrdersShippedBatch(orderIds);
@@ -435,7 +435,7 @@ window.bulkAction = async function (action) {
       showToast(err.message || 'فشل تحديد الطلبات كتم الشحن', 'error');
     }
   } else if (action === 'unship') {
-    const confirmed = await window.showConfirmModal('إلغاء الشحن', `هل أنت متأكد من إلغاء شحن ${orderIds.length} طلبات؟`);
+    const confirmed = await window.showConfirmModal('إلغاء الشحن', `هل أنت متأكد من إلغاء شحن ${orderIds.length} طلبات؟`, 'info');
     if (!confirmed) return;
     try {
       await api.unmarkOrdersShippedBatch(orderIds);
@@ -445,7 +445,7 @@ window.bulkAction = async function (action) {
       showToast(err.message || 'فشل إلغاء الشحن', 'error');
     }
   } else if (action === 'activate') {
-    const confirmed = await window.showConfirmModal('تنشيط الطلبات', `هل أنت متأكد من تنشيط ${orderIds.length} طلبات؟`);
+    const confirmed = await window.showConfirmModal('تنشيط الطلبات', `هل أنت متأكد من تنشيط ${orderIds.length} طلبات؟`, 'success');
     if (!confirmed) return;
     try {
       await api.activateOrdersBatch(orderIds);

@@ -166,16 +166,20 @@ ${remainingText}
             // 3. Shorten the Link using is.gd first, then TinyURL
             let shortLink = whatsappLink;
             try {
-              const response = await this.helpers.httpRequest({
-                method: 'GET',
+              let response = await this.helpers.httpRequest({
+                method: 'POST',
                 url: 'https://is.gd/create.php',
-                qs: {
+                body: new URLSearchParams({
                   format: 'simple',
                   url: whatsappLink,
+                }).toString(),
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                timeout: 10000,
+                timeout: 8000,
               });
-              if (response) {
+
+              if (response && response.trim() && !response.toLowerCase().includes('error')) {
                 shortLink = response.trim();
               } else {
                 // Fallback to TinyURL
