@@ -242,9 +242,9 @@
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
-        // 1. Filter orders for current month (including archived)
+        // 1. Filter orders for current month (including archived), ONLY PAID
         const monthOrders = allOrders.filter(o => {
-          if (!o.createdAt) return false;
+          if (!o.createdAt || !o.paid) return false;
           const d = new Date(o.createdAt);
           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });
@@ -253,14 +253,14 @@
         const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
         const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
         const prevMonthOrders = allOrders.filter(o => {
-          if (!o.createdAt) return false;
+          if (!o.createdAt || !o.paid) return false;
           const d = new Date(o.createdAt);
           return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
         });
 
         // ── CALCULATIONS FOR CURRENT MONTH ──
-        // Total Sales (all orders in month including archived)
-        const curRevenue = monthOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+        // Total Sales (all paid orders in month, without shipping fees)
+        const curRevenue = monthOrders.reduce((sum, o) => sum + Math.max(0, (o.totalPrice || 0) - (o.shippingFee || 0)), 0);
         
         // Total Products Sold in month (excluding cancelled)
         const curProductsSold = monthOrders.reduce((sum, o) => {
@@ -275,7 +275,7 @@
         const curAOV = curOrdersCount > 0 ? (curRevenue / curOrdersCount) : 0;
 
         // ── CALCULATIONS FOR PREVIOUS MONTH ──
-        const prevRevenue = prevMonthOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+        const prevRevenue = prevMonthOrders.reduce((sum, o) => sum + Math.max(0, (o.totalPrice || 0) - (o.shippingFee || 0)), 0);
         const prevProductsSold = prevMonthOrders.reduce((sum, o) => {
           if (o.status === 'cancelled') return sum;
           return sum + (o.items || []).reduce((s, item) => s + (Number(item.quantity) || 0), 0);
@@ -312,10 +312,10 @@
         const cancelledOrders = monthOrders.filter(o => o.status === 'cancelled');
 
         const confirmedCount = confirmedOrders.length;
-        const confirmedValue = confirmedOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+        const confirmedValue = confirmedOrders.reduce((sum, o) => sum + Math.max(0, (o.totalPrice || 0) - (o.shippingFee || 0)), 0);
 
         const cancelledCount = cancelledOrders.length;
-        const cancelledValue = cancelledOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+        const cancelledValue = cancelledOrders.reduce((sum, o) => sum + Math.max(0, (o.totalPrice || 0) - (o.shippingFee || 0)), 0);
 
         document.getElementById('status-confirmed-count').textContent = confirmedCount;
         document.getElementById('status-confirmed-value').textContent = formatPrice(confirmedValue);
