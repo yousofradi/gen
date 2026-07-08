@@ -164,10 +164,14 @@ function renderOrders(orders) {
   // Preserve selected checkboxes
   const selectedIds = Array.from(document.querySelectorAll('.order-checkbox:checked')).map(cb => cb.value);
 
+  const table = document.querySelector('.orders-table-wrap table');
   if (!orders.length) {
+    if (table) table.style.minWidth = 'auto'; // Prevent scrolling for empty state
     tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:40px">لا توجد طلبات هنا</td></tr>';
     return;
   }
+  if (table) table.style.minWidth = '900px'; // Restore minimum width for data
+
 
   tbody.innerHTML = orders.map(o => {
     const isChecked = selectedIds.includes(o.orderId) ? 'checked' : '';
