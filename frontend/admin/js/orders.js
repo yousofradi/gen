@@ -13,6 +13,9 @@ let currentPage = 1;
 let currentLimit = 30;
 let totalPages = 1;
 
+let paymentMethodsCache = [];
+let paymentNotesCache = '';
+
 async function loadOrders() {
   const tbody = document.getElementById('orders-tbody');
   const selectAllCb = document.getElementById('select-all-orders');
@@ -21,7 +24,14 @@ async function loadOrders() {
 
   tbody.innerHTML = '<tr><td colspan="10" class="text-center" style="padding:32px;"><div class="spinner"></div></td></tr>';
   try {
-    allOrdersData = await api.getOrders(showingArchived);
+    const [ordersData, pmData, pnData] = await Promise.all([
+      api.getOrders(showingArchived),
+      api.getSetting('paymentMethods').catch(() => null),
+      api.getSetting('paymentNotes').catch(() => null)
+    ]);
+    allOrdersData = ordersData;
+    if (pmData) paymentMethodsCache = pmData;
+    if (pnData) paymentNotesCache = pnData;
     updateFilterCounts();
     filterOrdersClient();
   } catch (err) {
@@ -212,11 +222,21 @@ function renderOrders(orders) {
         
         let pmAr = o.paymentMethod === 'vodafone_cash' ? 'فودافون كاش' : (o.paymentMethod === 'instapay' ? 'إنستاباي' : o.paymentMethod);
         
+        let paymentNumberStr = '';
+        if (paymentMethodsCache && Array.isArray(paymentMethodsCache)) {
+          const matchedPM = paymentMethodsCache.find(m => m.label === o.paymentMethod || m.label === pmAr);
+          if (matchedPM && matchedPM.number) {
+            paymentNumberStr = `\nرقم الدفع: ${matchedPM.number}`;
+          }
+        }
+
+        const pnStr = paymentNotesCache ? `\n\n${paymentNotesCache}` : '';
+
         const msg = encodeURIComponent(`مرحباً ${o.customer.name || ''}
 
 رقم الطلب: ${o.orderId}
 إجمالي المبلغ: ${o.totalPrice} EGP
-طريقة الدفع: ${pmAr}
+طريقة الدفع: ${pmAr}${paymentNumberStr}${pnStr}
 
 شكراً لثقتك بنا ♡`);
         waLink = `<a href="https://wa.me/${cleanPhone}?text=${msg}" target="_blank" onclick="event.stopPropagation()" style="display:inline-block; margin-right:8px; color:#10b981; text-decoration:none;" title="مراسلة العميل عبر واتساب">
