@@ -406,13 +406,22 @@ router.put('/collection/batch', adminAuth, async (req, res) => {
        const affectedIds = new Set(currentlyInCol.map(p => p._id.toString()));
        productIds.forEach(id => affectedIds.add(id.toString()));
 
-       // First remove this collection from all products that have it
+       // Migrate legacy collectionId to collectionIds array for the affected products
        await Product.updateMany(
-        { $or: [{ collectionIds: collectionId }, { collectionId: collectionId }] },
-        { 
-          $pull: { collectionIds: collectionId },
-          $unset: { collectionId: "" }
-        }
+         { collectionId: { $ne: null } },
+         [{ $set: { collectionIds: { $setUnion: [{ $ifNull: ["$collectionIds", []] }, ["$collectionId"]] } } }]
+       );
+
+       // First remove this collection from all products that have it
+       // We do this in two steps to avoid wiping out a DIFFERENT legacy collectionId
+       await Product.updateMany(
+        { collectionId: collectionId },
+        { $unset: { collectionId: "" } }
+       );
+
+       await Product.updateMany(
+        { collectionIds: collectionId },
+        { $pull: { collectionIds: collectionId } }
        );
        // Then add it only to the specified products
        if (productIds.length > 0) {
