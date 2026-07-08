@@ -115,7 +115,11 @@ async function sendWebhookInner(event, data, options = {}) {
           if (shouldSend && conf.baseUrl && conf.instance && conf.apikey && conf.number) {
 
             const baseRemaining = data.totalPrice - (data.paidAmount || 0);
-            const displayRemaining = baseRemaining > 0 ? (baseRemaining + 10) : 0;
+            let codFee = 0;
+            if (baseRemaining > 0) {
+              codFee = Math.max(10, Math.ceil((baseRemaining * 0.01) / 5) * 5);
+            }
+            const displayRemaining = baseRemaining > 0 ? (baseRemaining + codFee) : 0;
             const remainingText = baseRemaining > 0 ? `الدفع عند الاستلام : ${displayRemaining} EGP` : `مدفوع بالكامل`;
 
             // 1. Prepare Customer Message (for the wa.me link)
@@ -159,22 +163,52 @@ ${remainingText}
             }
             const whatsappLink = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(customerMessage)}`;
 
-            // 3. Shorten the Link using TinyURL (is.gd blacklists wa.me domain, causing database insert errors)
+            // 3. Shorten the Link using is.gd first, then TinyURL
             let shortLink = whatsappLink;
             try {
-              const response = await this.helpers.httpRequest({
+              let response = await this.helpers.httpRequest({
                 method: 'GET',
-                url: 'https://tinyurl.com/api-create.php',
+                url: 'https://is.gd/create.php',
                 qs: {
+                  format: 'simple',
                   url: whatsappLink,
                 },
-                timeout: 10000,
+                timeout: 8000,
               });
+
               if (response && response.trim() && !response.toLowerCase().includes('error')) {
                 shortLink = response.trim();
+              } else {
+                // Fallback to TinyURL
+                response = await this.helpers.httpRequest({
+                  method: 'GET',
+                  url: 'https://tinyurl.com/api-create.php',
+                  qs: {
+                    url: whatsappLink,
+                  },
+                  timeout: 8000,
+                });
+                if (response && response.trim() && !response.toLowerCase().includes('error')) {
+                  shortLink = response.trim();
+                }
               }
             } catch (error) {
-              console.warn('[WhatsApp] Link shortening system error:', error.message);
+              console.warn('[WhatsApp] is.gd failed, trying TinyURL:', error.message);
+              try {
+                const fallbackResponse = await this.helpers.httpRequest({
+                  method: 'GET',
+                  url: 'https://tinyurl.com/api-create.php',
+                  qs: {
+                    url: whatsappLink,
+                  },
+                  timeout: 8000,
+                });
+                if (fallbackResponse && fallbackResponse.trim() && !fallbackResponse.toLowerCase().includes('error')) {
+                  shortLink = fallbackResponse.trim();
+                }
+              } catch (fallbackError) {
+                console.warn('[WhatsApp] Both link shortenings failed:', fallbackError.message);
+              }
             }
 
             // 4. Prepare Owner Message
