@@ -1,8 +1,9 @@
 /* ──  Storefront Theme ─────────────────────────── */
 :root {
-  --primary: #64748b;
-  --primary-dark: #475569;
-  --primary-light: #f1f5f9;
+  --primary: #916c4f;
+  --primary-hover: rgb(123, 91, 67);
+  --primary-light: rgba(145, 108, 79, 0.08);
+  --primary-dark: rgb(123, 91, 67);
   --bg-main: #fafafa;
   --accent: #c9a96e;
 }

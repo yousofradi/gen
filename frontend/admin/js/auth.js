@@ -10,7 +10,7 @@ function requireAdmin() {
   const timestamp = localStorage.getItem('loginTimestamp');
 
   if (!key) {
-    window.location.href = 'login.html';
+    window.location.href = 'login';
     return false;
   }
 
@@ -28,7 +28,7 @@ function requireAdmin() {
 function logout() {
   localStorage.removeItem('adminKey');
   localStorage.removeItem('loginTimestamp');
-  window.location.href = 'login.html';
+  window.location.href = 'login';
 }
 
 // Global UI Helpers

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Check auth
   const ok = await api.checkAdmin();
   if (!ok) {
-    window.location.href = 'login.html';
+    window.location.href = 'login';
     return;
   }
 

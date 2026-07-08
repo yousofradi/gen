@@ -1,19 +1,29 @@
 /* ── Tokens ──────────────────────────────────────────── */
 :root {
+  --primary: #916c4f;
+  --primary-hover: rgb(123, 91, 67);
+  --primary-light: rgba(145, 108, 79, 0.08);
+  --primary-dark: rgb(123, 91, 67);
+
+  
+  
+  
+  
+
   --bg-body: #f7f9fc;
   --bg-card: #ffffff;
   --bg-surface: #ffffff;
   --bg-hover: #f1f5f9;
   --border-color: #e2e8f0;
-  --border-focus: var(--primary);
+  --border-focus: var(
 
   --text-main: #1e293b;
   --text-muted: #64748b;
   --text-light: #94a3b8;
 
-  --primary: #64748b;
-  --primary-hover: #475569;
-  --primary-light: #f1f5f9;
+  
+  
+  
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;

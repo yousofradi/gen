@@ -120,8 +120,8 @@ router.get('/', async (req, res) => {
       }
     }
 
-    // Optimization: Don't fetch description for listings
-    const fieldsToSelect = admin === 'true' ? '' : '-description';
+    // Optimization: Explicitly select only grid-necessary fields for storefront to slash payload size
+    const fieldsToSelect = admin === 'true' ? '' : 'name basePrice salePrice images imageUrl handle options variants quantity collectionId collectionIds active status sortOrder';
 
     if (page || limit) {
       const pageNum = parseInt(page) || 1;

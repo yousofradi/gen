@@ -1,39 +1,4 @@
-// ── Immediate Branding Application ──────────────────────────
-(function () {
-  const cachedName = localStorage.getItem('sundura_store_name');
-  const cachedColor = localStorage.getItem('sundura_primary_color');
-  const cachedLogo = localStorage.getItem('sundura_store_logo');
-  const cachedUrl = localStorage.getItem('sundura_store_url');
-
-  const apply = () => {
-    if (cachedName) {
-      document.querySelectorAll('.store-name-text').forEach(el => el.textContent = cachedName);
-      if (document.title.includes('—') || document.title.includes('|') || document.title.includes('-')) {
-        const separators = ['|', '—', '-'];
-        for (const sep of separators) {
-          if (document.title.includes(sep)) {
-            const parts = document.title.split(sep);
-            document.title = parts[0].trim() + ' ' + sep + ' ' + cachedName;
-            break;
-          }
-        }
-      }
-    }
-    if (cachedColor) {
-      document.documentElement.style.setProperty('--primary', cachedColor);
-    }
-    if (cachedLogo) {
-      document.querySelectorAll('.store-logo-img, img[src*="cmo1fsgmc060f01lwhwpn6ga7"]').forEach(img => img.src = cachedLogo);
-    }
-    if (cachedUrl) {
-      document.querySelectorAll('.admin-store-preview').forEach(a => a.href = cachedUrl);
-    }
-  };
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
-  else apply();
-})();
-
+// ── Immediate Branding Removed (Static Branding applied) ──────────
 const API_BASE = 'API_URL_PLACEHOLDER';
 
 
@@ -376,190 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ── Settings Loader ──────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const settings = await api.getSetting('sundura_global_settings');
-    if (settings) {
-      // 1. Logo
-      if (settings.storeLogo) {
-        localStorage.setItem('sundura_store_logo', settings.storeLogo);
-        document.querySelectorAll('.store-logo-img, img[src*="cmo1fsgmc060f01lwhwpn6ga7"]').forEach(img => {
-          img.src = settings.storeLogo;
-          img.style.opacity = '1';
-        });
-
-        const loginLogo = document.getElementById('login-brand-logo');
-        if (loginLogo) {
-          loginLogo.innerHTML = `<img src="${settings.storeLogo}" style="max-height:100%; max-width:150px; display:block; margin:0 auto;">`;
-        }
-      }
-
-      // 1.1 Store URL & Name Caching
-      if (settings.storeUrl) localStorage.setItem('sundura_store_url', settings.storeUrl);
-      if (settings.storeName) {
-        localStorage.setItem('sundura_store_name', settings.storeName);
-        document.querySelectorAll('.store-name-text').forEach(el => el.textContent = settings.storeName);
-      }
-
-      if (settings.storeUrl) {
-        document.querySelectorAll('.admin-store-preview').forEach(a => {
-          a.href = settings.storeUrl;
-        });
-      }
-
-      // 2. Favicon
-      if (settings.storeFavicon) {
-        let link = document.querySelector("link[rel~='icon']");
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'icon';
-          document.head.appendChild(link);
-        }
-        link.href = settings.storeFavicon;
-      }
-
-      // 3. Store Name & Titles
-      if (settings.storeName) {
-        // Handle title updates with different separators (|, —)
-        const separators = ['|', '—', '-'];
-        let updated = false;
-        for (const sep of separators) {
-          if (document.title.includes(sep)) {
-            const parts = document.title.split(sep);
-            document.title = parts[0].trim() + ' ' + sep + ' ' + settings.storeName;
-            updated = true;
-            break;
-          }
-        }
-        if (!updated) {
-          document.title = settings.storeName;
-        }
-
-        const adminBrand = document.querySelector('.admin-brand-title');
-        if (adminBrand) adminBrand.textContent = settings.storeName;
-
-        // Update any generic placeholders in the DOM
-        document.querySelectorAll('.store-name-text').forEach(el => {
-          if (el.tagName === 'INPUT') el.value = settings.storeName;
-          else el.textContent = settings.storeName;
-        });
-
-        // 3.1 SEO Meta Tags
-        const updateMeta = (attr, val, content) => {
-          let el = document.querySelector(`meta[${attr}="${val}"]`);
-          if (!el) {
-            el = document.createElement('meta');
-            el.setAttribute(attr, val);
-            document.head.appendChild(el);
-          }
-          el.content = content;
-        };
-        updateMeta('property', 'og:title', settings.storeName + ' Shop');
-        updateMeta('name', 'twitter:title', settings.storeName + ' Shop');
-
-        const footerCopy = document.querySelector('.footer-bottom-bar');
-        if (footerCopy) {
-          footerCopy.innerHTML = `© ${new Date().getFullYear()} ${settings.storeName}. جميع الحقوق محفوظة.`;
-        }
-      }
-
-      // 4. Contact Numbers (WhatsApp & Payment)
-      const formatWaLink = (num) => {
-        let clean = num.replace(/[^0-9]/g, '');
-        if (clean.startsWith('01')) clean = '2' + clean;
-        return `https://wa.me/${clean}`;
-      };
-
-      const waLink = settings.socialWa ? formatWaLink(settings.socialWa) : '';
-
-      if (settings.socialWa) {
-
-        document.querySelectorAll('a[href*="wa.me"]').forEach(link => {
-          link.href = waLink;
-        });
-
-      }
-
-      // 5. Social Links
-      if (settings.socialFb) {
-        document.querySelectorAll('a[href*="facebook.com"]').forEach(link => {
-          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialFb;
-        });
-      }
-      if (settings.socialIg) {
-        document.querySelectorAll('a[href*="instagram.com"]').forEach(link => {
-          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialIg;
-        });
-      }
-      if (settings.socialTt) {
-        document.querySelectorAll('a[href*="tiktok.com"]').forEach(link => {
-          if (!link.classList.contains('no-brand-sync')) link.href = settings.socialTt;
-        });
-      }
-
-      // Inject Social Row in Footer
-      const footerNav = document.querySelector('.footer-nav');
-      if (footerNav && !document.querySelector('.footer-socials')) {
-        let socialHtml = '<div class="footer-socials" style="display:flex;gap:16px;justify-content:center;margin-top:16px;">';
-        if (settings.socialFb) socialHtml += `<a href="${settings.socialFb}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>`;
-        if (settings.socialIg) socialHtml += `<a href="${settings.socialIg}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>`;
-        if (settings.socialTt) socialHtml += `<a href="${settings.socialTt}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a3 3 0 0 1-3-3v8a8 8 0 1 1-8-8 1 1 0 0 1 1 1z"></path></svg></a>`;
-        if (settings.socialTg) socialHtml += `<a href="${settings.socialTg}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg></a>`;
-        if (settings.socialWa) {
-          socialHtml += `<a href="${waLink}" target="_blank" style="color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>`;
-        }
-        socialHtml += '</div>';
-        footerNav.insertAdjacentHTML('afterend', socialHtml);
-      }
-
-      // 6. Mobile Nav Update
-      const navWaLink = document.getElementById('nav-wa-link');
-      if (navWaLink && settings.socialWa) {
-        navWaLink.href = waLink;
-        navWaLink.title = settings.socialWa;
-      }
-
-      const navTgLink = document.getElementById('nav-tg-link');
-      if (navTgLink && settings.socialTg) {
-        navTgLink.href = settings.socialTg;
-        const span = navTgLink.querySelector('span');
-        if (span) span.textContent = 'تليجرام';
-        const svg = navTgLink.querySelector('svg');
-        if (svg) svg.innerHTML = `<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>`;
-      }
-
-      // 7. Custom Color Palette
-      if (settings.primaryColor) {
-        localStorage.setItem('sundura_primary_color', settings.primaryColor);
-        applyColorPalette(settings.primaryColor);
-      }
-
-      // Update specific dynamic messages
-      if (settings.storeName) {
-        window.storeNameForWA = settings.storeName;
-      }
-
-      // 8. Site Preview Image (OG Image)
-      if (settings.storePreview) {
-        const updateMeta = (attr, val, content) => {
-          let el = document.querySelector(`meta[${attr}="${val}"]`);
-          if (!el) {
-            el = document.createElement('meta');
-            el.setAttribute(attr, val);
-            document.head.appendChild(el);
-          }
-          el.content = content;
-        };
-        updateMeta('property', 'og:image', settings.storePreview);
-        updateMeta('name', 'twitter:image', settings.storePreview);
-      }
-    }
-  } catch (err) {
-    console.error('Failed to load global settings', err);
-  }
-});
-
+// ── Dynamic Settings Loader Removed ──────────────────────────────
 function applyColorPalette(hex) {
   if (!hex || hex.length < 7) return;
   try {
@@ -620,7 +402,7 @@ api.openMenu = function () {
       }
       body.innerHTML = `
         <a href="products" class="slide-menu-item" onclick="api.closeMenu()" style="font-weight:700; color:var(--primary); border-bottom: 2px solid #f1f5f9; background: #f8fafc;">كل المنتجات</a>
-      ` + cols.map(c => `<a href="collection?id=${c._id}" class="slide-menu-item" onclick="api.closeMenu()">${c.name}</a>`).join('');
+      ` + cols.map(c => `<a href="collection/${c.urlName || c._id}" class="slide-menu-item" onclick="api.closeMenu()">${c.name}</a>`).join('');
     }).catch(err => {
       document.getElementById('slide-menu-body').innerHTML = '<div style="padding:20px;text-align:center;color:red">حدث خطأ</div>';
     });
@@ -674,7 +456,7 @@ api.openSearch = function () {
             return;
           }
           results.innerHTML = filtered.map(p => `
-            <a href="${p.handle ? `product/${p.handle}` : `product?id=${p._id}`}" class="search-result-item">
+            <a href="product/${p.handle || p._id}" class="search-result-item">
               <img src="${p.imageUrl}" class="search-result-img" onerror="this.style.display='none'">
               <div class="search-result-info">
                 <div class="search-result-name">${p.name}</div>

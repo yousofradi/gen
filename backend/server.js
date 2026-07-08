@@ -69,7 +69,7 @@ app.use('/uploads', express.static('uploads', {
 // ── Root route ──────────────────────────────────────────
 app.get('/', (req, res) => {
   res.json({
-    message: 'eCommerce API is running',
+    message: 'SunduraShop API is running',
     endpoints: {
       health: 'GET /api/health',
       products: 'GET /api/products',

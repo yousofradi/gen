@@ -122,7 +122,7 @@ function renderCollectionSection(s, collections) {
       <div class="cat-grid" id="collections-grid">
         ${displayCols.map((c, idx) => {
     const img = api.optimizeImageUrl(c.imageUrl, 250);
-    const link = c.urlName ? `collection.html?handle=${c.urlName}` : `collection.html?id=${c._id}`;
+    const link = `collection/${c.urlName || c._id}`;
     const lazyAttr = idx < 4 ? '' : 'loading="lazy"';
     return `
             <a href="${link}" class="cat-item">
@@ -138,9 +138,9 @@ function renderBannerSection(s) {
   if (!s.imageUrl) return '';
 
   const getLink = (type, val) => {
-    if (type === 'collection' && val) return `collection.html?id=${val}`;
-    if (type === 'collections_page') return 'products.html#collections';
-    if (type === 'products_page') return 'products.html';
+    if (type === 'collection' && val) return `collection/${val}`;
+    if (type === 'collections_page') return 'products#collections';
+    if (type === 'products_page') return 'products';
     if (type === 'custom' && val) return val;
     return '';
   };
@@ -196,7 +196,7 @@ function renderStoreCard(p, lazy = true) {
   const isRange = false;
 
   const hasDiscount = displayPrice < originalPrice;
-  const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
+  const productLink = `product/${p.handle || p._id}`;
 
   const pJson = JSON.stringify({
     _id: p._id, name: p.name, basePrice: p.basePrice, salePrice: p.salePrice,
