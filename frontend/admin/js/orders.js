@@ -165,12 +165,17 @@ function renderOrders(orders) {
   const selectedIds = Array.from(document.querySelectorAll('.order-checkbox:checked')).map(cb => cb.value);
 
   const table = document.querySelector('.orders-table-wrap table');
+  const thead = table ? table.querySelector('thead') : null;
+
   if (!orders.length) {
-    if (table) table.style.minWidth = 'auto'; // Prevent scrolling for empty state
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:40px">لا توجد طلبات هنا</td></tr>';
+    if (table) table.style.minWidth = '0'; // Prevent scrolling for empty state
+    if (thead) thead.style.display = 'none'; // Hide headers so it doesn't force width
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:40px; text-align:center;">لا توجد طلبات هنا</td></tr>';
     return;
   }
+  
   if (table) table.style.minWidth = '900px'; // Restore minimum width for data
+  if (thead) thead.style.display = ''; // Show headers
 
 
   tbody.innerHTML = orders.map(o => {
