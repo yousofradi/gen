@@ -61,29 +61,22 @@ async function renderProductSection(s, products, collections) {
       .map(id => products.find(p => p._id === id))
       .filter(Boolean);
   } else if (s.collectionId) {
-    // Fetch products for this specific collection dynamically to avoid limit issues
-    try {
-      const res = await api.getProducts(1, s.maxItems || 8, false, s.collectionId);
-      sectionProducts = res.products || res || [];
+    // Filter from the global list to eliminate slow sequential API waterfalls
+    sectionProducts = products.filter(p => {
+      const ids = (p.collectionIds || []).map(id => id.toString());
+      return ids.includes(s.collectionId) || (p.collectionId && p.collectionId.toString() === s.collectionId);
+    });
 
-      // Sort by collection productOrder if available
-      const col = collections.find(c => c._id === s.collectionId);
-      if (col && col.productOrder) {
-        sectionProducts.sort((a, b) => {
-          const idxA = col.productOrder.indexOf(a._id);
-          const idxB = col.productOrder.indexOf(b._id);
-          if (idxA === -1 && idxB === -1) return 0;
-          if (idxA === -1) return 1;
-          if (idxB === -1) return -1;
-          return idxA - idxB;
-        });
-      }
-    } catch (e) {
-      console.error('Failed to fetch section products', e);
-      // Fallback to filtering the global list
-      sectionProducts = products.filter(p => {
-        const ids = (p.collectionIds || []).map(id => id.toString());
-        return ids.includes(s.collectionId) || (p.collectionId && p.collectionId.toString() === s.collectionId);
+    // Sort by collection productOrder if available
+    const col = collections.find(c => c._id === s.collectionId);
+    if (col && col.productOrder) {
+      sectionProducts.sort((a, b) => {
+        const idxA = col.productOrder.indexOf(a._id);
+        const idxB = col.productOrder.indexOf(b._id);
+        if (idxA === -1 && idxB === -1) return 0;
+        if (idxA === -1) return 1;
+        if (idxB === -1) return -1;
+        return idxA - idxB;
       });
     }
   } else {
