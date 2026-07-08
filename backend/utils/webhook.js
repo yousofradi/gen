@@ -6,14 +6,16 @@ const Webhook = require('../models/Webhook');
 const cityMap = require('./cityMap');
 
 const helpers = {
-  async httpRequest({ method, url, qs, timeout }) {
+  async httpRequest({ method, url, qs, body, headers, timeout }) {
     try {
       const queryString = qs ? '?' + new URLSearchParams(qs).toString() : '';
       const res = await fetch(url + queryString, {
         method: method || 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          ...headers
         },
+        body: body || undefined,
         signal: AbortSignal.timeout(timeout || 10000)
       });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
