@@ -854,7 +854,6 @@ select.form-control {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   margin-bottom: 24px;
-  overflow: hidden;
 }
 
 .table-wrapper {
