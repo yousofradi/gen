@@ -131,8 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="slide-cart-subtotal-label">مجموع جزئي:</span>
           <span id="slide-cart-total" class="slide-cart-subtotal-value">0 ج.م</span>
         </div>
-        <a href="checkout" class="btn btn-primary btn-block slide-cart-checkout-btn">الدفع ←</a>
-        <a href="cart" class="btn btn-secondary btn-block slide-cart-view-btn">عرض محتويات السلة</a>
+        <a href="/checkout" class="btn btn-primary btn-block slide-cart-checkout-btn">الدفع ←</a>
+        <a href="/cart" class="btn btn-secondary btn-block slide-cart-view-btn">عرض محتويات السلة</a>
       </div>
     `;
 
