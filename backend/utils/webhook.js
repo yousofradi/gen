@@ -161,7 +161,7 @@ ${remainingText}
             if (!cleanCustomerPhone.startsWith('20')) {
               cleanCustomerPhone = '20' + cleanCustomerPhone;
             }
-            const whatsappLink = `https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(customerMessage)}`;
+            const whatsappLink = `https://api.whatsapp.com/send?phone=${cleanCustomerPhone}&text=${encodeURIComponent(customerMessage)}`;
 
             // 3. Shorten the Link using is.gd first, then TinyURL
             let shortLink = whatsappLink;
