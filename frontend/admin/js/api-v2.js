@@ -169,7 +169,7 @@ const api = {
   deleteWebhook(id) { return this._request(`/webhooks/${id}`, { method: 'DELETE', admin: true }); },
 
   getSetting(key, useCache = false) { 
-    return this._request(`/settings/${key}?t=${Date.now()}`, { useCache }); 
+    return this._request(`/settings/${key}?admin=true`, { useCache, admin: true }); 
   },
   async updateSetting(key, value) {
     const res = await this._request(`/settings/${key}`, { method: 'POST', body: JSON.stringify({ value }), admin: true });

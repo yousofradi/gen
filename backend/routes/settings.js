@@ -25,8 +25,19 @@ router.get('/paymentMethods', async (req, res) => {
 });
 
 router.get('/:key', async (req, res) => {
+  const PUBLIC_SETTINGS = ['sundura_homepage_sections', 'sundura_global_settings', 'shipping_options'];
+  const { key } = req.params;
+  
+  if (!PUBLIC_SETTINGS.includes(key)) {
+    // Authenticate admin for sensitive keys
+    const adminKey = process.env.ADMIN_API_KEY;
+    const reqKey = req.headers['x-admin-key'] || req.query.ADMIN_API_KEY || req.query.adminKey || req.query.admin_token;
+    if (adminKey && reqKey !== adminKey) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  }
+
   try {
-    const { key } = req.params;
     const bypassCache = req.query.admin === 'true' || req.query.bypassCache === 'true' || req.query.t !== undefined;
     const cacheKey = `storefront:settings:${key}`;
     
@@ -39,7 +50,7 @@ router.get('/:key', async (req, res) => {
     const value = setting ? setting.value : null;
     
     if (!bypassCache) {
-      const ttl = key === 'homepage_sections' ? null : undefined;
+      const ttl = key === 'sundura_homepage_sections' ? null : undefined;
       await cache.set(cacheKey, value, ttl);
     }
     res.json(value);
