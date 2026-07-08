@@ -4,15 +4,19 @@ let selectedQty = 1;
 
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
-  const productId = params.get('id');
+  let productId = params.get('id');
   let handle = params.get('handle') || params.get('name');
   
-  // Fallback: extract handle from path /product/HANDLE
+  // Fallback: extract handle or ID from path /product/VALUE
   if (!productId && !handle) {
     const pathParts = window.location.pathname.split('/');
     const lastPart = pathParts[pathParts.length - 1];
     if (lastPart && lastPart !== 'product' && lastPart !== 'product.html') {
-      handle = lastPart;
+      if (/^[0-9a-fA-F]{24}$/.test(lastPart)) {
+        productId = lastPart;
+      } else {
+        handle = lastPart;
+      }
     }
   }
 
