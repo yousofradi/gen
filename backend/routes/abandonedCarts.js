@@ -33,10 +33,26 @@ router.post('/', async (req, res) => {
 // ── 2. Get All Abandoned Carts (Admin) ────────────────────────
 router.get('/', adminAuth, async (req, res) => {
   try {
-    const carts = await AbandonedCart.find({}).sort({ updatedAt: -1 });
+    const carts = await AbandonedCart.find({
+      $or: [
+        { 'customer.name': { $exists: true, $ne: '', $ne: null } },
+        { 'customer.phone': { $exists: true, $ne: '', $ne: null } }
+      ]
+    }).sort({ updatedAt: -1 });
     res.json(carts);
   } catch (err) {
     console.error('Error fetching abandoned carts:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── 2.5 Delete All Abandoned Carts (Admin) ────────────────────
+router.delete('/', adminAuth, async (req, res) => {
+  try {
+    await AbandonedCart.deleteMany({});
+    res.json({ success: true, message: 'All abandoned carts deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting all abandoned carts:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

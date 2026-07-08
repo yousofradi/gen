@@ -138,6 +138,9 @@ const api = {
     catch { return false; }
   },
 
+  // Visitors
+  trackVisitor() { return this._request('/visitors/track', { method: 'POST' }); },
+
   // File Upload
   uploadFile(file, onProgress) {
     return new Promise((resolve, reject) => {
@@ -496,3 +499,17 @@ document.addEventListener('wheel', (e) => {
     document.activeElement.blur();
   }
 }, { passive: true });
+
+// ── Track Visitor ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/login')) return;
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const visitKey = `visited_${currentMonth}`;
+  
+  if (!localStorage.getItem(visitKey)) {
+    api.trackVisitor().then(() => {
+      localStorage.setItem(visitKey, 'true');
+    }).catch(err => console.error('Failed to track visitor', err));
+  }
+});

@@ -205,7 +205,25 @@ function renderOrders(orders) {
     } else if (o.paidAmount > 0) {
       statusBadge = `<span style="display:inline-block; padding:4px 8px; border-radius:16px; background:#fef3c7; color:#92400e; font-size:0.8rem; font-weight:600; text-align:center;">مدفوع جزئياً<div style="font-size:0.7rem; font-weight:normal; opacity:0.9; margin-top:2px;">المتبقي: ${formatPrice(o.totalPrice - o.paidAmount)}</div></span>`;
     } else {
-      statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#f1f5f9; color:#475569; font-size:0.85rem; font-weight:600;">غير مدفوع</span>`;
+      let waLink = '';
+      if (o.customer && o.customer.phone) {
+        let cleanPhone = o.customer.phone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith('01')) cleanPhone = '2' + cleanPhone;
+        
+        let pmAr = o.paymentMethod === 'vodafone_cash' ? 'فودافون كاش' : (o.paymentMethod === 'instapay' ? 'إنستاباي' : o.paymentMethod);
+        
+        const msg = encodeURIComponent(`مرحباً ${o.customer.name || ''}
+
+رقم الطلب: ${o.orderId}
+إجمالي المبلغ: ${o.totalPrice} EGP
+طريقة الدفع: ${pmAr}
+
+شكراً لثقتك بنا ♡`);
+        waLink = `<a href="https://wa.me/${cleanPhone}?text=${msg}" target="_blank" onclick="event.stopPropagation()" style="display:inline-block; margin-right:8px; color:#10b981; text-decoration:none;" title="مراسلة العميل عبر واتساب">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+        </a>`;
+      }
+      statusBadge = `<span style="display:inline-block; padding:4px 12px; border-radius:16px; background:#f1f5f9; color:#475569; font-size:0.85rem; font-weight:600; vertical-align: middle;">غير مدفوع</span>${waLink}`;
     }
 
     const displayId = o.orderId.replace('Order-', '').replace('Scoop-', '');

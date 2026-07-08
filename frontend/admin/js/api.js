@@ -122,6 +122,7 @@ const api = {
   // Abandoned Carts
   getAbandonedCarts() { return this._request('/abandoned-carts', { admin: true }); },
   deleteAbandonedCart(id) { return this._request(`/abandoned-carts/${id}`, { method: 'DELETE', admin: true }); },
+  deleteAllAbandonedCarts() { return this._request('/abandoned-carts', { method: 'DELETE', admin: true }); },
 
   // Customers
   getCustomers() { return this._request('/customers', { admin: true }); },

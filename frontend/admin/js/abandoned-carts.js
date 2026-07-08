@@ -188,3 +188,20 @@ function handleRowClick(event, cartId) {
   }
   window.location.href = `order-form.html?recoverCartId=${cartId}`;
 }
+
+async function deleteAllCarts() {
+  const ok = await showConfirmModal('حذف جميع السلات المتروكة', 'هل أنت متأكد من رغبتك في حذف جميع السلات المتروكة؟ لا يمكن التراجع عن هذا الإجراء.');
+  if (!ok) return;
+
+  try {
+    await api.deleteAllAbandonedCarts();
+    showToast('تم حذف جميع السلات المتروكة بنجاح');
+    
+    // Clear from UI
+    allCarts = [];
+    renderCarts(allCarts);
+  } catch (err) {
+    console.error('Failed to delete all carts:', err);
+    showToast(err.message || 'فشل في حذف السلات المتروكة', 'error');
+  }
+}

@@ -184,6 +184,9 @@ const api = {
     catch { return false; }
   },
 
+  // Visitors
+  getVisitors() { return this._request('/visitors', { admin: true }); },
+
   // File Upload
   uploadFile(file, onProgress) {
     return new Promise((resolve, reject) => {

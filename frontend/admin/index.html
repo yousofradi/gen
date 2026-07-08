@@ -137,6 +137,16 @@
                 <span class="stat-change-pct" id="stat-aov-growth"><span id="aov-growth-val">0</span>% <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>
               </div>
             </div>
+            <!-- Card 5: Monthly Visitors -->
+            <div class="admin-stat-card">
+              <div class="stat-card-right">
+                <div class="stat-card-title">زوار الشهر</div>
+                <div class="stat-card-value" id="stat-visitors">—</div>
+              </div>
+              <div class="stat-card-left">
+                <span class="stat-change-pct" id="stat-visitors-growth" style="color:#64748b;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+              </div>
+            </div>
           </div>
 
           <!-- Best Sellers and Order Status Breakdown Grid -->
@@ -229,11 +239,12 @@
     document.addEventListener('DOMContentLoaded', async () => {
       if (!requireAdmin()) return;
       try {
-        // Fetch products, active orders, and archived orders in parallel
-        const [products, activeOrders, archivedOrders] = await Promise.all([
+        // Fetch products, active orders, archived orders, and visitors in parallel
+        const [products, activeOrders, archivedOrders, visitors] = await Promise.all([
           api.getProducts(),
           api.getOrders(false),
-          api.getOrders(true)
+          api.getOrders(true),
+          api.getVisitors()
         ]);
 
         const allOrders = [...activeOrders, ...archivedOrders];
@@ -309,6 +320,13 @@
         document.getElementById('stat-products-sold').textContent = curProductsSold;
         document.getElementById('stat-orders').textContent = curOrdersCount;
         document.getElementById('stat-aov').textContent = formatPrice(curAOV);
+
+        // ── VISITORS ──
+        const curMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+        const curVisitorObj = visitors.find(v => v.month === curMonthStr);
+        const curVisitorCount = curVisitorObj ? curVisitorObj.count : 0;
+        document.getElementById('stat-visitors').textContent = curVisitorCount.toLocaleString('ar-EG');
+
 
         // ── ORDER STATUS BREAKDOWN ──
         const confirmedOrders = monthOrders.filter(o => o.status !== 'cancelled');
