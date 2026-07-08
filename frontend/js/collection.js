@@ -127,7 +127,7 @@ function renderProductCard(p, lazy = true) {
   const isRange = false;
 
   const hasDiscount = displayPrice < originalPrice;
-  const productLink = p.handle ? `product.html?handle=${p.handle}` : `product.html?id=${p._id}`;
+  const productLink = `/product/${p.handle || p._id}`;
   
   const pJson = JSON.stringify({
     _id: p._id, name: p.name, basePrice: p.basePrice, salePrice: p.salePrice,
