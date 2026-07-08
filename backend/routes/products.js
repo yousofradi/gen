@@ -399,10 +399,20 @@ router.put('/collection/batch', adminAuth, async (req, res) => {
         { $pull: { collectionIds: collectionId } }
       );
     } else if (action === 'set') {
+       // Find all products currently in this collection so we can update their cache later
+       const currentlyInCol = await Product.find({ 
+         $or: [{ collectionIds: collectionId }, { collectionId: collectionId }] 
+       }, '_id').lean();
+       const affectedIds = new Set(currentlyInCol.map(p => p._id.toString()));
+       productIds.forEach(id => affectedIds.add(id.toString()));
+
        // First remove this collection from all products that have it
        await Product.updateMany(
-        { collectionIds: collectionId },
-        { $pull: { collectionIds: collectionId } }
+        { $or: [{ collectionIds: collectionId }, { collectionId: collectionId }] },
+        { 
+          $pull: { collectionIds: collectionId },
+          $unset: { collectionId: "" }
+        }
        );
        // Then add it only to the specified products
        if (productIds.length > 0) {
@@ -411,12 +421,16 @@ router.put('/collection/batch', adminAuth, async (req, res) => {
            { $addToSet: { collectionIds: collectionId } }
          );
        }
+
+       // Update productIds array for cache refresh to include removed products
+       req.body.affectedProductIds = Array.from(affectedIds);
     } else {
       return res.status(400).json({ error: 'invalid action' });
     }
     
     // Write-Through: Update affected products
-    const updatedProducts = await Product.find({ _id: { $in: productIds } }).lean();
+    const idsToCache = req.body.affectedProductIds || productIds;
+    const updatedProducts = await Product.find({ _id: { $in: idsToCache } }).lean();
     for (const p of updatedProducts) {
       await updateStorefrontCache(p._id, optimizeProductData(p));
     }
