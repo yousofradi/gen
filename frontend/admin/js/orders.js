@@ -76,6 +76,10 @@ window.filterOrdersClient = function () {
     filtered = filtered.filter(o => o.status === 'pending');
   } else if (currentFilter === 'ready') {
     filtered = filtered.filter(o => o.status === 'ready');
+  } else if (currentFilter === 'paid') {
+    filtered = filtered.filter(o => o.paid || o.paidAmount > 0);
+  } else if (currentFilter === 'unpaid') {
+    filtered = filtered.filter(o => !o.paid && (!o.paidAmount || o.paidAmount === 0));
   }
 
   if (query) {
@@ -135,11 +139,14 @@ window.updateFilterCounts = function () {
     const elAll = document.getElementById('count-all');
     const elPending = document.getElementById('count-pending');
     const elReady = document.getElementById('count-ready');
+    const elPaid = document.getElementById('count-paid');
     const elUnpaid = document.getElementById('count-unpaid');
 
     if (elAll) elAll.textContent = allOrdersData.length;
     if (elPending) elPending.textContent = allOrdersData.filter(o => o.status === 'pending').length;
     if (elReady) elReady.textContent = allOrdersData.filter(o => o.status === 'ready').length;
+    if (elPaid) elPaid.textContent = allOrdersData.filter(o => o.paid || o.paidAmount > 0).length;
+    if (elUnpaid) elUnpaid.textContent = allOrdersData.filter(o => !o.paid && (!o.paidAmount || o.paidAmount === 0)).length;
   }
 
   // Show number only for active tab
