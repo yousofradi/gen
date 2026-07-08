@@ -3,7 +3,7 @@ import { StyleSheet, View, BackHandler, Platform, ActivityIndicator } from 'reac
 import { WebView } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native'; // Note: Only if using navigation, but we aren't here. So we handle back button manually.
+
 
 export default function App() {
   const webViewRef = useRef(null);
