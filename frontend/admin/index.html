@@ -242,12 +242,15 @@
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
-        // 1. Filter orders for current month (including archived), ONLY PAID or partially paid
-        const monthOrders = allOrders.filter(o => {
-          if (!o.createdAt || !(o.paid || Number(o.paidAmount) > 0)) return false;
+        // 1. ALL orders for current month
+        const allMonthOrders = allOrders.filter(o => {
+          if (!o.createdAt) return false;
           const d = new Date(o.createdAt);
           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });
+
+        // Filter paid orders for current month
+        const monthOrders = allMonthOrders.filter(o => (o.paid || Number(o.paidAmount) > 0));
 
         // 2. Filter orders for previous month to calculate growth
         const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
@@ -307,9 +310,9 @@
         document.getElementById('stat-orders').textContent = curOrdersCount;
         document.getElementById('stat-aov').textContent = formatPrice(curAOV);
 
-        // ── ORDER STATUS BREAKDOWN (Confirmed vs Cancelled) ──
+        // ── ORDER STATUS BREAKDOWN ──
         const confirmedOrders = monthOrders.filter(o => o.status !== 'cancelled');
-        const cancelledOrders = monthOrders.filter(o => o.status === 'cancelled');
+        const cancelledOrders = allMonthOrders.filter(o => o.status === 'cancelled');
 
         const confirmedCount = confirmedOrders.length;
         const confirmedValue = confirmedOrders.reduce((sum, o) => sum + Math.max(0, (o.totalPrice || 0) - (o.shippingFee || 0)), 0);
@@ -323,8 +326,8 @@
         document.getElementById('status-cancelled-count').textContent = cancelledCount;
         document.getElementById('status-cancelled-value').textContent = formatPrice(cancelledValue);
 
-        document.getElementById('status-total-count').textContent = curOrdersCount;
-        document.getElementById('status-total-value').textContent = formatPrice(curRevenue);
+        document.getElementById('status-total-count').textContent = confirmedCount + cancelledCount;
+        document.getElementById('status-total-value').textContent = formatPrice(confirmedValue + cancelledValue);
 
         // ── BEST SELLERS CALCULATION ──
         const productMap = {};
