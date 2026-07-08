@@ -25,7 +25,10 @@ const api = {
     }
 
     const promise = (async () => {
-      const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+      const headers = { ...(opts.headers || {}) };
+      if (method !== 'GET') {
+        headers['Content-Type'] = 'application/json';
+      }
       if (opts.admin) headers['x-admin-key'] = this._adminKey();
       const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
       const data = await res.json();
