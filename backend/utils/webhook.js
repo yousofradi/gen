@@ -259,10 +259,10 @@ ${shortLink}`;
                         margin: 0;
                         padding: 0;
                         width: 500px;
-                        height: fit-content;
                         background: #ffffff;
                         font-family: 'Cairo', Arial, sans-serif !important;
                         font-weight: 500;
+                        display: inline-block;
                       }
                       h1, h2, h3, h4, th, strong, b, .notes-title, .footer, .grand, .green, .red, .label-column { font-weight: 600 !important; }
                       .invoice {
@@ -372,6 +372,8 @@ ${shortLink}`;
                     html: fullHtml,
                     type: 'png',
                     width: 500,
+                    fullPage: true,
+                    omitBackground: true,
                     selector: '.invoice',
                     wait: 1000,
                     deviceScaleFactor: 2

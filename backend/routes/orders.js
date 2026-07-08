@@ -465,7 +465,7 @@ router.get('/:orderId/download-image', adminAuth, async (req, res) => {
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600&display=swap');
 * { font-family: 'Cairo', sans-serif !important; font-weight: 500; box-sizing: border-box; }
 h1, h2, h3, h4, th, strong, b, .notes-title, .footer, .grand, .green, .red, .label-column { font-weight: 600 !important; }
-body { margin: 0; padding: 0; background: #fff; }
+html, body { margin: 0; padding: 0; background: #fff; display: inline-block; }
 .invoice-container { width: 500px; margin: 0 auto; background: #fff; padding: 10px; }
 
 /* USER CSS START */
@@ -508,10 +508,12 @@ body { margin: 0; padding: 0; background: #fff; }
         'X-API-Key': process.env.SNAPRENDER_API_KEY
       },
       body: JSON.stringify({
-        html: await generateInvoiceInnerHtml(order, settings),
+        html: fullHtml,
         type: 'png',
         width: 500,
         fullPage: true,
+        omitBackground: true,
+        selector: '.invoice',
         deviceScaleFactor: 2
       })
     });
