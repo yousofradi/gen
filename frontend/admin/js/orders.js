@@ -24,14 +24,23 @@ async function loadOrders() {
 
   tbody.innerHTML = '<tr><td colspan="10" class="text-center" style="padding:32px;"><div class="spinner"></div></td></tr>';
   try {
-    const [ordersData, pmData, pnData] = await Promise.all([
+    const [ordersData, globalSettings, adminSettings] = await Promise.all([
       api.getOrders(showingArchived),
-      api.getSetting('paymentMethods').catch(() => null),
-      api.getSetting('paymentNotes').catch(() => null)
+      api.getSetting('sundura_global_settings').catch(() => null),
+      api.getSetting('admin_global_settings').catch(() => null)
     ]);
     allOrdersData = ordersData;
-    if (pmData) paymentMethodsCache = pmData;
-    if (pnData) paymentNotesCache = pnData;
+    
+    // Webhook uses sundura_global_settings for paymentMethods and paymentNotes
+    if (globalSettings) {
+      paymentMethodsCache = globalSettings.paymentMethods || [];
+      paymentNotesCache = globalSettings.paymentNotes || '';
+    } else if (adminSettings) {
+      // Fallback
+      paymentMethodsCache = adminSettings.paymentMethods || [];
+      paymentNotesCache = adminSettings.paymentNotes || '';
+    }
+    
     updateFilterCounts();
     filterOrdersClient();
   } catch (err) {
