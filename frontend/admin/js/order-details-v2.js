@@ -1540,3 +1540,33 @@ window.confirmMarkAsReady = async function (btn) {
   }
 };
 // printOrderInvoice consolidated at top
+
+window.markAsUnready = async function () {
+  if (!currentOrder) return;
+  const confirmed = await window.showConfirmModal('إلغاء تجهيز الطلب', 'هل أنت متأكد من تغيير حالة الطلب إلى قيد الانتظار (غير مجهز)؟', 'info');
+  if (!confirmed) return;
+
+  const btn = document.getElementById('btn-make-ready');
+  const originalText = btn ? btn.textContent : '';
+  if (btn) {
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;border-top-color:transparent;"></span>';
+    btn.disabled = true;
+  }
+
+  try {
+    document.body.classList.add('is-loading');
+    const updated = await api.updateOrder(currentOrder.orderId, { status: 'pending', updatedAt: currentOrder.updatedAt });
+    currentOrder = updated;
+    if (typeof originalOrder !== 'undefined') originalOrder = JSON.parse(JSON.stringify(updated));
+    renderOrder();
+    showToast('تم إرجاع الطلب كغير مجهز', 'success');
+  } catch (err) {
+    showToast(err.message || 'فشل تحديث الحالة', 'error');
+    if (btn) {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  } finally {
+    document.body.classList.remove('is-loading');
+  }
+};
