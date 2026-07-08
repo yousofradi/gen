@@ -242,9 +242,9 @@
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
-        // 1. Filter orders for current month (including archived), ONLY PAID
+        // 1. Filter orders for current month (including archived), ONLY PAID or partially paid
         const monthOrders = allOrders.filter(o => {
-          if (!o.createdAt || !o.paid) return false;
+          if (!o.createdAt || !(o.paid || Number(o.paidAmount) > 0)) return false;
           const d = new Date(o.createdAt);
           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });
@@ -253,7 +253,7 @@
         const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
         const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
         const prevMonthOrders = allOrders.filter(o => {
-          if (!o.createdAt || !o.paid) return false;
+          if (!o.createdAt || !(o.paid || Number(o.paidAmount) > 0)) return false;
           const d = new Date(o.createdAt);
           return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
         });
