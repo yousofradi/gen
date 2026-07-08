@@ -74,6 +74,8 @@ window.filterOrdersClient = function () {
 
   if (currentFilter === 'pending') {
     filtered = filtered.filter(o => o.status === 'pending');
+  } else if (currentFilter === 'ready') {
+    filtered = filtered.filter(o => o.status === 'ready');
   }
 
   if (query) {
@@ -132,10 +134,12 @@ window.updateFilterCounts = function () {
   if (!showingArchived) {
     const elAll = document.getElementById('count-all');
     const elPending = document.getElementById('count-pending');
+    const elReady = document.getElementById('count-ready');
     const elUnpaid = document.getElementById('count-unpaid');
 
     if (elAll) elAll.textContent = allOrdersData.length;
     if (elPending) elPending.textContent = allOrdersData.filter(o => o.status === 'pending').length;
+    if (elReady) elReady.textContent = allOrdersData.filter(o => o.status === 'ready').length;
   }
 
   // Show number only for active tab

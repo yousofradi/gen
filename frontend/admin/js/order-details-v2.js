@@ -1543,8 +1543,6 @@ window.confirmMarkAsReady = async function (btn) {
 
 window.markAsUnready = async function () {
   if (!currentOrder) return;
-  const confirmed = await window.showConfirmModal('إلغاء تجهيز الطلب', 'هل أنت متأكد من تغيير حالة الطلب إلى قيد الانتظار (غير مجهز)؟', 'info');
-  if (!confirmed) return;
 
   const btn = document.getElementById('btn-make-ready');
   const originalText = btn ? btn.textContent : '';
