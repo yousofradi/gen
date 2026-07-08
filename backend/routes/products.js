@@ -108,7 +108,7 @@ router.get('/', async (req, res) => {
       }
     }
 
-    let sortObj = { updatedAt: -1 };
+    let sortObj = { sortOrder: 1, createdAt: -1 };
     
     // Support manual sorting if collectionId is provided
     let manualOrder = null;
