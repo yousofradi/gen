@@ -796,6 +796,7 @@ router.post('/bulk/ship', adminAuth, async (req, res) => {
 
     const orders = await Order.find({
       orderId: { $in: orderIds },
+      status: 'ready',
       bostaDeliveryId: { $exists: false },
       carrier: { $ne: 'egyptpost' }
     });

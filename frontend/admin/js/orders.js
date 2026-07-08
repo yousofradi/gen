@@ -500,8 +500,7 @@ window.shipOrders = async function () {
   const originalHtml = btn ? btn.innerHTML : 'شحن الطلبات';
 
   const ordersToShip = allOrdersData.filter(o => 
-    o.status !== 'cancelled' && 
-    o.status !== 'archived' &&
+    o.status === 'ready' && 
     (o.paid === true || (o.paidAmount && o.paidAmount > 0)) && 
     !o.bostaDeliveryId
   );
