@@ -247,10 +247,9 @@ router.post('/', adminAuth, async (req, res) => {
     // Process images if they are from Google Drive
     await processDriveImages(body);
 
-    const count = await Product.countDocuments();
     const product = new Product({ 
       ...body,
-      sortOrder: count
+      sortOrder: -Date.now()
     });
     
     await product.save();
@@ -272,6 +271,7 @@ router.post('/', adminAuth, async (req, res) => {
 router.put('/:id', adminAuth, async (req, res) => {
   try {
     const body = req.body;
+    body.sortOrder = -Date.now();
     
     // Process images if they are from Google Drive
     await processDriveImages(body);

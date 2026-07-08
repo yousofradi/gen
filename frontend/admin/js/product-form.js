@@ -846,6 +846,22 @@ window.toggleVariantChildren = function (parentVal) {
   renderVariantsTable();
 }
 
+function updateTotalQuantityFromVariants() {
+  if (!variants || variants.length === 0) return;
+  let total = 0;
+  let allNull = true;
+  variants.forEach(v => {
+    if (v.quantity !== null && v.quantity !== undefined && v.quantity !== '') {
+      total += Number(v.quantity);
+      allNull = false;
+    }
+  });
+  const qtyInput = document.getElementById('p-quantity');
+  if (qtyInput) {
+    qtyInput.value = allNull ? '' : total;
+  }
+}
+
 window.updateVariantField = function (idx, field, val) {
   if (field === 'price' || field === 'salePrice' || field === 'quantity') {
     if (val === '') {
@@ -856,6 +872,11 @@ window.updateVariantField = function (idx, field, val) {
   } else {
     variants[idx][field] = val;
   }
+
+  if (field === 'quantity') {
+    updateTotalQuantityFromVariants();
+  }
+
   if (window.markAsModified) safeMarkAsModified();
 }
 
@@ -871,12 +892,17 @@ window.bulkUpdateGroup = function (parentVal, field, val) {
     }
   });
 
+  if (field === 'quantity') {
+    updateTotalQuantityFromVariants();
+  }
+
   renderVariantsTable();
   if (window.markAsModified) safeMarkAsModified();
 };
 
 window.removeVariant = function (idx) {
   variants.splice(idx, 1);
+  updateTotalQuantityFromVariants();
   renderVariantsTable();
   if (window.markAsModified) safeMarkAsModified();
 }
