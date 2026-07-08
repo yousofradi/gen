@@ -226,19 +226,24 @@ function renderOrders(orders) {
         if (paymentMethodsCache && Array.isArray(paymentMethodsCache)) {
           const matchedPM = paymentMethodsCache.find(m => m.label === o.paymentMethod || m.label === pmAr);
           if (matchedPM && matchedPM.number) {
-            paymentNumberStr = `\nرقم الدفع: ${matchedPM.number}`;
+            paymentNumberStr = `\r\nرقم الدفع: ${matchedPM.number}`;
           }
         }
 
-        const pnStr = paymentNotesCache ? `\n\n${paymentNotesCache}` : '';
+        let safeNotes = paymentNotesCache ? paymentNotesCache.replace(/\r?\n/g, '\r\n') : '';
+        const pnStr = safeNotes ? `\r\n\r\n${safeNotes}` : '';
 
-        const msg = encodeURIComponent(`مرحباً ${o.customer.name || ''}
+        const rawMsg = [
+          `مرحباً ${o.customer.name || ''}`,
+          '',
+          `رقم الطلب: ${o.orderId}`,
+          `إجمالي المبلغ: ${o.totalPrice} EGP`,
+          `طريقة الدفع: ${pmAr}${paymentNumberStr}${pnStr}`,
+          '',
+          `شكراً لثقتك بنا ♡`
+        ].join('\r\n');
 
-رقم الطلب: ${o.orderId}
-إجمالي المبلغ: ${o.totalPrice} EGP
-طريقة الدفع: ${pmAr}${paymentNumberStr}${pnStr}
-
-شكراً لثقتك بنا ♡`);
+        const msg = encodeURIComponent(rawMsg);
         waLink = `<a href="https://wa.me/${cleanPhone}?text=${msg}" target="_blank" onclick="event.stopPropagation()" style="display:inline-block; margin-right:8px; color:#10b981; text-decoration:none;" title="مراسلة العميل عبر واتساب">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
         </a>`;
