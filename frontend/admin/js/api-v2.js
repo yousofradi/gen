@@ -6,13 +6,20 @@
   const cachedUrl = localStorage.getItem('admin_store_url');
 
 
+  const normalizeBrandName = (value) => {
+    const raw = (value || '').toString().trim();
+    if (!raw) return 'Store';
+    return raw.toLowerCase().includes('sundura') ? 'Store' : raw;
+  };
+
   const apply = () => {
-    if (cachedName || true) { // Always execute
-      document.querySelectorAll('.store-name-text').forEach(el => el.textContent = 'SunduraShop');
-      if (document.title.includes('—')) {
-        const parts = document.title.split('—');
-        document.title = parts[0].trim() + ' — SunduraShop';
-      }
+    const brandName = normalizeBrandName(cachedName || 'Store');
+    document.querySelectorAll('.store-name-text').forEach(el => el.textContent = brandName);
+    if (document.title.includes('—')) {
+      const parts = document.title.split('—');
+      document.title = parts[0].trim() + ' — ' + brandName;
+    } else if (!document.title.trim()) {
+      document.title = brandName;
     }
     if (cachedColor) {
       document.documentElement.style.setProperty('--primary', cachedColor);
@@ -434,7 +441,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (settings.storeUrl) localStorage.setItem('sundura_store_url', settings.storeUrl);
       if (settings.storeName) {
         localStorage.setItem('sundura_store_name', settings.storeName);
-        document.querySelectorAll('.store-name-text').forEach(el => el.textContent = 'SunduraShop');
+        document.querySelectorAll('.store-name-text').forEach(el => el.textContent = normalizeBrandName(settings.storeName));
       }
 
       if (settings.storeUrl) {
@@ -462,22 +469,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (const sep of separators) {
           if (document.title.includes(sep)) {
             const parts = document.title.split(sep);
-            document.title = parts[0].trim() + ' ' + sep + ' SunduraShop';
+            document.title = parts[0].trim() + ' ' + sep + ' ' + normalizeBrandName(settings.storeName);
             updated = true;
             break;
           }
         }
         if (!updated) {
-          document.title = 'SunduraShop';
+          document.title = normalizeBrandName(settings.storeName);
         }
 
         const adminBrand = document.querySelector('.admin-brand-title');
-        if (adminBrand) adminBrand.textContent = 'SunduraShop';
+        if (adminBrand) adminBrand.textContent = normalizeBrandName(settings.storeName);
 
         // Update any generic placeholders in the DOM
         document.querySelectorAll('.store-name-text').forEach(el => {
-          if (el.tagName === 'INPUT') el.value = 'SunduraShop';
-          else el.textContent = 'SunduraShop';
+          if (el.tagName === 'INPUT') el.value = normalizeBrandName(settings.storeName);
+          else el.textContent = normalizeBrandName(settings.storeName);
         });
 
         // 3.1 SEO Meta Tags
