@@ -1,16 +1,16 @@
 // ── Immediate Branding Application ──────────────────────────
+const normalizeBrandName = (value) => {
+  const raw = (value || '').toString().trim();
+  if (!raw) return 'Store';
+  return raw.toLowerCase().includes('sundura') ? 'Store' : raw;
+};
+window.normalizeBrandName = normalizeBrandName;
+
 (function () {
   const cachedName = localStorage.getItem('admin_store_name');
   const cachedColor = localStorage.getItem('admin_primary_color');
   const cachedLogo = localStorage.getItem('admin_store_logo');
   const cachedUrl = localStorage.getItem('admin_store_url');
-
-
-  const normalizeBrandName = (value) => {
-    const raw = (value || '').toString().trim();
-    if (!raw) return 'Store';
-    return raw.toLowerCase().includes('sundura') ? 'Store' : raw;
-  };
 
   const apply = () => {
     const brandName = normalizeBrandName(cachedName || 'Store');
