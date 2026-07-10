@@ -191,51 +191,6 @@
             </div>
           </div>
 
-          <!-- SHIPPING SETTINGS CARD -->
-          <div class="admin-card">
-            <h3 class="mb-16">إعدادات الشحن والتوصيل</h3>
-            
-            <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:16px;">
-              <div>
-                <label class="form-label" style="margin:0; font-weight:700;">تمكين شركة بوسطا (Bosta)</label>
-                <p class="text-sm text-muted mt-4" style="margin:0;">تفعيل أو تعطيل الشحن عبر شركة بوسطا.</p>
-              </div>
-              <label class="switch-premium" style="position:relative; display:inline-block; width:50px; height:26px; cursor:pointer;" onclick="const cb = document.getElementById('setting-enable-bosta'); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change', {bubbles: true}));">
-                <input type="checkbox" id="setting-enable-bosta" checked style="opacity:0; width:0; height:0;">
-                <span class="slider-premium" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#cbd5e1; transition:.4s; border-radius:34px;"></span>
-              </label>
-            </div>
-
-            <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:16px; padding-top:12px;">
-              <div>
-                <label class="form-label" style="margin:0; font-weight:700;">تمكين البريد المصري (Egypt Post)</label>
-                <p class="text-sm text-muted mt-4" style="margin:0;">تفعيل أو تعطيل الشحن عبر البريد المصري.</p>
-              </div>
-              <label class="switch-premium" style="position:relative; display:inline-block; width:50px; height:26px; cursor:pointer;" onclick="const cb = document.getElementById('setting-enable-egypt-post'); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change', {bubbles: true}));">
-                <input type="checkbox" id="setting-enable-egypt-post" checked style="opacity:0; width:0; height:0;">
-                <span class="slider-premium" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#cbd5e1; transition:.4s; border-radius:34px;"></span>
-              </label>
-            </div>
-
-            <div class="form-group" style="padding-top:12px; border-bottom:1px solid #f1f5f9; padding-bottom:16px;">
-              <label class="form-label">سعر شحن البريد المصري</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <input type="number" id="setting-egypt-post-fee" class="form-control" style="width:120px;" placeholder="60">
-                <span style="font-weight:600; color:var(--text-muted);">ج.م</span>
-              </div>
-            </div>
-
-            <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; padding-top:12px; margin-bottom:0;">
-              <div>
-                <label class="form-label" style="margin:0; font-weight:700;">تمكين المناطق (Zones)</label>
-                <p class="text-sm text-muted mt-4" style="margin:0;">تفعيل أو تعطيل الشحن على مستوى المناطق والقرى.</p>
-              </div>
-              <label class="switch-premium" style="position:relative; display:inline-block; width:50px; height:26px; cursor:pointer;" onclick="const cb = document.getElementById('setting-enable-zones'); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change', {bubbles: true}));">
-                <input type="checkbox" id="setting-enable-zones" checked style="opacity:0; width:0; height:0;">
-                <span class="slider-premium" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#cbd5e1; transition:.4s; border-radius:34px;"></span>
-              </label>
-            </div>
-          </div>
         </div>
 
         <!-- Left Column (Column 2) -->
